@@ -6,6 +6,25 @@
 
 set -e
 
+# Check prerequisites
+if ! command -v npm &> /dev/null; then
+    echo "ERROR: npm is not installed."
+    echo "Please install Node.js: https://nodejs.org/"
+    exit 1
+fi
+
+if ! command -v claude &> /dev/null; then
+    echo "WARNING: Claude Code CLI not found in PATH."
+    echo "Multivac requires Claude Code to function."
+    echo "Install it from: https://docs.anthropic.com/en/docs/claude-code"
+    echo ""
+    read -p "Continue anyway? (y/N) " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 
