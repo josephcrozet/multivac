@@ -83,36 +83,61 @@ Your progress persists across sessions via a local SQLite database. Pick up exac
 
 ## Installation
 
+### Quick Install (Recommended)
+
 ```bash
-# Clone the repository
-git clone https://github.com/josephcrozet/multivac
-cd multivac
-
-# Run the install script
-bash install.sh
-
-# Restart Claude Code to load the MCP server
+curl -fsSL https://raw.githubusercontent.com/josephcrozet/multivac/main/install.sh | bash
 ```
 
-The install script copies files to `~/.claude/` and configures the MCP server. It won't overwrite your existing files.
+### Manual Install
+
+```bash
+git clone https://github.com/josephcrozet/multivac
+cd multivac
+./install.sh
+```
+
+The installer will:
+- Install the MCP server and build it
+- Install commands, prompts, agents, and hooks to `~/.claude/`
+- Install the `multivac` command to `~/.local/bin/`
+
+If `~/.local/bin` isn't in your PATH, the installer will show you how to add it.
 
 ## Quick Start
 
-1. **Create a tutorial directory:**
+```bash
+multivac python
+```
 
-   ```bash
-   mkdir ~/tutorials/python && cd ~/tutorials/python
-   ```
+That's it. This command:
+1. Creates a tutorial project at `~/multivac/python/`
+2. Launches Claude Code with the MCP server configured
+3. When prompted, approve the MCP server — this enables progress tracking and is required for tutorials to work
+4. Run `/tutorial` to begin learning
 
-2. **Launch Claude Code and start:**
+Claude generates a full curriculum on the fly and guides you through it.
 
-   ```
-   /tutorial
-   ```
+### Other Examples
 
-3. **Follow the prompts** to pick your topic and begin learning.
+```bash
+multivac                    # Creates ~/multivac/tutorial/
+multivac javascript         # Creates ~/multivac/javascript/
+multivac rust               # Creates ~/multivac/rust/
+multivac --home ~/Desktop python  # Creates ~/Desktop/python/
+```
 
-That's it. Claude generates a full curriculum on the fly and guides you through it.
+### Continuing a Tutorial
+
+Just run the same command again:
+
+```bash
+multivac python
+# "Tutorial 'python' already exists..."
+# [c]ontinue existing tutorial
+# [n]ew tutorial (creates python-2)
+# [q]uit
+```
 
 ## How It Works (For the Curious)
 
@@ -140,9 +165,18 @@ This project demonstrates Claude Code's extensibility:
 │   └── capstone-test-runner.sh # Runs tests on capstone todo completion
 ├── prompts/
 │   └── tutorial-session.md     # Full tutorial session instructions
-├── mcp-servers/
-│   └── learning-tracker/       # SQLite-backed progress tracking
-└── settings.json               # MCP server + hook configuration
+└── mcp-servers/
+    └── learning-tracker/       # SQLite-backed progress tracking
+
+~/.local/bin/
+└── multivac                    # CLI command to create tutorial projects
+
+~/multivac/                     # Your tutorial projects (created by multivac command)
+├── python/
+│   ├── .claude/settings.json   # Local MCP + hook config
+│   └── CLAUDE.md               # Tutorial mode marker
+└── javascript/
+    └── ...
 ```
 
 ### MCP Server Tools
@@ -164,8 +198,8 @@ This project demonstrates Claude Code's extensibility:
 ## Requirements
 
 - macOS or Linux (Windows users: use WSL)
-- Claude Code CLI
-- Node.js 18+ (for MCP server)
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
+- [Node.js](https://nodejs.org/) 18+ (for MCP server)
 - Claude Pro subscription (recommended for longer sessions)
 
 ## Limitations
