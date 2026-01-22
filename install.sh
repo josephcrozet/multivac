@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Multivac Installer
-# Safely installs files without overwriting existing ones
-# Merges MCP server and hook config into settings.json
+# Installs the MCP server, commands, and multivac CLI tool
 
 set -e
 
@@ -27,6 +26,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
+BIN_DIR="$HOME/.local/bin"
 
 echo "Installing Multivac..."
 echo ""
@@ -38,6 +38,7 @@ mkdir -p "$CLAUDE_DIR/commands"
 mkdir -p "$CLAUDE_DIR/hooks"
 mkdir -p "$CLAUDE_DIR/prompts"
 mkdir -p "$CLAUDE_DIR/mcp-servers/learning-tracker"
+mkdir -p "$BIN_DIR"
 
 # Function to copy file if it doesn't exist
 copy_if_not_exists() {
@@ -91,64 +92,37 @@ npm install --silent
 npm run build --silent
 echo "  MCP server built successfully"
 
-# Merge settings.json
+# Install multivac command
 echo ""
-echo "Configuring settings.json..."
-
-SETTINGS_FILE="$CLAUDE_DIR/settings.json"
-MCP_SERVER_PATH="$CLAUDE_DIR/mcp-servers/learning-tracker/dist/index.js"
-HOOK_PATH="$CLAUDE_DIR/hooks/capstone-test-runner.sh"
-
-# Create settings.json if it doesn't exist
-if [ ! -f "$SETTINGS_FILE" ]; then
-    echo '{}' > "$SETTINGS_FILE"
-fi
-
-# Check if jq is available
-if command -v jq &> /dev/null; then
-    # Use jq for proper JSON merging
-    TEMP_FILE=$(mktemp)
-
-    # Add MCP server if not present
-    if ! jq -e '.mcpServers["learning-tracker"]' "$SETTINGS_FILE" > /dev/null 2>&1; then
-        jq --arg path "$MCP_SERVER_PATH" '.mcpServers["learning-tracker"] = {"command": "node", "args": [$path]}' "$SETTINGS_FILE" > "$TEMP_FILE"
-        mv "$TEMP_FILE" "$SETTINGS_FILE"
-        echo "  Added learning-tracker MCP server"
-    else
-        echo "  SKIP: learning-tracker MCP server (already configured)"
-    fi
-
-    # Add hook if not present
-    if ! jq -e '.hooks.PreToolUse[]? | select(.matcher == "TodoWrite")' "$SETTINGS_FILE" > /dev/null 2>&1; then
-        jq --arg path "$HOOK_PATH" '.hooks.PreToolUse = ((.hooks.PreToolUse // []) + [{"matcher": "TodoWrite", "hooks": [{"type": "command", "command": $path}]}])' "$SETTINGS_FILE" > "$TEMP_FILE"
-        mv "$TEMP_FILE" "$SETTINGS_FILE"
-        echo "  Added capstone-test-runner hook"
-    else
-        echo "  SKIP: TodoWrite hook (already configured)"
-    fi
-else
-    echo "  WARNING: jq not found. Please manually add to $SETTINGS_FILE:"
-    echo ""
-    echo '  "mcpServers": {'
-    echo '    "learning-tracker": {'
-    echo '      "command": "node",'
-    echo "      \"args\": [\"$MCP_SERVER_PATH\"]"
-    echo '    }'
-    echo '  },'
-    echo '  "hooks": {'
-    echo '    "PreToolUse": [{'
-    echo '      "matcher": "TodoWrite",'
-    echo "      \"hooks\": [{\"type\": \"command\", \"command\": \"$HOOK_PATH\"}]"
-    echo '    }]'
-    echo '  }'
-fi
+echo "Installing multivac command..."
+cp "$SCRIPT_DIR/bin/multivac" "$BIN_DIR/multivac"
+chmod +x "$BIN_DIR/multivac"
+echo "  Installed to $BIN_DIR/multivac"
 
 echo ""
 echo "Installation complete!"
 echo ""
-echo "Next steps:"
-echo "  1. Restart Claude Code to load the MCP server"
-echo "  2. Create a tutorial directory: mkdir ~/tutorials/python && cd ~/tutorials/python"
-echo "  3. Run: /output-style learning"
-echo "  4. Run: /tutorial"
+
+# Check if ~/.local/bin is in PATH
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    echo "NOTE: ~/.local/bin is not in your PATH."
+    echo ""
+    echo "Add this line to your shell profile (~/.bashrc or ~/.zshrc):"
+    echo ""
+    echo '  export PATH="$HOME/.local/bin:$PATH"'
+    echo ""
+    echo "Then restart your terminal or run:"
+    echo "  source ~/.bashrc  (or ~/.zshrc)"
+    echo ""
+fi
+
+echo "To start a tutorial, run:"
+echo ""
+echo "  multivac <topic>"
+echo ""
+echo "Examples: multivac python, multivac javascript, multivac rust"
+echo ""
+echo "This creates a project at ~/multivac/<topic>/ and launches Claude Code."
+echo "When prompted, approve the MCP server to enable progress tracking."
+echo "Then run /tutorial to begin learning!"
 echo ""
