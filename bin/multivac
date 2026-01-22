@@ -105,10 +105,12 @@ fi
 # Create project structure
 echo "Creating tutorial project at $PROJECT_DIR..."
 mkdir -p "$PROJECT_DIR/.claude"
+mkdir -p "$PROJECT_DIR/.multivac"
 
 # Get paths to installed components
 MCP_SERVER_PATH="$HOME/.claude/mcp-servers/learning-tracker/dist/index.js"
 HOOK_PATH="$HOME/.claude/hooks/capstone-test-runner.sh"
+DATA_DIR="$PROJECT_DIR/.multivac"
 
 # Verify MCP server is installed
 if [[ ! -f "$MCP_SERVER_PATH" ]]; then
@@ -117,13 +119,16 @@ if [[ ! -f "$MCP_SERVER_PATH" ]]; then
     exit 1
 fi
 
-# Create local settings.json
+# Create local settings.json with MULTIVAC_DATA_DIR env var
 cat > "$PROJECT_DIR/.claude/settings.json" << EOF
 {
   "mcpServers": {
     "learning-tracker": {
       "command": "node",
-      "args": ["$MCP_SERVER_PATH"]
+      "args": ["$MCP_SERVER_PATH"],
+      "env": {
+        "MULTIVAC_DATA_DIR": "$DATA_DIR"
+      }
     }
   },
   "hooks": {
@@ -135,19 +140,25 @@ cat > "$PROJECT_DIR/.claude/settings.json" << EOF
 }
 EOF
 
-# Create CLAUDE.md
-cat > "$PROJECT_DIR/CLAUDE.md" << 'EOF'
+# Convert topic to title case for display (e.g., "python" -> "Python")
+TOPIC_DISPLAY="$(echo "$TOPIC" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')"
+
+# Create CLAUDE.md with topic
+cat > "$PROJECT_DIR/CLAUDE.md" << EOF
 <!-- multivac-tutorial -->
+<!-- topic: $TOPIC_DISPLAY -->
 ## Tutorial Mode
 
 This is a Multivac tutorial project. You are a programming tutor guiding the user through a structured curriculum.
 
-**Quick reference:**
-- Progress tracking: Use the `learning-tracker` MCP server tools
-- Current position: Call `get_current_position` to find where the user left off
-- Full instructions: Read `~/.claude/prompts/tutorial-session.md`
+**Topic:** $TOPIC_DISPLAY
 
-**After compaction or context loss:** Read `~/.claude/prompts/tutorial-session.md` and call `get_current_position`, then resume the lesson flow.
+**Quick reference:**
+- Progress tracking: Use the \`learning-tracker\` MCP server tools
+- Current position: Call \`get_current_position\` to find where the user left off
+- Full instructions: Read \`~/.claude/prompts/tutorial-session.md\`
+
+**After compaction or context loss:** Read \`~/.claude/prompts/tutorial-session.md\` and call \`get_current_position\`, then resume the lesson flow.
 <!-- /multivac-tutorial -->
 EOF
 
