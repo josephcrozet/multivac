@@ -2,6 +2,10 @@
 
 # Multivac Installer
 # Installs the MCP server, commands, and multivac CLI tool
+#
+# Usage:
+#   Local:  ./install.sh
+#   Remote: curl -fsSL https://raw.githubusercontent.com/josephcrozet/multivac/main/install.sh | bash
 
 set -e
 
@@ -24,9 +28,54 @@ if ! command -v claude &> /dev/null; then
     fi
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 BIN_DIR="$HOME/.local/bin"
+CLEANUP_TEMP=""
+
+# Determine source directory (local clone or remote download)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || SCRIPT_DIR=""
+
+if [[ -z "$SCRIPT_DIR" ]] || [[ ! -f "$SCRIPT_DIR/bin/multivac" ]]; then
+    # Running from curl or script dir doesn't have expected files
+    # Download the repo to a temp directory
+    echo "Downloading Multivac..."
+
+    if ! command -v curl &> /dev/null; then
+        echo "ERROR: curl is not installed."
+        echo ""
+        echo "Install curl using your package manager:"
+        echo "  macOS:  curl is pre-installed"
+        echo "  Ubuntu: sudo apt install curl"
+        echo "  Fedora: sudo dnf install curl"
+        echo ""
+        echo "Or clone the repo manually:"
+        echo "  git clone https://github.com/josephcrozet/multivac.git"
+        echo "  cd multivac && ./install.sh"
+        exit 1
+    fi
+
+    TEMP_DIR=$(mktemp -d)
+    CLEANUP_TEMP="$TEMP_DIR"
+
+    curl -fsSL https://github.com/josephcrozet/multivac/archive/main.tar.gz | tar xz -C "$TEMP_DIR"
+    SCRIPT_DIR="$TEMP_DIR/multivac-main"
+
+    if [[ ! -f "$SCRIPT_DIR/bin/multivac" ]]; then
+        echo "ERROR: Failed to download Multivac files."
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+
+    echo ""
+fi
+
+# Cleanup function
+cleanup() {
+    if [[ -n "$CLEANUP_TEMP" ]] && [[ -d "$CLEANUP_TEMP" ]]; then
+        rm -rf "$CLEANUP_TEMP"
+    fi
+}
+trap cleanup EXIT
 
 echo "Installing Multivac..."
 echo ""
