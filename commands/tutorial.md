@@ -4,33 +4,27 @@ Start, continue, or manage a structured programming tutorial.
 
 ## Step 1: Check Tutorial State
 
-Call `list_tutorials` from the learning-tracker MCP server.
+Call `get_active_tutorial` from the learning-tracker MCP server.
 
 **If the call fails or the MCP server is not available:**
 
-Diagnose the issue by running:
-```bash
-jq -r --arg cwd "$PWD" 'if .projects[$cwd].mcpServers then "project-specific" else "none" end' ~/.claude.json 2>/dev/null || echo "none"
-```
+This isn't a Multivac tutorial project. Tell the user:
 
-- **If "project-specific":** Ask: "The learning-tracker MCP server isn't available because this project has custom MCP servers. Would you like me to add it to this project's settings?" If yes, run:
-  ```bash
-  jq --arg cwd "$PWD" --arg path "$HOME/.claude/mcp-servers/learning-tracker/dist/index.js" \
-    '.projects[$cwd].mcpServers["learning-tracker"] = {"type": "stdio", "command": "node", "args": [$path], "env": {}}' \
-    ~/.claude.json > /tmp/claude.json.tmp && mv /tmp/claude.json.tmp ~/.claude.json
-  ```
-  Then: "Done! Please restart Claude Code and run /tutorial again."
+"This directory isn't set up as a tutorial project. To start a tutorial:
 
-- **If "none":** "The learning-tracker MCP server is required. Please run the Multivac installer: `bash install.sh`"
+1. Exit Claude Code (`/exit`)
+2. Run: `multivac <topic>` (e.g., `multivac python`)
+3. This creates a tutorial project and launches Claude Code
+4. Then run `/tutorial` to begin"
 
 **If the call succeeds:**
 
-- **Active tutorial exists (status: in_progress):** Go directly to Step 3 (Active Tutorial Menu)
-- **No tutorials exist (or all completed):** Go to Step 2 (New Tutorial Flow)
+- **Tutorial exists (status: in_progress or not_started):** Go to Step 3 (Tutorial Menu)
+- **No tutorial exists yet:** Go to Step 2 (New Tutorial Setup)
 
-## Step 2: New Tutorial Flow
+## Step 2: New Tutorial Setup
 
-No active tutorial found. First, check for optional components:
+No tutorial exists in this project yet. First, check for optional components:
 
 ```bash
 missing=""; [ ! -f ~/.claude/commands/quiz.md ] && missing="$missing quiz"; [ ! -f ~/.claude/agents/interview-agent.md ] && missing="$missing interview"; [ ! -f ~/.claude/hooks/capstone-test-runner.sh ] && missing="$missing hook"; echo "${missing:-ok}"
@@ -41,14 +35,32 @@ missing=""; [ ! -f ~/.claude/commands/quiz.md ] && missing="$missing quiz"; [ ! 
 
 Then proceed with setup:
 
-1. Inform the user: "For the best learning experience, please run `/output-style learning` if you haven't already."
-2. Read and follow the complete tutorial instructions from: `~/.claude/prompts/tutorial-session.md`
+1. Read the topic from the CLAUDE.md file (look for `<!-- topic: X -->` or `**Topic:** X`)
+2. Inform the user: "For the best learning experience, please run `/output-style learning` if you haven't already."
+3. Read and follow the complete tutorial instructions from: `~/.claude/prompts/tutorial-session.md`
 
-## Step 3: Active Tutorial Menu
+**Topic Selection:**
 
-An active tutorial exists. Use `AskUserQuestion` to present options:
+Present topic options using `AskUserQuestion`:
+- **First option:** The topic from CLAUDE.md (e.g., "Python") marked as "(Recommended)"
+- **Additional options:** 2-3 related topics based on the directory name:
+  - For "python": Django, FastAPI, Data Science with Python
+  - For "javascript": React, Node.js, TypeScript
+  - For "rust": Systems Programming with Rust, WebAssembly with Rust
+  - For generic names like "tutorial": Python, JavaScript, Go, Rust
+- User can always enter a custom topic
 
-**Question:** "You have an active tutorial in progress. What would you like to do?"
+**After topic selection:**
+
+If the user selects a different topic than what's in CLAUDE.md, update the file:
+1. Replace `<!-- topic: X -->` with the new topic
+2. Replace `**Topic:** X` with the new topic
+
+## Step 3: Tutorial Menu
+
+A tutorial exists in this project. Use `AskUserQuestion` to present options:
+
+**Question:** "You have a tutorial in progress. What would you like to do?"
 
 **Options (in this order):**
 1. **Continue** — "Resume learning from your current position"
@@ -63,8 +75,8 @@ Read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flo
 Display the Progress Screen (see format below), then return to this menu.
 
 ### If "Start over" selected:
-**Requires confirmation.** Ask: "This will erase all your progress in this tutorial. Are you sure?"
-- If confirmed: Clear the tutorial progress (delete and recreate, or reset to initial state) and go to Step 2.
+**Requires confirmation.** Ask: "This will erase all your progress. You can choose a new topic if you'd like. Are you sure?"
+- If confirmed: Delete the `.multivac/learning.db` file to reset, then go to Step 2.
 - If cancelled: Return to menu.
 
 ### If "Exit tutorial" selected:
@@ -79,7 +91,7 @@ Display the Progress Screen (see format below), then return to this menu.
 Display tutorial progress in a retro video game-style ASCII art format.
 
 ### Data Collection
-1. Call `get_tutorial` with the tutorial_id to get full stats
+1. Call `get_tutorial` to get full stats
 2. Call `get_review_queue` to see pending reviews
 3. Call `get_current_position` to get current location
 
