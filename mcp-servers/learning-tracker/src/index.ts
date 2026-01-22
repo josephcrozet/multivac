@@ -90,8 +90,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: 'list_tutorials',
-        description: 'List all tutorials with their completion status. Use this to see available tutorials and their progress.',
+        name: 'get_active_tutorial',
+        description: 'Get the active tutorial for this project, including completion status. Returns null if no tutorial exists yet.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -102,41 +102,23 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: 'Get complete tutorial details including structure, progress, and statistics. Use this to see the full curriculum and current state.',
         inputSchema: {
           type: 'object',
-          properties: {
-            tutorial_id: {
-              type: 'number',
-              description: 'ID of the tutorial to retrieve',
-            },
-          },
-          required: ['tutorial_id'],
+          properties: {},
         },
       },
       {
         name: 'start_tutorial',
-        description: 'Start a tutorial, setting it to in_progress and positioning at the first lesson.',
+        description: 'Start the tutorial, setting it to in_progress and positioning at the first lesson.',
         inputSchema: {
           type: 'object',
-          properties: {
-            tutorial_id: {
-              type: 'number',
-              description: 'ID of the tutorial to start',
-            },
-          },
-          required: ['tutorial_id'],
+          properties: {},
         },
       },
       {
         name: 'get_current_position',
-        description: 'Get the current position in a tutorial (current lesson, module, and level). Also indicates if this is the start of a new module (for triggering reviews).',
+        description: 'Get the current position in the tutorial (current lesson, module, and level). Also indicates if this is the start of a new module (for triggering reviews).',
         inputSchema: {
           type: 'object',
-          properties: {
-            tutorial_id: {
-              type: 'number',
-              description: 'ID of the tutorial',
-            },
-          },
-          required: ['tutorial_id'],
+          properties: {},
         },
       },
       {
@@ -144,13 +126,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: 'Move to the next lesson in the tutorial. Marks the current lesson as completed, updates module/level completion status, and adds the lesson to the review queue.',
         inputSchema: {
           type: 'object',
-          properties: {
-            tutorial_id: {
-              type: 'number',
-              description: 'ID of the tutorial',
-            },
-          },
-          required: ['tutorial_id'],
+          properties: {},
         },
       },
       {
@@ -233,13 +209,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: 'Get lessons in the review queue. Each lesson has multiple concepts; pick one concept per lesson for review questions. Use at the start of modules to review previous material.',
         inputSchema: {
           type: 'object',
-          properties: {
-            tutorial_id: {
-              type: 'number',
-              description: 'ID of the tutorial',
-            },
-          },
-          required: ['tutorial_id'],
+          properties: {},
         },
       },
       {
@@ -248,10 +218,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: 'object',
           properties: {
-            tutorial_id: {
-              type: 'number',
-              description: 'ID of the tutorial',
-            },
             lesson_id: {
               type: 'number',
               description: 'ID of the lesson being reviewed',
@@ -261,7 +227,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description: 'Whether the user answered correctly',
             },
           },
-          required: ['tutorial_id', 'lesson_id', 'correct'],
+          required: ['lesson_id', 'correct'],
         },
       },
     ],
@@ -292,16 +258,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      case 'list_tutorials': {
-        const tutorials = database.listTutorials();
+      case 'get_active_tutorial': {
+        const tutorial = database.getActiveTutorial();
         return {
           content: [
             {
               type: 'text',
               text: JSON.stringify({
                 success: true,
-                count: tutorials.length,
-                tutorials,
+                exists: tutorial !== null,
+                tutorial,
               }, null, 2),
             },
           ],
@@ -309,21 +275,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_tutorial': {
-        const { tutorial_id } = args as { tutorial_id: number };
-        const data = database.getTutorial(tutorial_id);
-        if (!data) {
+        const tutorial_id = database.getActiveTutorialId();
+        if (!tutorial_id) {
           return {
             content: [
               {
                 type: 'text',
                 text: JSON.stringify({
                   success: false,
-                  error: `Tutorial with ID ${tutorial_id} not found`,
+                  error: 'No tutorial exists in this project yet. Create one first.',
                 }, null, 2),
               },
             ],
           };
         }
+        const data = database.getTutorial(tutorial_id);
         return {
           content: [
             {
@@ -338,7 +304,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'start_tutorial': {
-        const { tutorial_id } = args as { tutorial_id: number };
+        const tutorial_id = database.getActiveTutorialId();
+        if (!tutorial_id) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  success: false,
+                  error: 'No tutorial exists in this project yet. Create one first.',
+                }, null, 2),
+              },
+            ],
+          };
+        }
         const progress = database.startTutorial(tutorial_id);
         return {
           content: [
@@ -355,21 +334,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_current_position': {
-        const { tutorial_id } = args as { tutorial_id: number };
-        const position = database.getCurrentPosition(tutorial_id);
-        if (!position) {
+        const tutorial_id = database.getActiveTutorialId();
+        if (!tutorial_id) {
           return {
             content: [
               {
                 type: 'text',
                 text: JSON.stringify({
                   success: false,
-                  error: `Tutorial with ID ${tutorial_id} not found`,
+                  error: 'No tutorial exists in this project yet. Create one first.',
                 }, null, 2),
               },
             ],
           };
         }
+        const position = database.getCurrentPosition(tutorial_id);
         return {
           content: [
             {
@@ -384,7 +363,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'advance_position': {
-        const { tutorial_id } = args as { tutorial_id: number };
+        const tutorial_id = database.getActiveTutorialId();
+        if (!tutorial_id) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  success: false,
+                  error: 'No tutorial exists in this project yet. Create one first.',
+                }, null, 2),
+              },
+            ],
+          };
+        }
         const result = database.advancePosition(tutorial_id);
         return {
           content: [
@@ -465,7 +457,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_review_queue': {
-        const { tutorial_id } = args as { tutorial_id: number };
+        const tutorial_id = database.getActiveTutorialId();
+        if (!tutorial_id) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  success: false,
+                  error: 'No tutorial exists in this project yet. Create one first.',
+                }, null, 2),
+              },
+            ],
+          };
+        }
         const queue = database.getReviewQueue(tutorial_id);
         return {
           content: [
@@ -483,8 +488,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'log_review_result': {
-        const { tutorial_id, lesson_id, correct } = args as {
-          tutorial_id: number;
+        const tutorial_id = database.getActiveTutorialId();
+        if (!tutorial_id) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  success: false,
+                  error: 'No tutorial exists in this project yet. Create one first.',
+                }, null, 2),
+              },
+            ],
+          };
+        }
+        const { lesson_id, correct } = args as {
           lesson_id: number;
           correct: boolean;
         };

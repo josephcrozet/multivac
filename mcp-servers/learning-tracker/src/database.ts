@@ -1,10 +1,16 @@
 import Database from 'better-sqlite3';
-import { homedir } from 'os';
 import { join } from 'path';
 import { mkdirSync, existsSync } from 'fs';
 
-// Store data in ~/.claude/mcp-servers/learning-tracker/data/
-const DATA_DIR = join(homedir(), '.claude', 'mcp-servers', 'learning-tracker', 'data');
+// Data directory must be set via MULTIVAC_DATA_DIR environment variable
+// This is set by the local .claude/settings.json in each tutorial project
+const DATA_DIR = process.env.MULTIVAC_DATA_DIR;
+if (!DATA_DIR) {
+  throw new Error(
+    'MULTIVAC_DATA_DIR environment variable not set. ' +
+    'This MCP server should be configured via a tutorial project created with the `multivac` command.'
+  );
+}
 const DB_PATH = join(DATA_DIR, 'learning.db');
 
 // Ensure data directory exists
@@ -292,13 +298,21 @@ export const database = {
     return transaction();
   },
 
-  listTutorials(): (Tutorial & { progress_status: string })[] {
-    return db.prepare(`
+  // Get the active tutorial (there should only be one per project database)
+  getActiveTutorial(): (Tutorial & { progress_status: string }) | null {
+    const tutorial = db.prepare(`
       SELECT t.*, COALESCE(p.status, 'not_started') as progress_status
       FROM tutorials t
       LEFT JOIN progress p ON t.id = p.tutorial_id
-      ORDER BY t.created_at DESC
-    `).all() as (Tutorial & { progress_status: string })[];
+      LIMIT 1
+    `).get() as (Tutorial & { progress_status: string }) | undefined;
+    return tutorial || null;
+  },
+
+  // Get the active tutorial ID (convenience helper)
+  getActiveTutorialId(): number | null {
+    const tutorial = this.getActiveTutorial();
+    return tutorial?.id || null;
   },
 
   getTutorial(tutorialId: number): {
