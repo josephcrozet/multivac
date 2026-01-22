@@ -1,0 +1,163 @@
+#!/bin/bash
+
+# Multivac - Create and start a tutorial project
+# Usage: multivac [topic] [--home <path>]
+
+set -e
+
+# Default tutorial home directory
+MULTIVAC_HOME="${MULTIVAC_HOME:-$HOME/multivac}"
+
+# Parse arguments
+TOPIC=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --home)
+            MULTIVAC_HOME="$2"
+            shift 2
+            ;;
+        -h|--help)
+            echo "Usage: multivac [topic] [--home <path>]"
+            echo ""
+            echo "Create and start a Multivac tutorial project."
+            echo ""
+            echo "Arguments:"
+            echo "  [topic]         Tutorial topic (default: tutorial)"
+            echo "                  Examples: python, javascript, rust"
+            echo ""
+            echo "Options:"
+            echo "  --home <path>   Set tutorial directory (default: ~/multivac)"
+            echo "                  Can also set MULTIVAC_HOME environment variable"
+            echo "  -h, --help      Show this help message"
+            echo ""
+            echo "Examples:"
+            echo "  multivac                           # creates ~/multivac/tutorial"
+            echo "  multivac python                    # creates ~/multivac/python"
+            echo "  multivac rust --home ~/Desktop     # creates ~/Desktop/rust"
+            echo "  MULTIVAC_HOME=~/learn multivac go  # creates ~/learn/go"
+            exit 0
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            echo "Run 'multivac --help' for usage"
+            exit 1
+            ;;
+        *)
+            if [[ -z "$TOPIC" ]]; then
+                TOPIC="$1"
+            else
+                echo "Error: Multiple topics specified"
+                echo "Run 'multivac --help' for usage"
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
+
+# Default topic if not specified
+TOPIC="${TOPIC:-tutorial}"
+
+# Check prerequisites
+if ! command -v claude &> /dev/null; then
+    echo "Error: Claude Code CLI not found"
+    echo "Install it from: https://docs.anthropic.com/en/docs/claude-code"
+    exit 1
+fi
+
+# Determine project directory
+PROJECT_DIR="$MULTIVAC_HOME/$TOPIC"
+
+# Handle existing tutorial
+if [[ -d "$PROJECT_DIR" ]]; then
+    echo "Tutorial '$TOPIC' already exists at $PROJECT_DIR"
+    echo ""
+    echo "  [c]ontinue existing tutorial"
+    echo "  [n]ew tutorial (creates ${TOPIC}-2, ${TOPIC}-3, etc.)"
+    echo "  [q]uit"
+    echo ""
+    read -p "Choice: " -n 1 -r
+    echo ""
+
+    case $REPLY in
+        [Cc])
+            echo "Continuing existing tutorial..."
+            cd "$PROJECT_DIR"
+            exec claude
+            ;;
+        [Nn])
+            # Find next available number
+            counter=2
+            while [[ -d "$MULTIVAC_HOME/${TOPIC}-${counter}" ]]; do
+                ((counter++))
+            done
+            TOPIC="${TOPIC}-${counter}"
+            PROJECT_DIR="$MULTIVAC_HOME/$TOPIC"
+            echo "Creating new tutorial: $TOPIC"
+            ;;
+        *)
+            echo "Cancelled."
+            exit 0
+            ;;
+    esac
+fi
+
+# Create project structure
+echo "Creating tutorial project at $PROJECT_DIR..."
+mkdir -p "$PROJECT_DIR/.claude"
+
+# Get paths to installed components
+MCP_SERVER_PATH="$HOME/.claude/mcp-servers/learning-tracker/dist/index.js"
+HOOK_PATH="$HOME/.claude/hooks/capstone-test-runner.sh"
+
+# Verify MCP server is installed
+if [[ ! -f "$MCP_SERVER_PATH" ]]; then
+    echo "Error: MCP server not found at $MCP_SERVER_PATH"
+    echo "Please run the Multivac installer first."
+    exit 1
+fi
+
+# Create local settings.json
+cat > "$PROJECT_DIR/.claude/settings.json" << EOF
+{
+  "mcpServers": {
+    "learning-tracker": {
+      "command": "node",
+      "args": ["$MCP_SERVER_PATH"]
+    }
+  },
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "TodoWrite",
+      "hooks": [{"type": "command", "command": "$HOOK_PATH"}]
+    }]
+  }
+}
+EOF
+
+# Create CLAUDE.md
+cat > "$PROJECT_DIR/CLAUDE.md" << 'EOF'
+<!-- multivac-tutorial -->
+## Tutorial Mode
+
+This is a Multivac tutorial project. You are a programming tutor guiding the user through a structured curriculum.
+
+**Quick reference:**
+- Progress tracking: Use the `learning-tracker` MCP server tools
+- Current position: Call `get_current_position` to find where the user left off
+- Full instructions: Read `~/.claude/prompts/tutorial-session.md`
+
+**After compaction or context loss:** Read `~/.claude/prompts/tutorial-session.md` and call `get_current_position`, then resume the lesson flow.
+<!-- /multivac-tutorial -->
+EOF
+
+echo ""
+echo "Tutorial project created!"
+echo ""
+echo "Starting Claude Code..."
+echo "Run /tutorial to begin learning $TOPIC"
+echo ""
+
+# Start Claude Code in the project directory
+cd "$PROJECT_DIR"
+exec claude
