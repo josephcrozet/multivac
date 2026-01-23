@@ -18,16 +18,6 @@ _A Claude Code Learning System_
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
-**The problem:**
-
-- Traditional courses are passive — you watch, you don't do
-- Self-directed learning lacks structure — no path, no accountability
-- AI assistants are too helpful — they write code for you, so you don't learn
-
-**Multivac:** Structured learning with active participation, forced practice, and retention mechanisms. Multivac teaches; you do the work.
-
----
-
 Transform Claude Code into a structured learning environment. Pick any programming topic — Python, JavaScript, Rust, system design — and get a complete curriculum with progress tracking, spaced repetition, and assessments.
 
 ## What You Get
