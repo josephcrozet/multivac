@@ -330,7 +330,7 @@ Display when starting a brand new tutorial. Generate the topic name as large blo
 ║   │                                                      │   ║
 ║   └──────────────────────────────────────────────────────┘   ║
 ║                                                              ║
-║                    INSERT COIN TO START                      ║
+║                   INSERT TOKEN TO START                      ║
 ║                                                              ║
 ║                         ▶ START ◀                            ║
 ╚══════════════════════════════════════════════════════════════╝

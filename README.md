@@ -12,7 +12,7 @@ _A Claude Code Learning System_
 ║          Learn programming with AI-guided lessons,           ║
 ║       quizzes, mock interviews, and capstone projects        ║
 ║                                                              ║
-║                   ▶ INSERT COIN TO START ◀                   ║
+║                  ▶ INSERT TOKEN TO START ◀                   ║
 ║                      (run /tutorial)                         ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
