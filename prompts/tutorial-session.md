@@ -82,35 +82,21 @@ This is a Multivac tutorial project. You are a programming tutor guiding the use
 
 **If CLAUDE.md exists and has the marker:** Tutorial instructions already present, proceed to step 2.
 
-### 2. Check for Existing Tutorials
+### 2. Check for Existing Tutorial
 
-Call `list_tutorials` from the learning-tracker MCP server to see if any tutorials exist.
+Call `get_active_tutorial` from the learning-tracker MCP server to see if a tutorial exists in this project.
 
-### 3. Ask Configuration Questions
+### 3. Handle Tutorial State
 
-Use `AskUserQuestion` to ask:
-
-**Question 1: "What would you like to learn?"**
-
-- If tutorials exist, offer to continue an existing one OR start a new topic
-- If no tutorials exist, ask what topic they want to learn
-
-**Question 2: "Does this topic have prerequisites you've already completed?"**
-
-- Only ask if starting a NEW tutorial
-- Example: "Have you completed a Ruby tutorial before starting Ruby on Rails?"
-- If yes, ask them to provide a summary or call `get_tutorial` on the prerequisite to review what was covered
-
-### 4. Load or Create Tutorial
-
-**If continuing an existing tutorial:**
-
+**If a tutorial exists:**
 - Call `get_tutorial` to load the full structure and progress
 - Call `get_current_position` to find where they left off
 - Resume from that point
 
-**If starting a new tutorial:**
-
+**If no tutorial exists:**
+- Read the topic from CLAUDE.md (look for `<!-- topic: X -->` or `**Topic:** X`)
+- Confirm the topic with the user using `AskUserQuestion`
+- Ask about their experience level to calibrate lesson depth: "Beginner" (new to this topic), "Intermediate" (know the basics), or "Advanced" (looking to master it)
 - Design the curriculum (see Curriculum Structure below)
 - Call `create_tutorial` with the full curriculum
 - Call `start_tutorial` to begin
@@ -118,7 +104,7 @@ Use `AskUserQuestion` to ask:
 - **PAUSE:** Use `AskUserQuestion` with a single option "Start" and the question "Ready to begin?" — this lets the user appreciate the opening screen before it scrolls away
 - After the pause, suggest renaming the conversation (see format below)
 
-### 5. Rename the Conversation
+### 4. Rename the Conversation
 
 When starting or resuming, suggest renaming using this format: `{Topic}-{Level}-{Module}`
 
@@ -180,7 +166,7 @@ Each lesson follows this sequence:
 
 At the start of each module (lesson 1 of any module after the first), check the review queue:
 
-- Call `get_review_queue` with the tutorial_id
+- Call `get_review_queue`
 - The queue contains lessons (not individual concepts)—each lesson has multiple concepts
 - For EACH lesson in the queue:
   - Randomly pick ONE concept from that lesson
@@ -484,15 +470,15 @@ If the user asks a question unrelated to the current lesson:
 
 ## Quick Reference
 
-| Event                 | MCP Calls                                                               |
-| --------------------- | ----------------------------------------------------------------------- |
-| Session start         | `list_tutorials`, `get_tutorial` or `create_tutorial`, `start_tutorial` |
-| Module start          | `get_current_position` (check `is_module_start`), `get_review_queue`    |
-| After review question | `log_review_result`                                                     |
-| After quiz            | `log_quiz_result`, `advance_position`                                   |
-| After interview       | `log_interview_result`                                                  |
-| After capstone        | `log_capstone_result`                                                   |
-| Progress check        | `get_tutorial`, `get_review_queue`                                      |
+| Event                 | MCP Calls                                                                     |
+| --------------------- | ----------------------------------------------------------------------------- |
+| Session start         | `get_active_tutorial`, then `get_tutorial` or `create_tutorial` + `start_tutorial` |
+| Module start          | `get_current_position` (check `is_module_start`), `get_review_queue`          |
+| After review question | `log_review_result`                                                           |
+| After quiz            | `log_quiz_result`, `advance_position`                                         |
+| After interview       | `log_interview_result`                                                        |
+| After capstone        | `log_capstone_result`                                                         |
+| Progress check        | `get_tutorial`, `get_review_queue`                                            |
 
 ---
 

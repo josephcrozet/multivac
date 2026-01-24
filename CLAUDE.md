@@ -12,6 +12,7 @@ This is a Claude Code extension toolkit project. When working in this directory,
 ```
 multivac/
 ├── agents/interview-agent.md     # Mock interview agent (8 questions, scratch file)
+├── bin/multivac                  # CLI command to create tutorial projects
 ├── commands/
 │   ├── quiz.md                   # /quiz - 12 MC questions in 3 batches
 │   └── tutorial.md               # /tutorial - start, continue, manage, view progress
@@ -21,6 +22,7 @@ multivac/
 │   └── tutorial-session.md       # Full tutorial instructions
 ├── mcp-servers/learning-tracker/ # SQLite-backed progress tracker
 ├── install.sh                    # Installation script
+├── uninstall.sh                  # Uninstallation script
 └── README.md                     # User documentation
 ```
 
@@ -33,6 +35,7 @@ multivac/
 5. **Generic Commands** — /quiz and interview-agent work outside tutorials; tutorial-session.md adds MCP integration
 6. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at module start; correct answers remove from queue, incorrect answers move to end
 7. **Single Entry Point** — /tutorial handles starting, continuing, viewing progress, and resetting tutorials
+8. **Local Project Data** — Each tutorial project stores its own data in `.multivac/learning.db`; MCP server configured per-project via local `.claude/settings.json`
 
 ## Interview Agent Details
 
@@ -47,8 +50,8 @@ multivac/
 
 | Tool | Purpose |
 |------|---------|
+| `get_active_tutorial` | Get the tutorial for this project (or null if none) |
 | `create_tutorial` | Generate new curriculum |
-| `list_tutorials` | List tutorials with status |
 | `get_tutorial` | Full structure + progress |
 | `start_tutorial` | Begin a tutorial |
 | `get_current_position` | Current lesson/module/level |
@@ -64,7 +67,11 @@ multivac/
 Files install to `~/.claude/`:
 - Agents, commands, hooks, prompts go to their respective directories
 - MCP server goes to `~/.claude/mcp-servers/learning-tracker/`
-- settings.json gets mcpServers and hooks merged (not overwritten)
+- `multivac` command goes to `~/.local/bin/`
+
+Per-project configuration (created by `multivac` command):
+- `.claude/settings.json` — MCP server + hook config with `MULTIVAC_DATA_DIR` pointing to local data
+- `.multivac/` — Local data directory containing `learning.db`
 
 ## Testing
 

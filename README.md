@@ -5,15 +5,15 @@ _A Claude Code Learning System_
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║            ░█▄░▄█░█░█░█░░▀█▀░█░█░█░█▀█░█▀▀░                  ║
-║            ░█░▀░█░█░█░█░░░█░░█░▀▄▀░█▀█░█░░░                  ║
-║            ░▀░░░▀░▀▀▀░▀▀▀░▀░░▀░░▀░░▀░▀░▀▀▀░                  ║
+║               ░█▄░▄█░█░█░█░░▀█▀░█░█░█░█▀█░█▀▀░               ║
+║               ░█░▀░█░█░█░█░░░█░░█░▀▄▀░█▀█░█░░░               ║
+║               ░▀░░░▀░▀▀▀░▀▀▀░▀░░▀░░▀░░▀░▀░▀▀▀░               ║
 ║                                                              ║
 ║          Learn programming with AI-guided lessons,           ║
 ║       quizzes, mock interviews, and capstone projects        ║
 ║                                                              ║
 ║                  ▶ INSERT TOKEN TO START ◀                   ║
-║                      (run /tutorial)                         ║
+║                       (run /tutorial)                        ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
@@ -164,6 +164,7 @@ This project demonstrates Claude Code's extensibility:
 ~/multivac/                     # Your tutorial projects (created by multivac command)
 ├── python/
 │   ├── .claude/settings.json   # Local MCP + hook config
+│   ├── .multivac/learning.db   # Tutorial progress (SQLite)
 │   └── CLAUDE.md               # Tutorial mode marker
 └── javascript/
     └── ...
@@ -173,8 +174,8 @@ This project demonstrates Claude Code's extensibility:
 
 | Tool                   | Purpose                                  |
 | ---------------------- | ---------------------------------------- |
+| `get_active_tutorial`  | Get the tutorial for this project        |
 | `create_tutorial`      | Generate a new curriculum                |
-| `list_tutorials`       | List tutorials with status               |
 | `get_tutorial`         | Get full structure + progress            |
 | `start_tutorial`       | Begin a tutorial                         |
 | `get_current_position` | Current lesson/module/level              |
