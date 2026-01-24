@@ -177,9 +177,8 @@ This project demonstrates Claude Code's extensibility:
 
 | Tool                   | Purpose                                  |
 | ---------------------- | ---------------------------------------- |
-| `get_active_tutorial`  | Get the tutorial for this project        |
 | `create_tutorial`      | Generate a new curriculum                |
-| `get_tutorial`         | Get full structure + progress            |
+| `get_tutorial`         | Get full structure + progress (or `tutorial: null` if none) |
 | `start_tutorial`       | Begin a tutorial                         |
 | `get_current_position` | Current lesson/module/level              |
 | `advance_position`     | Move to next lesson, add to review queue |

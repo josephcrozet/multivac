@@ -76,16 +76,16 @@ Then stop — don't continue with the rest of the initialization since the MCP s
 
 ### 2. Check for Existing Tutorial
 
-Call `get_active_tutorial` from the learning-tracker MCP server to see if a tutorial exists in this project.
+Call `get_tutorial` from the learning-tracker MCP server. This returns the full tutorial structure if one exists, or `{ tutorial: null }` if not.
 
 ### 3. Handle Tutorial State
 
-**If a tutorial exists:**
-- Call `get_tutorial` to load the full structure and progress
+**If a tutorial exists (`tutorial` is not null):**
+- The response already contains the full structure and progress
 - Call `get_current_position` to find where they left off
 - Resume from that point
 
-**If no tutorial exists:**
+**If no tutorial exists (`tutorial: null`):**
 - Read the topic from CLAUDE.md (look for `<!-- topic: X -->` or `**Topic:** X`)
 - Confirm the topic with the user using `AskUserQuestion`
 - Ask about their experience level to calibrate lesson depth: "Beginner" (new to this topic), "Intermediate" (know the basics), or "Advanced" (looking to master it)
@@ -464,7 +464,7 @@ If the user asks a question unrelated to the current lesson:
 
 | Event                 | MCP Calls                                                                     |
 | --------------------- | ----------------------------------------------------------------------------- |
-| Session start         | `get_active_tutorial`, then `get_tutorial` or `create_tutorial` + `start_tutorial` |
+| Session start         | `get_tutorial` (returns full data or `tutorial: null`), then `create_tutorial` + `start_tutorial` if needed |
 | Module start          | `get_current_position` (check `is_module_start`), `get_review_queue`          |
 | After review question | `log_review_result`                                                           |
 | After quiz            | `log_quiz_result`, `advance_position`                                         |

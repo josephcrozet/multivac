@@ -50,9 +50,8 @@ multivac/
 
 | Tool | Purpose |
 |------|---------|
-| `get_active_tutorial` | Get the tutorial for this project (or null if none) |
 | `create_tutorial` | Generate new curriculum |
-| `get_tutorial` | Full structure + progress |
+| `get_tutorial` | Full structure + progress (or `tutorial: null` if none) |
 | `start_tutorial` | Begin a tutorial |
 | `get_current_position` | Current lesson/module/level |
 | `advance_position` | Move forward, add lesson to review queue |

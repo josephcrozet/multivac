@@ -4,7 +4,7 @@ Start, continue, or manage a structured programming tutorial.
 
 ## Step 1: Check Tutorial State
 
-Call `get_active_tutorial` from the learning-tracker MCP server.
+Call `get_tutorial` from the learning-tracker MCP server.
 
 **If the call fails or the MCP server is not available:**
 
@@ -19,8 +19,8 @@ This isn't a Multivac tutorial project. Tell the user:
 
 **If the call succeeds:**
 
-- **Tutorial exists (status: in_progress or not_started):** Go to Step 3 (Tutorial Menu)
-- **No tutorial exists yet:** Go to Step 2 (New Tutorial Setup)
+- **Tutorial exists (`tutorial` is not null):** Go to Step 3 (Tutorial Menu)
+- **No tutorial exists (`tutorial: null`):** Go to Step 2 (New Tutorial Setup)
 
 ## Step 2: New Tutorial Setup
 

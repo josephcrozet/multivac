@@ -90,16 +90,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: 'get_active_tutorial',
-        description: 'Get the active tutorial for this project, including completion status. Returns null if no tutorial exists yet.',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-        },
-      },
-      {
         name: 'get_tutorial',
-        description: 'Get complete tutorial details including structure, progress, and statistics. Use this to see the full curriculum and current state.',
+        description: 'Get complete tutorial details including structure, progress, and statistics. Returns { tutorial: null } if no tutorial exists yet.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -258,22 +250,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      case 'get_active_tutorial': {
-        const tutorial = database.getActiveTutorial();
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                exists: tutorial !== null,
-                tutorial,
-              }, null, 2),
-            },
-          ],
-        };
-      }
-
       case 'get_tutorial': {
         const tutorial_id = database.getActiveTutorialId();
         if (!tutorial_id) {
@@ -282,8 +258,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               {
                 type: 'text',
                 text: JSON.stringify({
-                  success: false,
-                  error: 'No tutorial exists in this project yet. Create one first.',
+                  success: true,
+                  tutorial: null,
                 }, null, 2),
               },
             ],

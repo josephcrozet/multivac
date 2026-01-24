@@ -298,20 +298,9 @@ export const database = {
     return transaction();
   },
 
-  // Get the active tutorial (there should only be one per project database)
-  getActiveTutorial(): (Tutorial & { progress_status: string }) | null {
-    const tutorial = db.prepare(`
-      SELECT t.*, COALESCE(p.status, 'not_started') as progress_status
-      FROM tutorials t
-      LEFT JOIN progress p ON t.id = p.tutorial_id
-      LIMIT 1
-    `).get() as (Tutorial & { progress_status: string }) | undefined;
-    return tutorial || null;
-  },
-
-  // Get the active tutorial ID (convenience helper)
+  // Get the active tutorial ID (there should only be one per project database)
   getActiveTutorialId(): number | null {
-    const tutorial = this.getActiveTutorial();
+    const tutorial = db.prepare('SELECT id FROM tutorials LIMIT 1').get() as { id: number } | undefined;
     return tutorial?.id || null;
   },
 
