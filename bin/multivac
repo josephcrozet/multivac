@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Multivac - Create and start a tutorial project
-# Usage: multivac [topic] [--home <path>]
+# Usage: multivac [topic] [--home <path>] [--new]
 
 set -e
 
@@ -10,29 +10,40 @@ MULTIVAC_HOME="${MULTIVAC_HOME:-$HOME/multivac}"
 
 # Parse arguments
 TOPIC=""
+NEW_MODE=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         --home)
             MULTIVAC_HOME="$2"
             shift 2
             ;;
+        --new|-n)
+            NEW_MODE=true
+            shift
+            ;;
         -h|--help)
-            echo "Usage: multivac [topic] [--home <path>]"
+            echo "Usage: multivac [topic] [--home <path>] [--new]"
             echo ""
             echo "Create and start a Multivac tutorial project."
             echo ""
             echo "Arguments:"
             echo "  [topic]         Tutorial topic (default: tutorial)"
             echo "                  Examples: python, javascript, rust"
+            echo "                  Multi-word topics are converted to lowercase with hyphens"
+            echo "                  e.g., 'Data Science' becomes 'data-science'"
             echo ""
             echo "Options:"
             echo "  --home <path>   Set tutorial directory (default: ~/multivac)"
             echo "                  Can also set MULTIVAC_HOME environment variable"
+            echo "  --new, -n       Skip prompts and always create a new project"
+            echo "                  (uses numbered suffix if directory exists)"
             echo "  -h, --help      Show this help message"
             echo ""
             echo "Examples:"
             echo "  multivac                           # creates ~/multivac/tutorial"
             echo "  multivac python                    # creates ~/multivac/python"
+            echo "  multivac 'data science'            # creates ~/multivac/data-science"
+            echo "  multivac python --new              # creates ~/multivac/python-2 if python exists"
             echo "  multivac rust --home ~/Desktop     # creates ~/Desktop/rust"
             echo "  MULTIVAC_HOME=~/learn multivac go  # creates ~/learn/go"
             exit 0
@@ -57,6 +68,9 @@ done
 
 # Default topic if not specified
 TOPIC="${TOPIC:-tutorial}"
+
+# Sanitize topic: lowercase, replace spaces and special chars with hyphens
+TOPIC="$(echo "$TOPIC" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')"
 
 # Check prerequisites
 if ! command -v claude &> /dev/null; then
@@ -145,21 +159,67 @@ BASE_EXISTS=false
 if [[ ${#MULTIVAC_PROJECTS[@]} -eq 0 ]]; then
     # No multivac projects found
     if $BASE_EXISTS; then
-        # Directory exists but isn't a multivac project
-        echo "Directory '$BASE_TOPIC' exists at $BASE_DIR but isn't a Multivac tutorial."
+        if $NEW_MODE; then
+            # --new mode: skip prompts, create numbered directory
+            use_next_topic_number "$BASE_TOPIC"
+        else
+            # Interactive: ask what to do
+            echo "Directory '$BASE_TOPIC' exists at $BASE_DIR but isn't a Multivac tutorial."
+            echo ""
+            echo "  [i]nitialize this directory as a tutorial"
+            echo "  [n]ew tutorial in a separate directory (${BASE_TOPIC}-2, etc.)"
+            echo "  [q]uit"
+            echo ""
+            read -p "Choice: " -n 1 -r
+            echo ""
+
+            case $REPLY in
+                [Ii])
+                    PROJECT_DIR="$BASE_DIR"
+                    TOPIC="$BASE_TOPIC"
+                    initialize_existing_directory
+                    ;;
+                [Nn])
+                    use_next_topic_number "$BASE_TOPIC"
+                    ;;
+                *)
+                    echo "Cancelled."
+                    exit 0
+                    ;;
+            esac
+        fi
+    fi
+    # If base doesn't exist, fall through to create new project
+
+elif [[ ${#MULTIVAC_PROJECTS[@]} -eq 1 ]]; then
+    # Exactly one multivac project found
+    if $NEW_MODE; then
+        # --new mode: skip prompts, create numbered directory
+        use_next_topic_number "$BASE_TOPIC"
+    else
+        # Interactive: ask what to do
+        PROJECT_DIR="${MULTIVAC_DIRS[0]}"
+        TOPIC="${MULTIVAC_PROJECTS[0]}"
+        TOPIC_NAME=$(get_topic_name "$PROJECT_DIR")
+
+        echo "Found tutorial: $TOPIC ($TOPIC_NAME)"
         echo ""
-        echo "  [i]nitialize this directory as a tutorial"
-        echo "  [n]ew tutorial in a separate directory (${BASE_TOPIC}-2, etc.)"
+        echo "  [c]ontinue this tutorial"
+        echo "  [n]ew tutorial (creates ${BASE_TOPIC}-2, ${BASE_TOPIC}-3, etc.)"
         echo "  [q]uit"
         echo ""
         read -p "Choice: " -n 1 -r
         echo ""
 
         case $REPLY in
-            [Ii])
-                PROJECT_DIR="$BASE_DIR"
-                TOPIC="$BASE_TOPIC"
-                initialize_existing_directory
+            [Cc])
+                echo ""
+                echo "To continue this tutorial:"
+                echo "  cd $PROJECT_DIR && claude"
+                echo ""
+                echo "Then inside Claude Code, run: /tutorial"
+                echo ""
+                exit 0
                 ;;
             [Nn])
                 use_next_topic_number "$BASE_TOPIC"
@@ -170,66 +230,45 @@ if [[ ${#MULTIVAC_PROJECTS[@]} -eq 0 ]]; then
                 ;;
         esac
     fi
-    # If base doesn't exist, fall through to create new project
-
-elif [[ ${#MULTIVAC_PROJECTS[@]} -eq 1 ]]; then
-    # Exactly one multivac project found
-    PROJECT_DIR="${MULTIVAC_DIRS[0]}"
-    TOPIC="${MULTIVAC_PROJECTS[0]}"
-    TOPIC_NAME=$(get_topic_name "$PROJECT_DIR")
-
-    echo "Found tutorial: $TOPIC ($TOPIC_NAME)"
-    echo ""
-    echo "  [c]ontinue this tutorial"
-    echo "  [n]ew tutorial (creates ${BASE_TOPIC}-2, ${BASE_TOPIC}-3, etc.)"
-    echo "  [q]uit"
-    echo ""
-    read -p "Choice: " -n 1 -r
-    echo ""
-
-    case $REPLY in
-        [Cc])
-            echo "Continuing tutorial..."
-            cd "$PROJECT_DIR"
-            exec claude
-            ;;
-        [Nn])
-            use_next_topic_number "$BASE_TOPIC"
-            ;;
-        *)
-            echo "Cancelled."
-            exit 0
-            ;;
-    esac
 
 else
     # Multiple multivac projects found
-    echo "Found ${#MULTIVAC_PROJECTS[@]} tutorials:"
-    echo ""
-    for i in "${!MULTIVAC_PROJECTS[@]}"; do
-        local_topic_name=$(get_topic_name "${MULTIVAC_DIRS[$i]}")
-        echo "  [$((i+1))] ${MULTIVAC_PROJECTS[$i]} ($local_topic_name)"
-    done
-    echo ""
-    echo "  [n]ew tutorial"
-    echo "  [q]uit"
-    echo ""
-    read -p "Choice: " -r
-    echo ""
-
-    if [[ "$REPLY" =~ ^[0-9]+$ ]] && [[ "$REPLY" -ge 1 ]] && [[ "$REPLY" -le ${#MULTIVAC_PROJECTS[@]} ]]; then
-        # User selected a number
-        idx=$((REPLY - 1))
-        PROJECT_DIR="${MULTIVAC_DIRS[$idx]}"
-        TOPIC="${MULTIVAC_PROJECTS[$idx]}"
-        echo "Continuing tutorial: $TOPIC"
-        cd "$PROJECT_DIR"
-        exec claude
-    elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
+    if $NEW_MODE; then
+        # --new mode: skip prompts, create numbered directory
         use_next_topic_number "$BASE_TOPIC"
     else
-        echo "Cancelled."
-        exit 0
+        # Interactive: ask what to do
+        echo "Found ${#MULTIVAC_PROJECTS[@]} tutorials:"
+        echo ""
+        for i in "${!MULTIVAC_PROJECTS[@]}"; do
+            local_topic_name=$(get_topic_name "${MULTIVAC_DIRS[$i]}")
+            echo "  [$((i+1))] ${MULTIVAC_PROJECTS[$i]} ($local_topic_name)"
+        done
+        echo ""
+        echo "  [n]ew tutorial"
+        echo "  [q]uit"
+        echo ""
+        read -p "Choice: " -r
+        echo ""
+
+        if [[ "$REPLY" =~ ^[0-9]+$ ]] && [[ "$REPLY" -ge 1 ]] && [[ "$REPLY" -le ${#MULTIVAC_PROJECTS[@]} ]]; then
+            # User selected a number
+            idx=$((REPLY - 1))
+            PROJECT_DIR="${MULTIVAC_DIRS[$idx]}"
+            TOPIC="${MULTIVAC_PROJECTS[$idx]}"
+            echo ""
+            echo "To continue this tutorial:"
+            echo "  cd $PROJECT_DIR && claude"
+            echo ""
+            echo "Then inside Claude Code, run: /tutorial"
+            echo ""
+            exit 0
+        elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
+            use_next_topic_number "$BASE_TOPIC"
+        else
+            echo "Cancelled."
+            exit 0
+        fi
     fi
 fi
 
@@ -271,8 +310,9 @@ cat > "$PROJECT_DIR/.claude/settings.json" << EOF
 }
 EOF
 
-# Convert topic to title case for display (e.g., "python" -> "Python")
-TOPIC_DISPLAY="$(echo "$TOPIC" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')"
+# Convert base topic to title case for display (e.g., "data-science" -> "Data Science")
+# Use BASE_TOPIC so numbered suffixes like "python-2" still display as "Python"
+TOPIC_DISPLAY="$(echo "$BASE_TOPIC" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')"
 
 # Create CLAUDE.md with topic
 cat > "$PROJECT_DIR/CLAUDE.md" << EOF
@@ -296,10 +336,8 @@ EOF
 echo ""
 echo "Tutorial project created!"
 echo ""
-echo "Starting Claude Code..."
-echo "Run /tutorial to begin learning $TOPIC"
+echo "To start learning $TOPIC_DISPLAY:"
+echo "  cd $PROJECT_DIR && claude"
 echo ""
-
-# Start Claude Code in the project directory
-cd "$PROJECT_DIR"
-exec claude
+echo "Then inside Claude Code, run: /tutorial"
+echo ""
