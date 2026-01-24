@@ -98,11 +98,13 @@ If `~/.local/bin` isn't in your PATH, the installer will show you how to add it.
 
 ```bash
 multivac python
+cd ~/multivac/python && claude
+# Then run /tutorial inside Claude Code
 ```
 
-That's it. This command:
+This:
 1. Creates a tutorial project at `~/multivac/python/`
-2. Launches Claude Code with the MCP server configured
+2. You launch Claude Code in the project directory
 3. When prompted, approve the MCP server — this enables progress tracking and is required for tutorials to work
 4. Run `/tutorial` to begin learning
 
@@ -111,10 +113,11 @@ Claude generates a full curriculum on the fly and guides you through it.
 ### Other Examples
 
 ```bash
-multivac                    # Creates ~/multivac/tutorial/
-multivac javascript         # Creates ~/multivac/javascript/
-multivac rust               # Creates ~/multivac/rust/
-multivac --home ~/Desktop python  # Creates ~/Desktop/python/
+multivac                         # Creates ~/multivac/tutorial/
+multivac javascript              # Creates ~/multivac/javascript/
+multivac 'data science'          # Creates ~/multivac/data-science/
+multivac python --new            # Creates ~/multivac/python-2 if python exists
+multivac --home ~/Desktop rust   # Creates ~/Desktop/rust/
 ```
 
 ### Continuing a Tutorial
@@ -123,9 +126,9 @@ Just run the same command again:
 
 ```bash
 multivac python
-# "Tutorial 'python' already exists..."
-# [c]ontinue existing tutorial
-# [n]ew tutorial (creates python-2)
+# "Found tutorial: python (Python)"
+# [c]ontinue this tutorial
+# [n]ew tutorial (creates python-2, python-3, etc.)
 # [q]uit
 ```
 
