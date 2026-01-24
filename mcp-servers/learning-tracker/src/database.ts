@@ -241,6 +241,12 @@ export interface Curriculum {
   levels: CurriculumLevel[];
 }
 
+// Helper to get the tutorial ID (there's only one per project database)
+function getTutorialId(): number | null {
+  const tutorial = db.prepare('SELECT id FROM tutorials LIMIT 1').get() as { id: number } | undefined;
+  return tutorial?.id ?? null;
+}
+
 // Database operations
 export const database = {
   // Tutorial operations
@@ -298,13 +304,7 @@ export const database = {
     return transaction();
   },
 
-  // Get the active tutorial ID (there should only be one per project database)
-  getActiveTutorialId(): number | null {
-    const tutorial = db.prepare('SELECT id FROM tutorials LIMIT 1').get() as { id: number } | undefined;
-    return tutorial?.id || null;
-  },
-
-  getTutorial(tutorialId: number): {
+  getTutorial(): {
     tutorial: Tutorial;
     levels: (Level & {
       modules: (Module & {
@@ -327,9 +327,10 @@ export const database = {
       average_interview_score: number | null;
     };
   } | null {
-    const tutorial = db.prepare('SELECT * FROM tutorials WHERE id = ?').get(tutorialId) as Tutorial | undefined;
-    if (!tutorial) return null;
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
 
+    const tutorial = db.prepare('SELECT * FROM tutorials WHERE id = ?').get(tutorialId) as Tutorial;
     const levels = db.prepare('SELECT * FROM levels WHERE tutorial_id = ? ORDER BY sort_order').all(tutorialId) as Level[];
 
     const result = {
@@ -431,7 +432,7 @@ export const database = {
     };
   },
 
-  getCurrentPosition(tutorialId: number): {
+  getCurrentPosition(): {
     tutorial_name: string;
     current_lesson: Lesson | null;
     current_module: Module | null;
@@ -439,8 +440,10 @@ export const database = {
     position: { level: number; module: number; lesson: number } | null;
     is_module_start: boolean;
   } | null {
-    const tutorial = db.prepare('SELECT * FROM tutorials WHERE id = ?').get(tutorialId) as Tutorial | undefined;
-    if (!tutorial) return null;
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const tutorial = db.prepare('SELECT * FROM tutorials WHERE id = ?').get(tutorialId) as Tutorial;
 
     const progress = db.prepare('SELECT * FROM progress WHERE tutorial_id = ?').get(tutorialId) as Progress | undefined;
 
@@ -487,14 +490,17 @@ export const database = {
     };
   },
 
-  advancePosition(tutorialId: number): {
+  advancePosition(): {
     previous_lesson: Lesson | null;
     new_lesson: Lesson | null;
     module_completed: boolean;
     level_completed: boolean;
     tutorial_completed: boolean;
-  } {
-    const currentPos = this.getCurrentPosition(tutorialId);
+  } | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const currentPos = this.getCurrentPosition();
     if (!currentPos || !currentPos.current_lesson) {
       return { previous_lesson: null, new_lesson: null, module_completed: false, level_completed: false, tutorial_completed: false };
     }
@@ -587,11 +593,14 @@ export const database = {
     `).run(tutorialId, lessonId, newPosition);
   },
 
-  getReviewQueue(tutorialId: number): {
+  getReviewQueue(): {
     lesson: Lesson;
     concepts: Concept[];
     queue_position: number;
-  }[] {
+  }[] | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
     const queueItems = db.prepare(`
       SELECT rq.*, l.name as lesson_name, l.description as lesson_description,
              l.module_id, l.sort_order as lesson_sort_order, l.completed as lesson_completed
@@ -624,7 +633,10 @@ export const database = {
     });
   },
 
-  logReviewResult(tutorialId: number, lessonId: number, correct: boolean): { removed: boolean; new_position: number | null } {
+  logReviewResult(lessonId: number, correct: boolean): { removed: boolean; new_position: number | null } | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
     if (correct) {
       // Remove from queue
       db.prepare('DELETE FROM review_queue WHERE tutorial_id = ? AND lesson_id = ?').run(tutorialId, lessonId);
@@ -677,7 +689,10 @@ export const database = {
   },
 
   // Start a tutorial (set progress to in_progress and set current lesson to first)
-  startTutorial(tutorialId: number): Progress {
+  startTutorial(): Progress | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
     const firstLesson = db.prepare(`
       SELECT l.id
       FROM lessons l

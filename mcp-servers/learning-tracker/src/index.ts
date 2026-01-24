@@ -251,8 +251,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_tutorial': {
-        const tutorial_id = database.getActiveTutorialId();
-        if (!tutorial_id) {
+        const data = database.getTutorial();
+        if (!data) {
           return {
             content: [
               {
@@ -265,7 +265,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             ],
           };
         }
-        const data = database.getTutorial(tutorial_id);
         return {
           content: [
             {
@@ -280,8 +279,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'start_tutorial': {
-        const tutorial_id = database.getActiveTutorialId();
-        if (!tutorial_id) {
+        const progress = database.startTutorial();
+        if (!progress) {
           return {
             content: [
               {
@@ -294,7 +293,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             ],
           };
         }
-        const progress = database.startTutorial(tutorial_id);
         return {
           content: [
             {
@@ -310,8 +308,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_current_position': {
-        const tutorial_id = database.getActiveTutorialId();
-        if (!tutorial_id) {
+        const position = database.getCurrentPosition();
+        if (!position) {
           return {
             content: [
               {
@@ -324,7 +322,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             ],
           };
         }
-        const position = database.getCurrentPosition(tutorial_id);
         return {
           content: [
             {
@@ -339,8 +336,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'advance_position': {
-        const tutorial_id = database.getActiveTutorialId();
-        if (!tutorial_id) {
+        const result = database.advancePosition();
+        if (!result) {
           return {
             content: [
               {
@@ -353,7 +350,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             ],
           };
         }
-        const result = database.advancePosition(tutorial_id);
         return {
           content: [
             {
@@ -433,8 +429,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_review_queue': {
-        const tutorial_id = database.getActiveTutorialId();
-        if (!tutorial_id) {
+        const queue = database.getReviewQueue();
+        if (!queue) {
           return {
             content: [
               {
@@ -447,7 +443,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             ],
           };
         }
-        const queue = database.getReviewQueue(tutorial_id);
         return {
           content: [
             {
@@ -464,8 +459,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'log_review_result': {
-        const tutorial_id = database.getActiveTutorialId();
-        if (!tutorial_id) {
+        const { lesson_id, correct } = args as {
+          lesson_id: number;
+          correct: boolean;
+        };
+        const result = database.logReviewResult(lesson_id, correct);
+        if (!result) {
           return {
             content: [
               {
@@ -478,11 +477,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             ],
           };
         }
-        const { lesson_id, correct } = args as {
-          lesson_id: number;
-          correct: boolean;
-        };
-        const result = database.logReviewResult(tutorial_id, lesson_id, correct);
         return {
           content: [
             {
