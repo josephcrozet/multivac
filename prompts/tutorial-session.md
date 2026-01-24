@@ -61,7 +61,18 @@ Check that `CLAUDE.md` exists in the current project directory and contains the 
 
 **If the marker is present:** Proceed to step 2.
 
-**If the marker is missing or CLAUDE.md doesn't exist:** This directory wasn't set up as a tutorial project. Tell the user: "This directory isn't configured as a Multivac tutorial project. Please run `multivac <topic>` to create a new tutorial project, then launch Claude Code from that directory."
+**If the marker is missing or CLAUDE.md doesn't exist:** This directory wasn't set up as a tutorial project. Help them create one:
+
+1. Use `AskUserQuestion` to ask: "What topic would you like to learn?" with options like "Python", "JavaScript", "Rust", "Other" (let them type a custom topic)
+2. Run `multivac "<topic>" --new` via the Bash tool (quote the topic in case it has spaces)
+3. The command will output the project path. Tell the user:
+
+   "I've created a tutorial project for {topic}! To start learning:
+   1. Exit Claude Code (`/exit`)
+   2. Run: `cd {project_path} && claude`
+   3. Then run `/tutorial` inside Claude Code"
+
+Then stop — don't continue with the rest of the initialization since the MCP server won't be available until they restart Claude Code in the new project directory.
 
 ### 2. Check for Existing Tutorial
 
