@@ -68,12 +68,120 @@ fi
 # Determine project directory
 PROJECT_DIR="$MULTIVAC_HOME/$TOPIC"
 
-# Handle existing tutorial
-if [[ -d "$PROJECT_DIR" ]]; then
-    echo "Tutorial '$TOPIC' already exists at $PROJECT_DIR"
+# Check if directory is a multivac project
+is_multivac_project() {
+    [[ -f "$1/CLAUDE.md" ]] && grep -q "<!-- multivac-tutorial -->" "$1/CLAUDE.md" 2>/dev/null
+}
+
+# Get topic name from CLAUDE.md
+get_topic_name() {
+    local dir="$1"
+    if [[ -f "$dir/CLAUDE.md" ]]; then
+        # Try <!-- topic: X -->
+        local topic=$(sed -n 's/.*<!-- topic: \(.*\) -->.*/\1/p' "$dir/CLAUDE.md" 2>/dev/null | head -1)
+        if [[ -z "$topic" ]]; then
+            # Try **Topic:** X
+            topic=$(sed -n 's/.*\*\*Topic:\*\* \(.*\)/\1/p' "$dir/CLAUDE.md" 2>/dev/null | head -1)
+        fi
+        echo "$topic"
+    fi
+}
+
+# Find next available topic number (sets TOPIC and PROJECT_DIR)
+use_next_topic_number() {
+    local base_topic="$1"
+    local counter=2
+    while [[ -d "$MULTIVAC_HOME/${base_topic}-${counter}" ]]; do
+        ((counter++))
+    done
+    TOPIC="${base_topic}-${counter}"
+    PROJECT_DIR="$MULTIVAC_HOME/$TOPIC"
+    echo "Creating new tutorial: $TOPIC"
+}
+
+# Initialize existing directory as tutorial (with backup warning)
+initialize_existing_directory() {
+    EXISTING_FILES=""
+    [[ -f "$PROJECT_DIR/.claude/settings.json" ]] && EXISTING_FILES="$EXISTING_FILES  - .claude/settings.json\n"
+    [[ -f "$PROJECT_DIR/CLAUDE.md" ]] && EXISTING_FILES="$EXISTING_FILES  - CLAUDE.md\n"
+
+    if [[ -n "$EXISTING_FILES" ]]; then
+        echo ""
+        echo "The following files will be backed up to *.bak and replaced:"
+        echo -e "$EXISTING_FILES"
+        read -p "Continue? (y/N) " -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Cancelled."
+            exit 0
+        fi
+
+        # Create backups
+        [[ -f "$PROJECT_DIR/.claude/settings.json" ]] && cp "$PROJECT_DIR/.claude/settings.json" "$PROJECT_DIR/.claude/settings.json.bak"
+        [[ -f "$PROJECT_DIR/CLAUDE.md" ]] && cp "$PROJECT_DIR/CLAUDE.md" "$PROJECT_DIR/CLAUDE.md.bak"
+    fi
+
+    echo "Initializing existing directory as tutorial..."
+}
+
+# Find all multivac projects matching this topic (base + numbered variants)
+BASE_TOPIC="$TOPIC"
+MULTIVAC_PROJECTS=()
+MULTIVAC_DIRS=()
+
+for dir in "$MULTIVAC_HOME/$BASE_TOPIC" "$MULTIVAC_HOME/$BASE_TOPIC"-[0-9]*; do
+    if [[ -d "$dir" ]] && is_multivac_project "$dir"; then
+        MULTIVAC_PROJECTS+=("$(basename "$dir")")
+        MULTIVAC_DIRS+=("$dir")
+    fi
+done
+
+# Check if base directory exists (even if not a multivac project)
+BASE_DIR="$MULTIVAC_HOME/$BASE_TOPIC"
+BASE_EXISTS=false
+[[ -d "$BASE_DIR" ]] && BASE_EXISTS=true
+
+# Handle based on what we found
+if [[ ${#MULTIVAC_PROJECTS[@]} -eq 0 ]]; then
+    # No multivac projects found
+    if $BASE_EXISTS; then
+        # Directory exists but isn't a multivac project
+        echo "Directory '$BASE_TOPIC' exists at $BASE_DIR but isn't a Multivac tutorial."
+        echo ""
+        echo "  [i]nitialize this directory as a tutorial"
+        echo "  [n]ew tutorial in a separate directory (${BASE_TOPIC}-2, etc.)"
+        echo "  [q]uit"
+        echo ""
+        read -p "Choice: " -n 1 -r
+        echo ""
+
+        case $REPLY in
+            [Ii])
+                PROJECT_DIR="$BASE_DIR"
+                TOPIC="$BASE_TOPIC"
+                initialize_existing_directory
+                ;;
+            [Nn])
+                use_next_topic_number "$BASE_TOPIC"
+                ;;
+            *)
+                echo "Cancelled."
+                exit 0
+                ;;
+        esac
+    fi
+    # If base doesn't exist, fall through to create new project
+
+elif [[ ${#MULTIVAC_PROJECTS[@]} -eq 1 ]]; then
+    # Exactly one multivac project found
+    PROJECT_DIR="${MULTIVAC_DIRS[0]}"
+    TOPIC="${MULTIVAC_PROJECTS[0]}"
+    TOPIC_NAME=$(get_topic_name "$PROJECT_DIR")
+
+    echo "Found tutorial: $TOPIC ($TOPIC_NAME)"
     echo ""
-    echo "  [c]ontinue existing tutorial"
-    echo "  [n]ew tutorial (creates ${TOPIC}-2, ${TOPIC}-3, etc.)"
+    echo "  [c]ontinue this tutorial"
+    echo "  [n]ew tutorial (creates ${BASE_TOPIC}-2, ${BASE_TOPIC}-3, etc.)"
     echo "  [q]uit"
     echo ""
     read -p "Choice: " -n 1 -r
@@ -81,25 +189,48 @@ if [[ -d "$PROJECT_DIR" ]]; then
 
     case $REPLY in
         [Cc])
-            echo "Continuing existing tutorial..."
+            echo "Continuing tutorial..."
             cd "$PROJECT_DIR"
             exec claude
             ;;
         [Nn])
-            # Find next available number
-            counter=2
-            while [[ -d "$MULTIVAC_HOME/${TOPIC}-${counter}" ]]; do
-                ((counter++))
-            done
-            TOPIC="${TOPIC}-${counter}"
-            PROJECT_DIR="$MULTIVAC_HOME/$TOPIC"
-            echo "Creating new tutorial: $TOPIC"
+            use_next_topic_number "$BASE_TOPIC"
             ;;
         *)
             echo "Cancelled."
             exit 0
             ;;
     esac
+
+else
+    # Multiple multivac projects found
+    echo "Found ${#MULTIVAC_PROJECTS[@]} tutorials:"
+    echo ""
+    for i in "${!MULTIVAC_PROJECTS[@]}"; do
+        local_topic_name=$(get_topic_name "${MULTIVAC_DIRS[$i]}")
+        echo "  [$((i+1))] ${MULTIVAC_PROJECTS[$i]} ($local_topic_name)"
+    done
+    echo ""
+    echo "  [n]ew tutorial"
+    echo "  [q]uit"
+    echo ""
+    read -p "Choice: " -r
+    echo ""
+
+    if [[ "$REPLY" =~ ^[0-9]+$ ]] && [[ "$REPLY" -ge 1 ]] && [[ "$REPLY" -le ${#MULTIVAC_PROJECTS[@]} ]]; then
+        # User selected a number
+        idx=$((REPLY - 1))
+        PROJECT_DIR="${MULTIVAC_DIRS[$idx]}"
+        TOPIC="${MULTIVAC_PROJECTS[$idx]}"
+        echo "Continuing tutorial: $TOPIC"
+        cd "$PROJECT_DIR"
+        exec claude
+    elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
+        use_next_topic_number "$BASE_TOPIC"
+    else
+        echo "Cancelled."
+        exit 0
+    fi
 fi
 
 # Create project structure
