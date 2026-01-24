@@ -55,32 +55,13 @@ Long conversations accumulate context that gets re-sent with each message, accel
 
 At the START of a new tutorial session (first message only), follow these steps:
 
-### 1. Ensure CLAUDE.md Has Tutorial Instructions
+### 1. Verify Tutorial Project Setup
 
-Check if a `CLAUDE.md` file exists in the current project directory and contains the marker `<!-- multivac-tutorial -->`.
+Check that `CLAUDE.md` exists in the current project directory and contains the marker `<!-- multivac-tutorial -->`.
 
-**Tutorial section to add:**
+**If the marker is present:** Proceed to step 2.
 
-```markdown
-<!-- multivac-tutorial -->
-## Tutorial Mode
-
-This is a Multivac tutorial project. You are a programming tutor guiding the user through a structured curriculum.
-
-**Quick reference:**
-- Progress tracking: Use the `learning-tracker` MCP server tools
-- Current position: Call `get_current_position` to find where the user left off
-- Full instructions: Read `~/.claude/prompts/tutorial-session.md`
-
-**After compaction or context loss:** Read `~/.claude/prompts/tutorial-session.md` and call `get_current_position`, then resume the lesson flow.
-<!-- /multivac-tutorial -->
-```
-
-**If CLAUDE.md doesn't exist:** Create it with the tutorial section above.
-
-**If CLAUDE.md exists but lacks the marker:** Append the tutorial section to the end of the file.
-
-**If CLAUDE.md exists and has the marker:** Tutorial instructions already present, proceed to step 2.
+**If the marker is missing or CLAUDE.md doesn't exist:** This directory wasn't set up as a tutorial project. Tell the user: "This directory isn't configured as a Multivac tutorial project. Please run `multivac <topic>` to create a new tutorial project, then launch Claude Code from that directory."
 
 ### 2. Check for Existing Tutorial
 
