@@ -27,6 +27,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     description TEXT,
+    type TEXT DEFAULT 'programming' CHECK (type IN ('programming', 'general')),
     completed INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     completed_at TEXT
@@ -134,6 +135,7 @@ export interface Tutorial {
   id: number;
   name: string;
   description: string | null;
+  type: 'programming' | 'general';
   completed: boolean;
   created_at: string;
   completed_at: string | null;
@@ -238,6 +240,7 @@ export interface CurriculumPart {
 export interface Curriculum {
   name: string;
   description?: string;
+  type?: 'programming' | 'general';
   parts: CurriculumPart[];
 }
 
@@ -252,7 +255,7 @@ export const database = {
   // Tutorial operations
   createTutorial(curriculum: Curriculum): Tutorial {
     const insertTutorial = db.prepare(
-      'INSERT INTO tutorials (name, description) VALUES (?, ?)'
+      'INSERT INTO tutorials (name, description, type) VALUES (?, ?, ?)'
     );
     const insertPart = db.prepare(
       'INSERT INTO parts (tutorial_id, name, difficulty, sort_order) VALUES (?, ?, ?, ?)'
@@ -271,7 +274,7 @@ export const database = {
     );
 
     const transaction = db.transaction(() => {
-      const tutorialResult = insertTutorial.run(curriculum.name, curriculum.description || null);
+      const tutorialResult = insertTutorial.run(curriculum.name, curriculum.description || null, curriculum.type || 'programming');
       const tutorialId = tutorialResult.lastInsertRowid as number;
 
       for (let pi = 0; pi < curriculum.parts.length; pi++) {

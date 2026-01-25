@@ -1,6 +1,6 @@
 # Tutorial Command
 
-Start, continue, or manage a structured programming tutorial.
+Start, continue, or manage a structured tutorial.
 
 ## Step 1: Check Tutorial State
 
@@ -121,6 +121,10 @@ Display tutorial progress in a retro video game-style ASCII art format.
 
 ### Screen Template
 
+Check `tutorial.type` from the `get_tutorial` response to determine which template to use.
+
+**For programming tutorials (`type: "programming"`):**
+
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║  ░█▀█░█▀▄░█▀█░█▀▀░█▀▄░█▀▀░█▀▀░█▀▀                            ║
@@ -159,6 +163,45 @@ Display tutorial progress in a retro video game-style ASCII art format.
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
+**For general tutorials (`type: "general"`):**
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  ░█▀█░█▀▄░█▀█░█▀▀░█▀▄░█▀▀░█▀▀░█▀▀                            ║
+║  ░█▀▀░█▀▄░█░█░█░█░█▀▄░█▀▀░▀▀█░▀▀█                            ║
+║  ░▀░░░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀                            ║
+╠══════════════════════════════════════════════════════════════╣
+║  TUTORIAL: {name}                       PART {N}: {part_name}║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║  CURRENT POSITION                                            ║
+║  ┌────────────────────────────────────────────────────────┐  ║
+║  │  ► Chapter {C}: {chapter_name}                         │  ║
+║  │    Lesson {L}: {lesson_name}                           │  ║
+║  └────────────────────────────────────────────────────────┘  ║
+║                                                              ║
+║  PART PROGRESS                                               ║
+║  ┌────────────────────────────────────────────────────────┐  ║
+║  │  Chapter 1  {progress_bar}  {status}                   │  ║
+║  │  Chapter 2  {progress_bar}  {status}                   │  ║
+║  │  Chapter 3  {progress_bar}  {status}    ◄── YOU        │  ║
+║  │  Chapter 4  {progress_bar}  {status}                   │  ║
+║  └────────────────────────────────────────────────────────┘  ║
+║                                                              ║
+║  STATS                        │  REVIEW QUEUE                ║
+║  ─────────────────────────────│───────────────────────────── ║
+║  Lessons:     {X}/{Y} ({Z}%)  │  {N} lessons pending         ║
+║  Quizzes Avg: {Q}%            │  ┌─────────────────────────┐ ║
+║  Interviews:  {I}/{J}         │  │ • {concept_1}           │ ║
+║                               │  │ • {concept_2}           │ ║
+║                               │  │ • {concept_3}           │ ║
+║                               │  │ • {concept_4}           │ ║
+║                               │  └─────────────────────────┘ ║
+╠══════════════════════════════════════════════════════════════╣
+║                    ▶ CONTINUE ◀                              ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
 ### Progress Bar Format
 
 Use block characters to show progress (20 characters wide):
@@ -183,7 +226,7 @@ For each lesson in the queue:
 - If queue is empty, show "Queue empty - great work!"
 - If queue has more than 4 items, show first 4 with "+ N more"
 
-### Example with Real Data
+### Example with Real Data (Programming Tutorial)
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -222,3 +265,5 @@ For each lesson in the queue:
 ║                    ▶ CONTINUE ◀                              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
+
+For general tutorials, omit the "Capstone" row in PART PROGRESS and the "Capstones" line in STATS.

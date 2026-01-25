@@ -40,6 +40,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'string',
               description: 'Brief description of what this tutorial covers',
             },
+            type: {
+              type: 'string',
+              enum: ['programming', 'general'],
+              description: 'Tutorial type. "programming" includes code-based interviews and capstone projects with automated tests. "general" includes knowledge-based interviews but no capstones. Defaults to "programming".',
+            },
             parts: {
               type: 'array',
               description: 'Array of 3 parts (Part I, Part II, Part III)',

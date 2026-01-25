@@ -9,7 +9,7 @@ _A Claude Code Learning System_
 ║               ░█░▀░█░█░█░█░░░█░░█░▀▄▀░█▀█░█░░░               ║
 ║               ░▀░░░▀░▀▀▀░▀▀▀░▀░░▀░░▀░░▀░▀░▀▀▀░               ║
 ║                                                              ║
-║          Learn programming with AI-guided lessons,           ║
+║              Learn with AI-guided lessons,                   ║
 ║       quizzes, mock interviews, and capstone projects        ║
 ║                                                              ║
 ║                  ▶ INSERT TOKEN TO START ◀                   ║
@@ -18,7 +18,7 @@ _A Claude Code Learning System_
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
-Transform Claude Code into a structured learning environment. Pick any programming topic — Python, JavaScript, Rust, system design — and get a complete curriculum with progress tracking, spaced repetition, and assessments.
+Transform Claude Code into a structured learning environment. Pick any topic — Python, JavaScript, French, Chemistry — and get a complete curriculum with progress tracking, spaced repetition, and assessments.
 
 ## What You Get
 
@@ -45,16 +45,23 @@ Completed lessons enter a review queue. At the start of each new chapter, you'll
 
 ### Mock Interviews
 
-At the end of each chapter, face an 8-question technical interview:
+At the end of each chapter, face an 8-question interview:
 
+**For programming topics:**
 - 4 **code writing** challenges (write your solution in a scratch file)
 - 4 **code analysis** questions (debug, refactor, test, or explain)
 
+**For general topics:**
+- 4 **knowledge demonstration** questions (explain, describe, apply)
+- 4 **analysis** questions (interpret, compare, evaluate, problem-solve)
+
 Scored 0-5 per question with detailed feedback.
 
-### Capstone Projects
+### Capstone Projects (Programming Tutorials)
 
 Each part ends with a hands-on project. You'll build something real with test-driven milestones — tests are written incrementally and run automatically as you complete each part. Works with any language and test framework.
+
+General tutorials (French, Chemistry, etc.) skip capstones since they require automated test verification.
 
 ### Progress Tracking
 
@@ -115,7 +122,8 @@ Claude generates a full curriculum on the fly and guides you through it.
 ```bash
 multivac                         # Creates ~/multivac/tutorial/
 multivac javascript              # Creates ~/multivac/javascript/
-multivac 'data science'          # Creates ~/multivac/data-science/
+multivac french                  # Creates ~/multivac/french/ (general tutorial)
+multivac 'organic chemistry'     # Creates ~/multivac/organic-chemistry/
 multivac python --new            # Creates ~/multivac/python-2 if python exists
 multivac --home ~/Desktop rust   # Creates ~/Desktop/rust/
 ```
@@ -196,14 +204,19 @@ This project demonstrates Claude Code's extensibility:
 - [Node.js](https://nodejs.org/) 18+ (for MCP server)
 - Claude Pro subscription (recommended for longer sessions)
 
-## Limitations
+## Tutorial Types
 
-This system is designed for **programming tutorials**. The lesson delivery, quizzes, and spaced repetition work for any topic, but:
+Multivac supports two tutorial types:
 
-- **Interviews** are code-focused (writing and analyzing code)
-- **Capstones** require coding projects with tests
+| Feature    | Programming (Python, JS, etc.) | General (French, Chemistry, etc.) |
+|------------|-------------------------------|-----------------------------------|
+| Lessons    | ✓                             | ✓                                 |
+| Quizzes    | ✓                             | ✓                                 |
+| Reviews    | ✓                             | ✓                                 |
+| Interviews | Code-focused                   | Knowledge-focused                 |
+| Capstones  | ✓ (test-driven projects)      | —                                 |
 
-For non-programming topics like chemistry or French, the core learning flow works but assessments would need adaptation.
+The type is automatically detected based on your chosen topic.
 
 ## License
 
