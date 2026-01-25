@@ -656,9 +656,73 @@ export const database = {
     }
   },
 
-  clearReviewQueue(tutorialId: number): number {
-    const result = db.prepare('DELETE FROM review_queue WHERE tutorial_id = ?').run(tutorialId);
-    return result.changes;
+  // Reset all progress while keeping the curriculum structure
+  resetProgress(): boolean {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return false;
+
+    db.transaction(() => {
+      // Reset progress table
+      db.prepare(`
+        UPDATE progress
+        SET current_lesson_id = NULL, status = 'not_started', started_at = NULL, updated_at = datetime('now')
+        WHERE tutorial_id = ?
+      `).run(tutorialId);
+
+      // Clear tutorial completion
+      db.prepare('UPDATE tutorials SET completed = 0, completed_at = NULL WHERE id = ?').run(tutorialId);
+
+      // Clear level completion
+      db.prepare('UPDATE levels SET completed = 0 WHERE tutorial_id = ?').run(tutorialId);
+
+      // Clear module completion
+      db.prepare(`
+        UPDATE modules SET completed = 0
+        WHERE level_id IN (SELECT id FROM levels WHERE tutorial_id = ?)
+      `).run(tutorialId);
+
+      // Clear lesson completion
+      db.prepare(`
+        UPDATE lessons SET completed = 0
+        WHERE module_id IN (
+          SELECT m.id FROM modules m
+          JOIN levels l ON m.level_id = l.id
+          WHERE l.tutorial_id = ?
+        )
+      `).run(tutorialId);
+
+      // Clear review queue
+      db.prepare('DELETE FROM review_queue WHERE tutorial_id = ?').run(tutorialId);
+
+      // Clear quiz results
+      db.prepare(`
+        DELETE FROM quiz_results
+        WHERE lesson_id IN (
+          SELECT ls.id FROM lessons ls
+          JOIN modules m ON ls.module_id = m.id
+          JOIN levels l ON m.level_id = l.id
+          WHERE l.tutorial_id = ?
+        )
+      `).run(tutorialId);
+
+      // Clear interview results
+      db.prepare(`
+        DELETE FROM interview_results
+        WHERE module_id IN (
+          SELECT m.id FROM modules m
+          JOIN levels l ON m.level_id = l.id
+          WHERE l.tutorial_id = ?
+        )
+      `).run(tutorialId);
+
+      // Clear capstone results
+      db.prepare(`
+        DELETE FROM capstone_results
+        WHERE level_id IN (SELECT id FROM levels WHERE tutorial_id = ?)
+      `).run(tutorialId);
+    })();
+
+    return true;
   },
 
   logQuizResult(lessonId: number, score: number, total: number, missedConceptIds: number[]): QuizResult {

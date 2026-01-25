@@ -75,9 +75,20 @@ Read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flo
 Display the Progress Screen (see format below), then return to this menu.
 
 ### If "Start over" selected:
-**Requires confirmation.** Ask: "This will erase all your progress. You can choose a new topic if you'd like. Are you sure?"
-- If confirmed: Delete the `.multivac/learning.db` file to reset, then go to Step 2.
-- If cancelled: Return to menu.
+Use `AskUserQuestion` to ask: "How would you like to restart?"
+
+**Options:**
+1. **Restart this curriculum** — "Reset your progress but keep the same lesson structure"
+2. **Change topics and start fresh** — "Delete everything and create a new curriculum"
+
+**If "Restart this curriculum":**
+- Call `reset_progress` from the MCP server
+- Then call `start_tutorial` to begin from lesson 1
+- Resume the lesson flow
+
+**If "Change topics and start fresh":**
+- Delete the `.multivac/learning.db` file
+- Go to Step 2 (New Tutorial Setup)
 
 ### If "Exit tutorial" selected:
 **Requires confirmation.** Ask: "Exit tutorial mode? Your progress is saved and you can resume anytime with /tutorial."

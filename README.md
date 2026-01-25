@@ -187,6 +187,7 @@ This project demonstrates Claude Code's extensibility:
 | `log_capstone_result`  | Record capstone completion               |
 | `get_review_queue`     | Get lessons pending review               |
 | `log_review_result`    | Mark review correct/incorrect            |
+| `reset_progress`       | Reset progress while keeping curriculum  |
 
 ## Requirements
 

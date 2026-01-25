@@ -60,6 +60,7 @@ multivac/
 | `log_capstone_result` | Record capstone completion |
 | `get_review_queue` | Get lessons pending review |
 | `log_review_result` | Correct removes from queue, incorrect moves to end |
+| `reset_progress` | Reset progress while keeping curriculum structure |
 
 ## Installation Target
 

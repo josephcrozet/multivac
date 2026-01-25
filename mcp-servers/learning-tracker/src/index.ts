@@ -222,6 +222,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['lesson_id', 'correct'],
         },
       },
+      {
+        name: 'reset_progress',
+        description: 'Reset all progress while keeping the curriculum structure. Clears completion status, review queue, and all results (quiz, interview, capstone). Use this when the user wants to restart the same tutorial from the beginning.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
     ],
   };
 });
@@ -487,6 +495,34 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                   ? 'Correct! Lesson removed from review queue.'
                   : 'Incorrect. Lesson moved to end of queue for later review.',
                 ...result,
+              }, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'reset_progress': {
+        const success = database.resetProgress();
+        if (!success) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  success: false,
+                  error: 'No tutorial exists in this project yet. Create one first.',
+                }, null, 2),
+              },
+            ],
+          };
+        }
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                message: 'Progress reset. Tutorial is ready to start from the beginning.',
               }, null, 2),
             },
           ],
