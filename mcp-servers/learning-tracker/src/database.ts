@@ -32,7 +32,7 @@ db.exec(`
     completed_at TEXT
   );
 
-  CREATE TABLE IF NOT EXISTS levels (
+  CREATE TABLE IF NOT EXISTS parts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tutorial_id INTEGER NOT NULL,
     name TEXT NOT NULL,
@@ -42,24 +42,24 @@ db.exec(`
     FOREIGN KEY (tutorial_id) REFERENCES tutorials(id) ON DELETE CASCADE
   );
 
-  CREATE TABLE IF NOT EXISTS modules (
+  CREATE TABLE IF NOT EXISTS chapters (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    level_id INTEGER NOT NULL,
+    part_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
     completed INTEGER DEFAULT 0,
     sort_order INTEGER NOT NULL,
-    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE
+    FOREIGN KEY (part_id) REFERENCES parts(id) ON DELETE CASCADE
   );
 
   CREATE TABLE IF NOT EXISTS lessons (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    module_id INTEGER NOT NULL,
+    chapter_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
     completed INTEGER DEFAULT 0,
     sort_order INTEGER NOT NULL,
-    FOREIGN KEY (module_id) REFERENCES modules(id) ON DELETE CASCADE
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
   );
 
   CREATE TABLE IF NOT EXISTS concepts (
@@ -93,21 +93,21 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS interview_results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    module_id INTEGER NOT NULL,
+    chapter_id INTEGER NOT NULL,
     score INTEGER NOT NULL,
     total INTEGER NOT NULL,
     notes TEXT,
     completed_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (module_id) REFERENCES modules(id) ON DELETE CASCADE
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
   );
 
   CREATE TABLE IF NOT EXISTS capstone_results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    level_id INTEGER NOT NULL,
+    part_id INTEGER NOT NULL,
     completed INTEGER DEFAULT 0,
     notes TEXT,
     completed_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE
+    FOREIGN KEY (part_id) REFERENCES parts(id) ON DELETE CASCADE
   );
 
   CREATE TABLE IF NOT EXISTS progress (
@@ -121,9 +121,9 @@ db.exec(`
     FOREIGN KEY (current_lesson_id) REFERENCES lessons(id) ON DELETE SET NULL
   );
 
-  CREATE INDEX IF NOT EXISTS idx_levels_tutorial ON levels(tutorial_id);
-  CREATE INDEX IF NOT EXISTS idx_modules_level ON modules(level_id);
-  CREATE INDEX IF NOT EXISTS idx_lessons_module ON lessons(module_id);
+  CREATE INDEX IF NOT EXISTS idx_parts_tutorial ON parts(tutorial_id);
+  CREATE INDEX IF NOT EXISTS idx_chapters_part ON chapters(part_id);
+  CREATE INDEX IF NOT EXISTS idx_lessons_chapter ON lessons(chapter_id);
   CREATE INDEX IF NOT EXISTS idx_concepts_lesson ON concepts(lesson_id);
   CREATE INDEX IF NOT EXISTS idx_review_queue_tutorial ON review_queue(tutorial_id);
   CREATE INDEX IF NOT EXISTS idx_review_queue_position ON review_queue(tutorial_id, position);
@@ -139,7 +139,7 @@ export interface Tutorial {
   completed_at: string | null;
 }
 
-export interface Level {
+export interface Part {
   id: number;
   tutorial_id: number;
   name: string;
@@ -148,9 +148,9 @@ export interface Level {
   sort_order: number;
 }
 
-export interface Module {
+export interface Chapter {
   id: number;
-  level_id: number;
+  part_id: number;
   name: string;
   description: string | null;
   completed: boolean;
@@ -159,7 +159,7 @@ export interface Module {
 
 export interface Lesson {
   id: number;
-  module_id: number;
+  chapter_id: number;
   name: string;
   description: string | null;
   completed: boolean;
@@ -192,7 +192,7 @@ export interface QuizResult {
 
 export interface InterviewResult {
   id: number;
-  module_id: number;
+  chapter_id: number;
   score: number;
   total: number;
   notes: string | null;
@@ -201,7 +201,7 @@ export interface InterviewResult {
 
 export interface CapstoneResult {
   id: number;
-  level_id: number;
+  part_id: number;
   completed: boolean;
   notes: string | null;
   completed_at: string;
@@ -223,22 +223,22 @@ export interface CurriculumLesson {
   concepts: { name: string; description?: string }[];
 }
 
-export interface CurriculumModule {
+export interface CurriculumChapter {
   name: string;
   description?: string;
   lessons: CurriculumLesson[];
 }
 
-export interface CurriculumLevel {
+export interface CurriculumPart {
   name: string;
   difficulty: 1 | 2 | 3;
-  modules: CurriculumModule[];
+  chapters: CurriculumChapter[];
 }
 
 export interface Curriculum {
   name: string;
   description?: string;
-  levels: CurriculumLevel[];
+  parts: CurriculumPart[];
 }
 
 // Helper to get the tutorial ID (there's only one per project database)
@@ -254,14 +254,14 @@ export const database = {
     const insertTutorial = db.prepare(
       'INSERT INTO tutorials (name, description) VALUES (?, ?)'
     );
-    const insertLevel = db.prepare(
-      'INSERT INTO levels (tutorial_id, name, difficulty, sort_order) VALUES (?, ?, ?, ?)'
+    const insertPart = db.prepare(
+      'INSERT INTO parts (tutorial_id, name, difficulty, sort_order) VALUES (?, ?, ?, ?)'
     );
-    const insertModule = db.prepare(
-      'INSERT INTO modules (level_id, name, description, sort_order) VALUES (?, ?, ?, ?)'
+    const insertChapter = db.prepare(
+      'INSERT INTO chapters (part_id, name, description, sort_order) VALUES (?, ?, ?, ?)'
     );
     const insertLesson = db.prepare(
-      'INSERT INTO lessons (module_id, name, description, sort_order) VALUES (?, ?, ?, ?)'
+      'INSERT INTO lessons (chapter_id, name, description, sort_order) VALUES (?, ?, ?, ?)'
     );
     const insertConcept = db.prepare(
       'INSERT INTO concepts (lesson_id, name, description) VALUES (?, ?, ?)'
@@ -274,19 +274,19 @@ export const database = {
       const tutorialResult = insertTutorial.run(curriculum.name, curriculum.description || null);
       const tutorialId = tutorialResult.lastInsertRowid as number;
 
-      for (let li = 0; li < curriculum.levels.length; li++) {
-        const level = curriculum.levels[li];
-        const levelResult = insertLevel.run(tutorialId, level.name, level.difficulty, li + 1);
-        const levelId = levelResult.lastInsertRowid as number;
+      for (let pi = 0; pi < curriculum.parts.length; pi++) {
+        const part = curriculum.parts[pi];
+        const partResult = insertPart.run(tutorialId, part.name, part.difficulty, pi + 1);
+        const partId = partResult.lastInsertRowid as number;
 
-        for (let mi = 0; mi < level.modules.length; mi++) {
-          const module = level.modules[mi];
-          const moduleResult = insertModule.run(levelId, module.name, module.description || null, mi + 1);
-          const moduleId = moduleResult.lastInsertRowid as number;
+        for (let ci = 0; ci < part.chapters.length; ci++) {
+          const chapter = part.chapters[ci];
+          const chapterResult = insertChapter.run(partId, chapter.name, chapter.description || null, ci + 1);
+          const chapterId = chapterResult.lastInsertRowid as number;
 
-          for (let lsi = 0; lsi < module.lessons.length; lsi++) {
-            const lesson = module.lessons[lsi];
-            const lessonResult = insertLesson.run(moduleId, lesson.name, lesson.description || null, lsi + 1);
+          for (let lsi = 0; lsi < chapter.lessons.length; lsi++) {
+            const lesson = chapter.lessons[lsi];
+            const lessonResult = insertLesson.run(chapterId, lesson.name, lesson.description || null, lsi + 1);
             const lessonId = lessonResult.lastInsertRowid as number;
 
             for (const concept of lesson.concepts) {
@@ -306,8 +306,8 @@ export const database = {
 
   getTutorial(): {
     tutorial: Tutorial;
-    levels: (Level & {
-      modules: (Module & {
+    parts: (Part & {
+      chapters: (Chapter & {
         lessons: (Lesson & {
           concepts: Concept[];
           quiz_result: QuizResult | null;
@@ -331,24 +331,24 @@ export const database = {
     if (!tutorialId) return null;
 
     const tutorial = db.prepare('SELECT * FROM tutorials WHERE id = ?').get(tutorialId) as Tutorial;
-    const levels = db.prepare('SELECT * FROM levels WHERE tutorial_id = ? ORDER BY sort_order').all(tutorialId) as Level[];
+    const parts = db.prepare('SELECT * FROM parts WHERE tutorial_id = ? ORDER BY sort_order').all(tutorialId) as Part[];
 
     const result = {
       tutorial,
-      levels: levels.map(level => {
-        const modules = db.prepare('SELECT * FROM modules WHERE level_id = ? ORDER BY sort_order').all(level.id) as Module[];
-        const capstoneResult = db.prepare('SELECT * FROM capstone_results WHERE level_id = ? ORDER BY completed_at DESC LIMIT 1').get(level.id) as CapstoneResult | undefined;
+      parts: parts.map(part => {
+        const chapters = db.prepare('SELECT * FROM chapters WHERE part_id = ? ORDER BY sort_order').all(part.id) as Chapter[];
+        const capstoneResult = db.prepare('SELECT * FROM capstone_results WHERE part_id = ? ORDER BY completed_at DESC LIMIT 1').get(part.id) as CapstoneResult | undefined;
 
         return {
-          ...level,
-          completed: !!level.completed,
-          modules: modules.map(module => {
-            const lessons = db.prepare('SELECT * FROM lessons WHERE module_id = ? ORDER BY sort_order').all(module.id) as Lesson[];
-            const interviewResult = db.prepare('SELECT * FROM interview_results WHERE module_id = ? ORDER BY completed_at DESC LIMIT 1').get(module.id) as InterviewResult | undefined;
+          ...part,
+          completed: !!part.completed,
+          chapters: chapters.map(chapter => {
+            const lessons = db.prepare('SELECT * FROM lessons WHERE chapter_id = ? ORDER BY sort_order').all(chapter.id) as Lesson[];
+            const interviewResult = db.prepare('SELECT * FROM interview_results WHERE chapter_id = ? ORDER BY completed_at DESC LIMIT 1').get(chapter.id) as InterviewResult | undefined;
 
             return {
-              ...module,
-              completed: !!module.completed,
+              ...chapter,
+              completed: !!chapter.completed,
               lessons: lessons.map(lesson => {
                 const concepts = db.prepare('SELECT * FROM concepts WHERE lesson_id = ?').all(lesson.id) as Concept[];
                 const quizResult = db.prepare('SELECT * FROM quiz_results WHERE lesson_id = ? ORDER BY completed_at DESC LIMIT 1').get(lesson.id) as QuizResult | undefined;
@@ -387,38 +387,38 @@ export const database = {
         COUNT(*) as total,
         SUM(CASE WHEN l.completed = 1 THEN 1 ELSE 0 END) as completed
       FROM lessons l
-      JOIN modules m ON l.module_id = m.id
-      JOIN levels lv ON m.level_id = lv.id
-      WHERE lv.tutorial_id = ?
+      JOIN chapters c ON l.chapter_id = c.id
+      JOIN parts p ON c.part_id = p.id
+      WHERE p.tutorial_id = ?
     `).get(tutorialId) as { total: number; completed: number };
 
     const conceptStats = db.prepare(`
       SELECT COUNT(*) as total
-      FROM concepts c
-      JOIN lessons l ON c.lesson_id = l.id
-      JOIN modules m ON l.module_id = m.id
-      JOIN levels lv ON m.level_id = lv.id
-      WHERE lv.tutorial_id = ?
+      FROM concepts co
+      JOIN lessons l ON co.lesson_id = l.id
+      JOIN chapters c ON l.chapter_id = c.id
+      JOIN parts p ON c.part_id = p.id
+      WHERE p.tutorial_id = ?
     `).get(tutorialId) as { total: number };
 
     const quizAvg = db.prepare(`
       SELECT AVG(CAST(qr.score AS FLOAT) / qr.total * 100) as avg_score
       FROM quiz_results qr
       JOIN lessons l ON qr.lesson_id = l.id
-      JOIN modules m ON l.module_id = m.id
-      JOIN levels lv ON m.level_id = lv.id
-      WHERE lv.tutorial_id = ?
+      JOIN chapters c ON l.chapter_id = c.id
+      JOIN parts p ON c.part_id = p.id
+      WHERE p.tutorial_id = ?
     `).get(tutorialId) as { avg_score: number | null };
 
     const interviewStats = db.prepare(`
       SELECT
-        COUNT(DISTINCT m.id) as total,
-        COUNT(DISTINCT ir.module_id) as completed,
+        COUNT(DISTINCT c.id) as total,
+        COUNT(DISTINCT ir.chapter_id) as completed,
         AVG(CAST(ir.score AS FLOAT) / ir.total * 100) as avg_score
-      FROM modules m
-      JOIN levels lv ON m.level_id = lv.id
-      LEFT JOIN interview_results ir ON m.id = ir.module_id
-      WHERE lv.tutorial_id = ?
+      FROM chapters c
+      JOIN parts p ON c.part_id = p.id
+      LEFT JOIN interview_results ir ON c.id = ir.chapter_id
+      WHERE p.tutorial_id = ?
     `).get(tutorialId) as { total: number; completed: number; avg_score: number | null };
 
     return {
@@ -435,10 +435,10 @@ export const database = {
   getCurrentPosition(): {
     tutorial_name: string;
     current_lesson: Lesson | null;
-    current_module: Module | null;
-    current_level: Level | null;
-    position: { level: number; module: number; lesson: number } | null;
-    is_module_start: boolean;
+    current_chapter: Chapter | null;
+    current_part: Part | null;
+    position: { part: number; chapter: number; lesson: number } | null;
+    is_chapter_start: boolean;
   } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
@@ -450,51 +450,51 @@ export const database = {
     if (!progress || !progress.current_lesson_id) {
       // Find first lesson
       const firstLesson = db.prepare(`
-        SELECT l.*, m.level_id, m.sort_order as module_order, lv.sort_order as level_order
+        SELECT l.*, c.part_id, c.sort_order as chapter_order, p.sort_order as part_order
         FROM lessons l
-        JOIN modules m ON l.module_id = m.id
-        JOIN levels lv ON m.level_id = lv.id
-        WHERE lv.tutorial_id = ?
-        ORDER BY lv.sort_order, m.sort_order, l.sort_order
+        JOIN chapters c ON l.chapter_id = c.id
+        JOIN parts p ON c.part_id = p.id
+        WHERE p.tutorial_id = ?
+        ORDER BY p.sort_order, c.sort_order, l.sort_order
         LIMIT 1
-      `).get(tutorialId) as (Lesson & { level_id: number; module_order: number; level_order: number }) | undefined;
+      `).get(tutorialId) as (Lesson & { part_id: number; chapter_order: number; part_order: number }) | undefined;
 
-      if (!firstLesson) return { tutorial_name: tutorial.name, current_lesson: null, current_module: null, current_level: null, position: null, is_module_start: false };
+      if (!firstLesson) return { tutorial_name: tutorial.name, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false };
 
-      const module = db.prepare('SELECT * FROM modules WHERE id = ?').get(firstLesson.module_id) as Module;
-      const level = db.prepare('SELECT * FROM levels WHERE id = ?').get(firstLesson.level_id) as Level;
+      const chapter = db.prepare('SELECT * FROM chapters WHERE id = ?').get(firstLesson.chapter_id) as Chapter;
+      const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(firstLesson.part_id) as Part;
 
       return {
         tutorial_name: tutorial.name,
         current_lesson: firstLesson,
-        current_module: module,
-        current_level: level,
-        position: { level: firstLesson.level_order, module: firstLesson.module_order, lesson: firstLesson.sort_order },
-        is_module_start: firstLesson.sort_order === 1
+        current_chapter: chapter,
+        current_part: part,
+        position: { part: firstLesson.part_order, chapter: firstLesson.chapter_order, lesson: firstLesson.sort_order },
+        is_chapter_start: firstLesson.sort_order === 1
       };
     }
 
     const lesson = db.prepare('SELECT * FROM lessons WHERE id = ?').get(progress.current_lesson_id) as Lesson | undefined;
-    if (!lesson) return { tutorial_name: tutorial.name, current_lesson: null, current_module: null, current_level: null, position: null, is_module_start: false };
+    if (!lesson) return { tutorial_name: tutorial.name, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false };
 
-    const module = db.prepare('SELECT * FROM modules WHERE id = ?').get(lesson.module_id) as Module;
-    const level = db.prepare('SELECT * FROM levels WHERE id = ?').get(module.level_id) as Level;
+    const chapter = db.prepare('SELECT * FROM chapters WHERE id = ?').get(lesson.chapter_id) as Chapter;
+    const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(chapter.part_id) as Part;
 
     return {
       tutorial_name: tutorial.name,
       current_lesson: lesson,
-      current_module: module,
-      current_level: level,
-      position: { level: level.sort_order, module: module.sort_order, lesson: lesson.sort_order },
-      is_module_start: lesson.sort_order === 1
+      current_chapter: chapter,
+      current_part: part,
+      position: { part: part.sort_order, chapter: chapter.sort_order, lesson: lesson.sort_order },
+      is_chapter_start: lesson.sort_order === 1
     };
   },
 
   advancePosition(): {
     previous_lesson: Lesson | null;
     new_lesson: Lesson | null;
-    module_completed: boolean;
-    level_completed: boolean;
+    chapter_completed: boolean;
+    part_completed: boolean;
     tutorial_completed: boolean;
   } | null {
     const tutorialId = getTutorialId();
@@ -502,7 +502,7 @@ export const database = {
 
     const currentPos = this.getCurrentPosition();
     if (!currentPos || !currentPos.current_lesson) {
-      return { previous_lesson: null, new_lesson: null, module_completed: false, level_completed: false, tutorial_completed: false };
+      return { previous_lesson: null, new_lesson: null, chapter_completed: false, part_completed: false, tutorial_completed: false };
     }
 
     const previousLesson = currentPos.current_lesson;
@@ -512,27 +512,27 @@ export const database = {
 
     // Find next lesson
     const nextLesson = db.prepare(`
-      SELECT l.*, m.level_id, m.sort_order as module_order, lv.sort_order as level_order
+      SELECT l.*, c.part_id, c.sort_order as chapter_order, p.sort_order as part_order
       FROM lessons l
-      JOIN modules m ON l.module_id = m.id
-      JOIN levels lv ON m.level_id = lv.id
-      WHERE lv.tutorial_id = ?
+      JOIN chapters c ON l.chapter_id = c.id
+      JOIN parts p ON c.part_id = p.id
+      WHERE p.tutorial_id = ?
         AND (
-          (lv.sort_order = ? AND m.sort_order = ? AND l.sort_order > ?)
-          OR (lv.sort_order = ? AND m.sort_order > ?)
-          OR (lv.sort_order > ?)
+          (p.sort_order = ? AND c.sort_order = ? AND l.sort_order > ?)
+          OR (p.sort_order = ? AND c.sort_order > ?)
+          OR (p.sort_order > ?)
         )
-      ORDER BY lv.sort_order, m.sort_order, l.sort_order
+      ORDER BY p.sort_order, c.sort_order, l.sort_order
       LIMIT 1
     `).get(
       tutorialId,
-      currentPos.position!.level, currentPos.position!.module, currentPos.position!.lesson,
-      currentPos.position!.level, currentPos.position!.module,
-      currentPos.position!.level
-    ) as (Lesson & { level_id: number; module_order: number; level_order: number }) | undefined;
+      currentPos.position!.part, currentPos.position!.chapter, currentPos.position!.lesson,
+      currentPos.position!.part, currentPos.position!.chapter,
+      currentPos.position!.part
+    ) as (Lesson & { part_id: number; chapter_order: number; part_order: number }) | undefined;
 
-    const moduleCompleted = !nextLesson || nextLesson.module_id !== previousLesson.module_id;
-    const levelCompleted = !nextLesson || nextLesson.level_id !== currentPos.current_level!.id;
+    const chapterCompleted = !nextLesson || nextLesson.chapter_id !== previousLesson.chapter_id;
+    const partCompleted = !nextLesson || nextLesson.part_id !== currentPos.current_part!.id;
     const tutorialCompleted = !nextLesson;
 
     // Update progress
@@ -555,21 +555,21 @@ export const database = {
     // Mark previous lesson as completed
     db.prepare('UPDATE lessons SET completed = 1 WHERE id = ?').run(previousLesson.id);
 
-    // Check and update module completion
-    if (moduleCompleted && currentPos.current_module) {
-      db.prepare('UPDATE modules SET completed = 1 WHERE id = ?').run(currentPos.current_module.id);
+    // Check and update chapter completion
+    if (chapterCompleted && currentPos.current_chapter) {
+      db.prepare('UPDATE chapters SET completed = 1 WHERE id = ?').run(currentPos.current_chapter.id);
     }
 
-    // Check and update level completion
-    if (levelCompleted && currentPos.current_level) {
-      db.prepare('UPDATE levels SET completed = 1 WHERE id = ?').run(currentPos.current_level.id);
+    // Check and update part completion
+    if (partCompleted && currentPos.current_part) {
+      db.prepare('UPDATE parts SET completed = 1 WHERE id = ?').run(currentPos.current_part.id);
     }
 
     return {
       previous_lesson: previousLesson,
       new_lesson: nextLesson || null,
-      module_completed: moduleCompleted,
-      level_completed: levelCompleted,
+      chapter_completed: chapterCompleted,
+      part_completed: partCompleted,
       tutorial_completed: tutorialCompleted
     };
   },
@@ -603,7 +603,7 @@ export const database = {
 
     const queueItems = db.prepare(`
       SELECT rq.*, l.name as lesson_name, l.description as lesson_description,
-             l.module_id, l.sort_order as lesson_sort_order, l.completed as lesson_completed
+             l.chapter_id, l.sort_order as lesson_sort_order, l.completed as lesson_completed
       FROM review_queue rq
       JOIN lessons l ON rq.lesson_id = l.id
       WHERE rq.tutorial_id = ?
@@ -611,7 +611,7 @@ export const database = {
     `).all(tutorialId) as (ReviewQueueItem & {
       lesson_name: string;
       lesson_description: string | null;
-      module_id: number;
+      chapter_id: number;
       lesson_sort_order: number;
       lesson_completed: number;
     })[];
@@ -621,7 +621,7 @@ export const database = {
       return {
         lesson: {
           id: item.lesson_id,
-          module_id: item.module_id,
+          chapter_id: item.chapter_id,
           name: item.lesson_name,
           description: item.lesson_description,
           completed: !!item.lesson_completed,
@@ -672,22 +672,22 @@ export const database = {
       // Clear tutorial completion
       db.prepare('UPDATE tutorials SET completed = 0, completed_at = NULL WHERE id = ?').run(tutorialId);
 
-      // Clear level completion
-      db.prepare('UPDATE levels SET completed = 0 WHERE tutorial_id = ?').run(tutorialId);
+      // Clear part completion
+      db.prepare('UPDATE parts SET completed = 0 WHERE tutorial_id = ?').run(tutorialId);
 
-      // Clear module completion
+      // Clear chapter completion
       db.prepare(`
-        UPDATE modules SET completed = 0
-        WHERE level_id IN (SELECT id FROM levels WHERE tutorial_id = ?)
+        UPDATE chapters SET completed = 0
+        WHERE part_id IN (SELECT id FROM parts WHERE tutorial_id = ?)
       `).run(tutorialId);
 
       // Clear lesson completion
       db.prepare(`
         UPDATE lessons SET completed = 0
-        WHERE module_id IN (
-          SELECT m.id FROM modules m
-          JOIN levels l ON m.level_id = l.id
-          WHERE l.tutorial_id = ?
+        WHERE chapter_id IN (
+          SELECT c.id FROM chapters c
+          JOIN parts p ON c.part_id = p.id
+          WHERE p.tutorial_id = ?
         )
       `).run(tutorialId);
 
@@ -699,26 +699,26 @@ export const database = {
         DELETE FROM quiz_results
         WHERE lesson_id IN (
           SELECT ls.id FROM lessons ls
-          JOIN modules m ON ls.module_id = m.id
-          JOIN levels l ON m.level_id = l.id
-          WHERE l.tutorial_id = ?
+          JOIN chapters c ON ls.chapter_id = c.id
+          JOIN parts p ON c.part_id = p.id
+          WHERE p.tutorial_id = ?
         )
       `).run(tutorialId);
 
       // Clear interview results
       db.prepare(`
         DELETE FROM interview_results
-        WHERE module_id IN (
-          SELECT m.id FROM modules m
-          JOIN levels l ON m.level_id = l.id
-          WHERE l.tutorial_id = ?
+        WHERE chapter_id IN (
+          SELECT c.id FROM chapters c
+          JOIN parts p ON c.part_id = p.id
+          WHERE p.tutorial_id = ?
         )
       `).run(tutorialId);
 
       // Clear capstone results
       db.prepare(`
         DELETE FROM capstone_results
-        WHERE level_id IN (SELECT id FROM levels WHERE tutorial_id = ?)
+        WHERE part_id IN (SELECT id FROM parts WHERE tutorial_id = ?)
       `).run(tutorialId);
     })();
 
@@ -734,20 +734,20 @@ export const database = {
     return db.prepare('SELECT * FROM quiz_results WHERE id = ?').get(result.lastInsertRowid) as QuizResult;
   },
 
-  logInterviewResult(moduleId: number, score: number, total: number, notes?: string): InterviewResult {
+  logInterviewResult(chapterId: number, score: number, total: number, notes?: string): InterviewResult {
     const result = db.prepare(`
-      INSERT INTO interview_results (module_id, score, total, notes)
+      INSERT INTO interview_results (chapter_id, score, total, notes)
       VALUES (?, ?, ?, ?)
-    `).run(moduleId, score, total, notes || null);
+    `).run(chapterId, score, total, notes || null);
 
     return db.prepare('SELECT * FROM interview_results WHERE id = ?').get(result.lastInsertRowid) as InterviewResult;
   },
 
-  logCapstoneResult(levelId: number, completed: boolean, notes?: string): CapstoneResult {
+  logCapstoneResult(partId: number, completed: boolean, notes?: string): CapstoneResult {
     const result = db.prepare(`
-      INSERT INTO capstone_results (level_id, completed, notes)
+      INSERT INTO capstone_results (part_id, completed, notes)
       VALUES (?, ?, ?)
-    `).run(levelId, completed ? 1 : 0, notes || null);
+    `).run(partId, completed ? 1 : 0, notes || null);
 
     return db.prepare('SELECT * FROM capstone_results WHERE id = ?').get(result.lastInsertRowid) as CapstoneResult;
   },
@@ -760,10 +760,10 @@ export const database = {
     const firstLesson = db.prepare(`
       SELECT l.id
       FROM lessons l
-      JOIN modules m ON l.module_id = m.id
-      JOIN levels lv ON m.level_id = lv.id
-      WHERE lv.tutorial_id = ?
-      ORDER BY lv.sort_order, m.sort_order, l.sort_order
+      JOIN chapters c ON l.chapter_id = c.id
+      JOIN parts p ON c.part_id = p.id
+      WHERE p.tutorial_id = ?
+      ORDER BY p.sort_order, c.sort_order, l.sort_order
       LIMIT 1
     `).get(tutorialId) as { id: number } | undefined;
 

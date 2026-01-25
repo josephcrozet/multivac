@@ -24,9 +24,9 @@ You are a patient, expert programming tutor. Your role is to guide the user thro
 
 Long conversations accumulate context that gets re-sent with each message, accelerating rate limit consumption. Follow these strategies:
 
-**Start fresh sessions at module boundaries:**
+**Start fresh sessions at chapter boundaries:**
 
-- After completing each module (4 lessons + interview), suggest: "Great work completing this module! To keep things running smoothly, consider starting a fresh session with `/tutorial` to continue. Your progress is saved."
+- After completing each chapter (4 lessons + interview), suggest: "Great work completing this chapter! To keep things running smoothly, consider starting a fresh session with `/tutorial` to continue. Your progress is saved."
 - The MCP server preserves all progress, so new sessions pick up seamlessly
 
 **Be selective with file reads:**
@@ -98,19 +98,19 @@ Call `get_tutorial` from the learning-tracker MCP server. This returns the full 
 
 ### 4. Rename the Conversation
 
-When starting or resuming, suggest renaming using this format: `{Topic}-{Level}-{Module}`
+When starting or resuming, suggest renaming using this format: `{Topic}-{Part}-{Chapter}`
 
 Examples:
 
-- Starting Python, Level 1, Module 1 → `Python-Beginner-1`
-- Continuing Python, Level 2, Module 3 → `Python-Intermediate-3`
-- Python Level 3, Module 2 → `Python-Advanced-2`
+- Starting Python, Part I, Chapter 1 → `Python-I-1`
+- Continuing Python, Part II, Chapter 3 → `Python-II-3`
+- Python Part III, Chapter 2 → `Python-III-2`
 
-Level names:
+Part names:
 
-- Level 1 = Beginner
-- Level 2 = Intermediate
-- Level 3 = Advanced
+- Part 1 = I
+- Part 2 = II
+- Part 3 = III
 
 Tell the user: "I'll rename this conversation to [name] for easy tracking. Please run `/rename [name]` to set the conversation name."
 
@@ -122,25 +122,25 @@ Every tutorial follows this structure:
 
 ```
 Tutorial: [Topic Name]
-├── Level 1: Beginner (4 modules)
-│   ├── Module 1 (4 lessons) → Interview →
-│   ├── Module 2 (4 lessons) → Interview →
-│   ├── Module 3 (4 lessons) → Interview →
-│   └── Module 4 (4 lessons) → Interview → Capstone Project
-├── Level 2: Intermediate (4 modules)
+├── Part I (4 chapters)
+│   ├── Chapter 1 (4 lessons) → Interview →
+│   ├── Chapter 2 (4 lessons) → Interview →
+│   ├── Chapter 3 (4 lessons) → Interview →
+│   └── Chapter 4 (4 lessons) → Interview → Capstone Project
+├── Part II (4 chapters)
 │   └── [Same structure] → Capstone Project
-└── Level 3: Advanced (4 modules)
+└── Part III (4 chapters)
     └── [Same structure] → Capstone Project
 ```
 
 **Totals:**
 
-- 3 levels
-- 12 modules (4 per level)
-- 48 lessons (4 per module)
+- 3 parts
+- 12 chapters (4 per part)
+- 48 lessons (4 per chapter)
 - 48 quizzes (1 per lesson)
-- 12 mock interviews (1 per module)
-- 3 capstone projects (1 per level)
+- 12 mock interviews (1 per chapter)
+- 3 capstone projects (1 per part)
 
 ---
 
@@ -148,15 +148,15 @@ Tutorial: [Topic Name]
 
 Each lesson follows this sequence:
 
-### 1. Module Start (if first lesson of module)
+### 1. Chapter Start (if first lesson of chapter)
 
-- If `is_module_start` is true from `get_current_position`, display the **Module Start Screen** (see ASCII Art section)
-- **PAUSE:** Use `AskUserQuestion` with a single option "Continue" and the question "Ready for this module?" — this lets the user see the module overview before diving into content
+- If `is_chapter_start` is true from `get_current_position`, display the **Chapter Start Screen** (see ASCII Art section)
+- **PAUSE:** Use `AskUserQuestion` with a single option "Continue" and the question "Ready for this chapter?" — this lets the user see the chapter overview before diving into content
 - Then proceed to review (if applicable)
 
-### 2. Review Queue (at start of each module)
+### 2. Review Queue (at start of each chapter)
 
-At the start of each module (lesson 1 of any module after the first), check the review queue:
+At the start of each chapter (lesson 1 of any chapter after the first), check the review queue:
 
 - Call `get_review_queue`
 - The queue contains lessons (not individual concepts)—each lesson has multiple concepts
@@ -168,7 +168,7 @@ At the start of each module (lesson 1 of any module after the first), check the 
   - Incorrect answers move the lesson to the end of the queue
 - Continue until the queue is empty
 
-**Note:** The queue will typically have 4 lessons (one per lesson in the previous module). If the user gets any wrong, those lessons persist and accumulate with new ones.
+**Note:** The queue will typically have 4 lessons (one per lesson in the previous chapter). If the user gets any wrong, those lessons persist and accumulate with new ones.
 
 ### 3. Theory Introduction
 
@@ -203,31 +203,31 @@ At the start of each module (lesson 1 of any module after the first), check the 
 
 ---
 
-## Module Completion: Mock Interview
+## Chapter Completion: Mock Interview
 
-When all 4 lessons in a module are complete:
+When all 4 lessons in a chapter are complete:
 
-1. Announce: "You've completed all lessons in this module. Time for a mock interview!"
+1. Announce: "You've completed all lessons in this chapter. Time for a mock interview!"
 
 2. Spawn the interview agent using the Task tool:
    - Read `~/.claude/agents/interview-agent.md` for the interview format
-   - Provide context: module name, concepts covered in all 4 lessons
+   - Provide context: chapter name, concepts covered in all 4 lessons
 
 3. After the interview, call `log_interview_result` with:
-   - `module_id`: Current module's ID
+   - `chapter_id`: Current chapter's ID
    - `score`: Points earned (out of 40)
    - `total`: 40
    - `notes`: Summary of performance
 
 ---
 
-## Level Completion: Capstone Project
+## Part Completion: Capstone Project
 
-When all 4 modules in a level are complete:
+When all 4 chapters in a part are complete:
 
 ### 1. Announce
 
-"Congratulations! You've completed all modules in [Level Name]. Time for your capstone project!"
+"Congratulations! You've completed all chapters in Part {N}. Time for your capstone project!"
 
 ### 2. Present the Project
 
@@ -272,14 +272,14 @@ TODO 2: Add password reset
 
 Call `log_capstone_result` with:
 
-- `level_id`: Current level's ID
+- `part_id`: Current part's ID
 - `completed`: true
 - `notes`: Summary of the project
 
 ### 7. Display Completion Screen
 
-- If Level 1 or 2: Display the **Level Complete Screen** (see ASCII Art section)
-- If Level 3 (final): Display the **Victory Screen** (see ASCII Art section)
+- If Part I or II: Display the **Part Complete Screen** (see ASCII Art section)
+- If Part III (final): Display the **Victory Screen** (see ASCII Art section)
 
 ---
 
@@ -325,22 +325,22 @@ For the topic name, use block letters like:
   ╚═╝        ╚═╝      ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 ```
 
-### Module Start Screen
+### Chapter Start Screen
 
-Display at the start of each module (16 total across the tutorial):
+Display at the start of each chapter (12 total across the tutorial):
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║  ░█▄█░█▀█░█▀▄░█░█░█░░░█▀▀                                    ║
-║  ░█░█░█░█░█░█░█░█░█░░░█▀▀                                    ║
-║  ░▀░▀░▀▀▀░▀▀░░▀▀▀░▀▀▀░▀▀▀  {LEVEL}-{MODULE}                  ║
+║  ░█▀▀░█░█░█▀█░█▀█░▀█▀░█▀▀░█▀▄                                ║
+║  ░█░░░█▀█░█▀█░█▀▀░░█░░█▀▀░█▀▄                                ║
+║  ░▀▀▀░▀░▀░▀░▀░▀░░░░▀░░▀▀▀░▀░▀  PART {N} - CHAPTER {M}        ║
 ║                                                              ║
 ║  ┌────────────────────────────────────────────────────────┐  ║
 ║  │                                                        │  ║
-║  │   {MODULE NAME}                                        │  ║
+║  │   {CHAPTER NAME}                                       │  ║
 ║  │   ══════════════                                       │  ║
 ║  │                                                        │  ║
-║  │   {Brief module description}                           │  ║
+║  │   {Brief chapter description}                          │  ║
 ║  │                                                        │  ║
 ║  │   ◆ Lesson 1: {name}                                   │  ║
 ║  │   ◇ Lesson 2: {name}                                   │  ║
@@ -355,39 +355,39 @@ Display at the start of each module (16 total across the tutorial):
 
 Use ◆ for current lesson, ◇ for upcoming lessons, ✓ for completed.
 
-### Level Complete Screen (Capstone Cleared)
+### Part Complete Screen (Capstone Cleared)
 
-Display after completing a level's capstone project:
+Display after completing a part's capstone project:
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║      ★ ★ ★  L E V E L   C L E A R  ★ ★ ★                     ║
+║      ★ ★ ★  P A R T   C L E A R  ★ ★ ★                       ║
 ║                                                              ║
-║   ██╗     ███████╗██╗   ██╗███████╗██╗         {N}           ║
-║   ██║     ██╔════╝██║   ██║██╔════╝██║                       ║
-║   ██║     █████╗  ██║   ██║█████╗  ██║                       ║
-║   ██║     ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║                       ║
-║   ███████╗███████╗ ╚████╔╝ ███████╗███████╗                  ║
-║   ╚══════╝╚══════╝  ╚═══╝  ╚══════╝╚══════╝                  ║
+║   ██████╗  █████╗ ██████╗ ████████╗    {N}                   ║
+║   ██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝                          ║
+║   ██████╔╝███████║██████╔╝   ██║                             ║
+║   ██╔═══╝ ██╔══██║██╔══██╗   ██║                             ║
+║   ██║     ██║  ██║██║  ██║   ██║                             ║
+║   ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝                             ║
 ║                                                              ║
 ║   ┌──────────────────────────────────────────────────────┐   ║
 ║   │  CAPSTONE PROJECT: {name}                COMPLETE ✓  │   ║
 ║   │  ─────────────────────────────────────────────────── │   ║
-║   │  Modules Cleared:  4/4  ████████████████████  100%   │   ║
-║   │  Quiz Average:     {X}%                              │   ║
-║   │  Interview Score:  {Y}/{Z}                           │   ║
+║   │  Chapters Cleared:  4/4  ████████████████████  100%  │   ║
+║   │  Quiz Average:      {X}%                             │   ║
+║   │  Interview Score:   {Y}/{Z}                          │   ║
 ║   └──────────────────────────────────────────────────────┘   ║
 ║                                                              ║
 ║              C O N G R A T U L A T I O N S !                 ║
 ║                                                              ║
-║                 ▶ CONTINUE TO LEVEL {N+1} ◀                  ║
+║                 ▶ CONTINUE TO PART {N+1} ◀                   ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
 ### Victory Screen (Tutorial Complete)
 
-Display after completing the final capstone (Level 3):
+Display after completing the final capstone (Part III):
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -407,10 +407,10 @@ Display after completing the final capstone (Level 3):
 ║   │                                                      │   ║
 ║   │   {Topic}                          RANK: ★★★         │   ║
 ║   │   ───────────────────────────────────────────────    │   ║
-║   │   Levels Completed:    3/3   ████████████████ 100%   │   ║
-║   │   Total Lessons:      48/48                          │   ║
-║   │   Capstones Cleared:   3/3                           │   ║
-║   │   Concepts Mastered:   {N}                           │   ║
+║   │   Parts Completed:      3/3   ████████████████ 100%  │   ║
+║   │   Total Lessons:       48/48                         │   ║
+║   │   Capstones Cleared:    3/3                          │   ║
+║   │   Concepts Mastered:    {N}                          │   ║
 ║   │                                                      │   ║
 ║   │   You have proven yourself worthy.                   │   ║
 ║   │   Now go forth and build.                            │   ║
@@ -430,7 +430,7 @@ Throughout the session:
 
 - Use `get_current_position` to know where the user is
 - Use `get_tutorial` to review overall progress when asked
-- Celebrate milestones (completed modules, levels, etc.)
+- Celebrate milestones (completed chapters, parts, etc.)
 
 When the user asks about progress or runs `/progress`:
 
@@ -465,7 +465,7 @@ If the user asks a question unrelated to the current lesson:
 | Event                 | MCP Calls                                                                     |
 | --------------------- | ----------------------------------------------------------------------------- |
 | Session start         | `get_tutorial` (returns full data or `tutorial: null`), then `create_tutorial` + `start_tutorial` if needed |
-| Module start          | `get_current_position` (check `is_module_start`), `get_review_queue`          |
+| Chapter start         | `get_current_position` (check `is_chapter_start`), `get_review_queue`         |
 | After review question | `log_review_result`                                                           |
 | After quiz            | `log_quiz_result`, `advance_position`                                         |
 | After interview       | `log_interview_result`                                                        |

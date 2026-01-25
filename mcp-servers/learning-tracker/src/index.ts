@@ -28,7 +28,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: 'create_tutorial',
-        description: 'Create a new tutorial curriculum with levels, modules, lessons, and concepts. Use this when setting up a new learning path.',
+        description: 'Create a new tutorial curriculum with parts, chapters, lessons, and concepts. Use this when setting up a new learning path.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -40,15 +40,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'string',
               description: 'Brief description of what this tutorial covers',
             },
-            levels: {
+            parts: {
               type: 'array',
-              description: 'Array of 3 levels (Beginner, Intermediate, Advanced)',
+              description: 'Array of 3 parts (Part I, Part II, Part III)',
               items: {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
                   difficulty: { type: 'number', enum: [1, 2, 3] },
-                  modules: {
+                  chapters: {
                     type: 'array',
                     items: {
                       type: 'object',
@@ -82,11 +82,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                     },
                   },
                 },
-                required: ['name', 'difficulty', 'modules'],
+                required: ['name', 'difficulty', 'chapters'],
               },
             },
           },
-          required: ['name', 'levels'],
+          required: ['name', 'parts'],
         },
       },
       {
@@ -107,7 +107,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_current_position',
-        description: 'Get the current position in the tutorial (current lesson, module, and level). Also indicates if this is the start of a new module (for triggering reviews).',
+        description: 'Get the current position in the tutorial (current lesson, chapter, and part). Also indicates if this is the start of a new chapter (for triggering reviews).',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -115,7 +115,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'advance_position',
-        description: 'Move to the next lesson in the tutorial. Marks the current lesson as completed, updates module/level completion status, and adds the lesson to the review queue.',
+        description: 'Move to the next lesson in the tutorial. Marks the current lesson as completed, updates chapter/part completion status, and adds the lesson to the review queue.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -150,13 +150,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'log_interview_result',
-        description: 'Record the result of a module mock interview.',
+        description: 'Record the result of a chapter mock interview.',
         inputSchema: {
           type: 'object',
           properties: {
-            module_id: {
+            chapter_id: {
               type: 'number',
-              description: 'ID of the module',
+              description: 'ID of the chapter',
             },
             score: {
               type: 'number',
@@ -171,18 +171,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description: 'Optional notes about the interview performance',
             },
           },
-          required: ['module_id', 'score', 'total'],
+          required: ['chapter_id', 'score', 'total'],
         },
       },
       {
         name: 'log_capstone_result',
-        description: 'Record the completion of a level capstone project.',
+        description: 'Record the completion of a part capstone project.',
         inputSchema: {
           type: 'object',
           properties: {
-            level_id: {
+            part_id: {
               type: 'number',
-              description: 'ID of the level',
+              description: 'ID of the part',
             },
             completed: {
               type: 'boolean',
@@ -193,12 +193,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description: 'Optional notes about the capstone project',
             },
           },
-          required: ['level_id', 'completed'],
+          required: ['part_id', 'completed'],
         },
       },
       {
         name: 'get_review_queue',
-        description: 'Get lessons in the review queue. Each lesson has multiple concepts; pick one concept per lesson for review questions. Use at the start of modules to review previous material.',
+        description: 'Get lessons in the review queue. Each lesson has multiple concepts; pick one concept per lesson for review questions. Use at the start of chapters to review previous material.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -394,13 +394,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'log_interview_result': {
-        const { module_id, score, total, notes } = args as {
-          module_id: number;
+        const { chapter_id, score, total, notes } = args as {
+          chapter_id: number;
           score: number;
           total: number;
           notes?: string;
         };
-        const result = database.logInterviewResult(module_id, score, total, notes);
+        const result = database.logInterviewResult(chapter_id, score, total, notes);
         return {
           content: [
             {
@@ -416,12 +416,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'log_capstone_result': {
-        const { level_id, completed, notes } = args as {
-          level_id: number;
+        const { part_id, completed, notes } = args as {
+          part_id: number;
           completed: boolean;
           notes?: string;
         };
-        const result = database.logCapstoneResult(level_id, completed, notes);
+        const result = database.logCapstoneResult(part_id, completed, notes);
         return {
           content: [
             {

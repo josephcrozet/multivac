@@ -28,12 +28,12 @@ multivac/
 
 ## Key Design Decisions
 
-1. **Token Management** — Sessions restart at module boundaries; MCP server persists progress
+1. **Token Management** — Sessions restart at chapter boundaries; MCP server persists progress
 2. **Local CLAUDE.md** — Created in tutorial project directories to survive compaction
 3. **Batched Quizzes** — 3 prompts of 4 questions, not 12 individual prompts
 4. **Incremental Capstone Tests** — Tests written per-milestone, not all at once
 5. **Generic Commands** — /quiz and interview-agent work outside tutorials; tutorial-session.md adds MCP integration
-6. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at module start; correct answers remove from queue, incorrect answers move to end
+6. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at chapter start; correct answers remove from queue, incorrect answers move to end
 7. **Single Entry Point** — /tutorial handles starting, continuing, viewing progress, and resetting tutorials
 8. **Local Project Data** — Each tutorial project stores its own data in `.multivac/learning.db`; MCP server configured per-project via local `.claude/settings.json`
 
@@ -53,7 +53,7 @@ multivac/
 | `create_tutorial` | Generate new curriculum |
 | `get_tutorial` | Full structure + progress (or `tutorial: null` if none) |
 | `start_tutorial` | Begin a tutorial |
-| `get_current_position` | Current lesson/module/level |
+| `get_current_position` | Current lesson/chapter/part |
 | `advance_position` | Move forward, add lesson to review queue |
 | `log_quiz_result` | Record quiz scores |
 | `log_interview_result` | Record interview performance |

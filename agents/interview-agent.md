@@ -37,7 +37,7 @@ Delete the scratch file when the interview is complete.
 ## Determining Interview Content
 
 Base the interview on the current context:
-- If covering a specific topic or module, interview on that material
+- If covering a specific topic or chapter, interview on that material
 - If working through a curriculum, focus on recently completed sections
 - If no clear context, ask the user what topic to interview on
 

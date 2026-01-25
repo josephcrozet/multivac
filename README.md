@@ -24,7 +24,7 @@ Transform Claude Code into a structured learning environment. Pick any programmi
 
 ### Structured Curriculum
 
-Every tutorial is organized into **3 levels** (Beginner → Intermediate → Advanced), each with **4 modules** of **4 lessons**. That's 48 lessons total, designed to take you from zero to proficient.
+Every tutorial is organized into **3 parts** (Part I → Part II → Part III), each with **4 chapters** of **4 lessons**. That's 48 lessons total, designed to take you from zero to proficient.
 
 ### Interactive Lessons
 
@@ -41,11 +41,11 @@ Each lesson follows a proven learning flow:
 
 ### Spaced Repetition
 
-Completed lessons enter a review queue. At the start of each new module, you'll answer quick review questions on past material. Get it right? It's cleared. Get it wrong? It goes back in the queue. This isn't date-based — it works whether you finish in a day or a month.
+Completed lessons enter a review queue. At the start of each new chapter, you'll answer quick review questions on past material. Get it right? It's cleared. Get it wrong? It goes back in the queue. This isn't date-based — it works whether you finish in a day or a month.
 
 ### Mock Interviews
 
-At the end of each module, face an 8-question technical interview:
+At the end of each chapter, face an 8-question technical interview:
 
 - 4 **code writing** challenges (write your solution in a scratch file)
 - 4 **code analysis** questions (debug, refactor, test, or explain)
@@ -54,7 +54,7 @@ Scored 0-5 per question with detailed feedback.
 
 ### Capstone Projects
 
-Each level ends with a hands-on project. You'll build something real with test-driven milestones — tests are written incrementally and run automatically as you complete each part. Works with any language and test framework.
+Each part ends with a hands-on project. You'll build something real with test-driven milestones — tests are written incrementally and run automatically as you complete each part. Works with any language and test framework.
 
 ### Progress Tracking
 
@@ -143,7 +143,7 @@ This project demonstrates Claude Code's extensibility:
 | `/quiz` command     | Batched multiple-choice questions (3 prompts of 4) |
 | Mock interviews     | Agent spawned via Task tool                        |
 | Capstone tests      | PreToolUse hook that runs your test suite          |
-| Token management    | Session restarts at module boundaries              |
+| Token management    | Session restarts at chapter boundaries             |
 
 ### File Structure
 
@@ -180,7 +180,7 @@ This project demonstrates Claude Code's extensibility:
 | `create_tutorial`      | Generate a new curriculum                |
 | `get_tutorial`         | Get full structure + progress (or `tutorial: null` if none) |
 | `start_tutorial`       | Begin a tutorial                         |
-| `get_current_position` | Current lesson/module/level              |
+| `get_current_position` | Current lesson/chapter/part              |
 | `advance_position`     | Move to next lesson, add to review queue |
 | `log_quiz_result`      | Record quiz scores                       |
 | `log_interview_result` | Record interview performance             |

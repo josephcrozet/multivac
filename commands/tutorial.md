@@ -42,6 +42,7 @@ Then proceed with setup:
 **Topic Selection:**
 
 Present topic options using `AskUserQuestion`:
+
 - **First option:** The topic from CLAUDE.md (e.g., "Python") marked as "(Recommended)"
 - **Additional options:** 2-3 related topics based on the directory name:
   - For "python": Django, FastAPI, Data Science with Python
@@ -53,6 +54,7 @@ Present topic options using `AskUserQuestion`:
 **After topic selection:**
 
 If the user selects a different topic than what's in CLAUDE.md, update the file:
+
 1. Replace `<!-- topic: X -->` with the new topic
 2. Replace `**Topic:** X` with the new topic
 
@@ -63,36 +65,45 @@ A tutorial exists in this project. Use `AskUserQuestion` to present options:
 **Question:** "You have a tutorial in progress. What would you like to do?"
 
 **Options (in this order):**
+
 1. **Continue** — "Resume learning from your current position"
 2. **View progress** — "See your stats and progress in detail"
 3. **Start over** — "Clear all progress and restart from the beginning"
 4. **Exit tutorial** — "Leave tutorial mode and return to regular Claude Code"
 
-### If "Continue" selected:
+### If "Continue" selected
+
 Read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flow.
 
-### If "View progress" selected:
+### If "View progress" selected
+
 Display the Progress Screen (see format below), then return to this menu.
 
-### If "Start over" selected:
+### If "Start over" selected
+
 Use `AskUserQuestion` to ask: "How would you like to restart?"
 
 **Options:**
+
 1. **Restart this curriculum** — "Reset your progress but keep the same lesson structure"
 2. **Change topics and start fresh** — "Delete everything and create a new curriculum"
 
 **If "Restart this curriculum":**
+
 - Call `reset_progress` from the MCP server
 - Tell the user: "Progress reset. For a fresh learning experience, run `/clear` to reset the conversation context, then `/tutorial` to begin."
 - End the command (do not auto-start the tutorial)
 
 **If "Change topics and start fresh":**
+
 - Delete the `.multivac/learning.db` file
 - Tell the user: "Tutorial deleted. Run `/clear` to reset the conversation context, then `/tutorial` to set up your new topic."
 - End the command (do not auto-start the tutorial)
 
-### If "Exit tutorial" selected:
+### If "Exit tutorial" selected
+
 **Requires confirmation.** Ask: "Exit tutorial mode? Your progress is saved and you can resume anytime with /tutorial."
+
 - If confirmed: End the command. Do not load tutorial-session.md.
 - If cancelled: Return to menu.
 
@@ -103,6 +114,7 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 Display tutorial progress in a retro video game-style ASCII art format.
 
 ### Data Collection
+
 1. Call `get_tutorial` to get full stats
 2. Call `get_review_queue` to see pending reviews
 3. Call `get_current_position` to get current location
@@ -115,22 +127,22 @@ Display tutorial progress in a retro video game-style ASCII art format.
 ║  ░█▀▀░█▀▄░█░█░█░█░█▀▄░█▀▀░▀▀█░▀▀█                            ║
 ║  ░▀░░░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀                            ║
 ╠══════════════════════════════════════════════════════════════╣
-║  TUTORIAL: {name}                     LEVEL {N}: {level_name}║
+║  TUTORIAL: {name}                       PART {N}: {part_name}║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
 ║  CURRENT POSITION                                            ║
 ║  ┌────────────────────────────────────────────────────────┐  ║
-║  │  ► Module {M}: {module_name}                           │  ║
+║  │  ► Chapter {C}: {chapter_name}                         │  ║
 ║  │    Lesson {L}: {lesson_name}                           │  ║
 ║  └────────────────────────────────────────────────────────┘  ║
 ║                                                              ║
-║  LEVEL PROGRESS                                              ║
+║  PART PROGRESS                                               ║
 ║  ┌────────────────────────────────────────────────────────┐  ║
-║  │  Module 1  {progress_bar}  {status}                    │  ║
-║  │  Module 2  {progress_bar}  {status}                    │  ║
-║  │  Module 3  {progress_bar}  {status}    ◄── YOU         │  ║
-║  │  Module 4  {progress_bar}  {status}                    │  ║
-║  │  Capstone  {progress_bar}  {status}                    │  ║
+║  │  Chapter 1  {progress_bar}  {status}                   │  ║
+║  │  Chapter 2  {progress_bar}  {status}                   │  ║
+║  │  Chapter 3  {progress_bar}  {status}    ◄── YOU        │  ║
+║  │  Chapter 4  {progress_bar}  {status}                   │  ║
+║  │  Capstone   {progress_bar}  {status}                   │  ║
 ║  └────────────────────────────────────────────────────────┘  ║
 ║                                                              ║
 ║  STATS                        │  REVIEW QUEUE                ║
@@ -150,6 +162,7 @@ Display tutorial progress in a retro video game-style ASCII art format.
 ### Progress Bar Format
 
 Use block characters to show progress (20 characters wide):
+
 - `████████████████████` = 100%
 - `██████████░░░░░░░░░░` = 50%
 - `░░░░░░░░░░░░░░░░░░░░` = 0%
@@ -158,13 +171,14 @@ Calculate proportionally: `filled_chars = round(percentage / 100 * 20)`
 
 ### Status Labels
 
-- `CLEAR` — Module completed
-- `{X}%` — Module in progress (show percentage)
-- `LOCKED` — Module not yet started (previous not complete)
+- `CLEAR` — Chapter completed
+- `{X}%` — Chapter in progress (show percentage)
+- `LOCKED` — Chapter not yet started (previous not complete)
 
 ### Review Queue Display
 
 For each lesson in the queue:
+
 - Pick one representative concept name to display
 - If queue is empty, show "Queue empty - great work!"
 - If queue has more than 4 items, show first 4 with "+ N more"
@@ -177,22 +191,22 @@ For each lesson in the queue:
 ║  ░█▀▀░█▀▄░█░█░█░█░█▀▄░█▀▀░▀▀█░▀▀█                            ║
 ║  ░▀░░░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀                            ║
 ╠══════════════════════════════════════════════════════════════╣
-║  TUTORIAL: Python                   LEVEL 2: Intermediate    ║
+║  TUTORIAL: Python                          PART II: {name}   ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
 ║  CURRENT POSITION                                            ║
 ║  ┌────────────────────────────────────────────────────────┐  ║
-║  │  ► Module 3: Object-Oriented Programming               │  ║
+║  │  ► Chapter 3: Object-Oriented Programming              │  ║
 ║  │    Lesson 2: Inheritance                               │  ║
 ║  └────────────────────────────────────────────────────────┘  ║
 ║                                                              ║
-║  LEVEL PROGRESS                                              ║
+║  PART PROGRESS                                               ║
 ║  ┌────────────────────────────────────────────────────────┐  ║
-║  │  Module 1  ████████████████████  CLEAR                 │  ║
-║  │  Module 2  ████████████████████  CLEAR                 │  ║
-║  │  Module 3  █████████░░░░░░░░░░░  45%    ◄── YOU        │  ║
-║  │  Module 4  ░░░░░░░░░░░░░░░░░░░░  LOCKED                │  ║
-║  │  Capstone  ░░░░░░░░░░░░░░░░░░░░  LOCKED                │  ║
+║  │  Chapter 1  ████████████████████  CLEAR                │  ║
+║  │  Chapter 2  ████████████████████  CLEAR                │  ║
+║  │  Chapter 3  █████████░░░░░░░░░░░  45%    ◄── YOU       │  ║
+║  │  Chapter 4  ░░░░░░░░░░░░░░░░░░░░  LOCKED               │  ║
+║  │  Capstone   ░░░░░░░░░░░░░░░░░░░░  LOCKED               │  ║
 ║  └────────────────────────────────────────────────────────┘  ║
 ║                                                              ║
 ║  STATS                        │  REVIEW QUEUE                ║
