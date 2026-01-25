@@ -3,7 +3,7 @@ import { join } from 'path';
 import { mkdirSync, existsSync } from 'fs';
 
 // Data directory must be set via MULTIVAC_DATA_DIR environment variable
-// This is set by the local .claude/settings.json in each tutorial project
+// This is set by the local .mcp.json in each tutorial project
 const DATA_DIR = process.env.MULTIVAC_DATA_DIR;
 if (!DATA_DIR) {
   throw new Error(

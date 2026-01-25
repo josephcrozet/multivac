@@ -116,6 +116,7 @@ use_next_topic_number() {
 # Initialize existing directory as tutorial (with backup warning)
 initialize_existing_directory() {
     EXISTING_FILES=""
+    [[ -f "$PROJECT_DIR/.mcp.json" ]] && EXISTING_FILES="$EXISTING_FILES  - .mcp.json\n"
     [[ -f "$PROJECT_DIR/.claude/settings.json" ]] && EXISTING_FILES="$EXISTING_FILES  - .claude/settings.json\n"
     [[ -f "$PROJECT_DIR/CLAUDE.md" ]] && EXISTING_FILES="$EXISTING_FILES  - CLAUDE.md\n"
 
@@ -131,6 +132,7 @@ initialize_existing_directory() {
         fi
 
         # Create backups
+        [[ -f "$PROJECT_DIR/.mcp.json" ]] && cp "$PROJECT_DIR/.mcp.json" "$PROJECT_DIR/.mcp.json.bak"
         [[ -f "$PROJECT_DIR/.claude/settings.json" ]] && cp "$PROJECT_DIR/.claude/settings.json" "$PROJECT_DIR/.claude/settings.json.bak"
         [[ -f "$PROJECT_DIR/CLAUDE.md" ]] && cp "$PROJECT_DIR/CLAUDE.md" "$PROJECT_DIR/CLAUDE.md.bak"
     fi
@@ -289,8 +291,8 @@ if [[ ! -f "$MCP_SERVER_PATH" ]]; then
     exit 1
 fi
 
-# Create local settings.json with MULTIVAC_DATA_DIR env var
-cat > "$PROJECT_DIR/.claude/settings.json" << EOF
+# Create .mcp.json at project root for MCP server config
+cat > "$PROJECT_DIR/.mcp.json" << EOF
 {
   "mcpServers": {
     "learning-tracker": {
@@ -300,7 +302,13 @@ cat > "$PROJECT_DIR/.claude/settings.json" << EOF
         "MULTIVAC_DATA_DIR": "$DATA_DIR"
       }
     }
-  },
+  }
+}
+EOF
+
+# Create .claude/settings.json for hooks config
+cat > "$PROJECT_DIR/.claude/settings.json" << EOF
+{
   "hooks": {
     "PreToolUse": [{
       "matcher": "TodoWrite",

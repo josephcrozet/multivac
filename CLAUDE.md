@@ -35,7 +35,7 @@ multivac/
 5. **Generic Commands** — /quiz and interview-agent work outside tutorials; tutorial-session.md adds MCP integration
 6. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at chapter start; correct answers remove from queue, incorrect answers move to end
 7. **Single Entry Point** — /tutorial handles starting, continuing, viewing progress, and resetting tutorials
-8. **Local Project Data** — Each tutorial project stores its own data in `.multivac/learning.db`; MCP server configured per-project via local `.claude/settings.json`
+8. **Local Project Data** — Each tutorial project stores its own data in `.multivac/learning.db`; MCP server configured per-project via `.mcp.json`
 9. **Tutorial Types** — `programming` (code interviews + capstones) vs `general` (knowledge interviews, no capstones); type auto-detected from topic
 
 ## Interview Agent Details
@@ -81,7 +81,8 @@ Files install to `~/.claude/`:
 - `multivac` command goes to `~/.local/bin/`
 
 Per-project configuration (created by `multivac` command):
-- `.claude/settings.json` — MCP server + hook config with `MULTIVAC_DATA_DIR` pointing to local data
+- `.mcp.json` — MCP server config with `MULTIVAC_DATA_DIR` pointing to local data
+- `.claude/settings.json` — Hook config for capstone test runner
 - `.multivac/` — Local data directory containing `learning.db`
 
 ## Testing

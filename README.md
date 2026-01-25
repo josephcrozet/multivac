@@ -174,7 +174,8 @@ This project demonstrates Claude Code's extensibility:
 
 ~/multivac/                     # Your tutorial projects (created by multivac command)
 ├── python/
-│   ├── .claude/settings.json   # Local MCP + hook config
+│   ├── .mcp.json               # MCP server config
+│   ├── .claude/settings.json   # Hook config
 │   ├── .multivac/learning.db   # Tutorial progress (SQLite)
 │   └── CLAUDE.md               # Tutorial mode marker
 └── javascript/
