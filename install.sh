@@ -32,6 +32,28 @@ CLAUDE_DIR="$HOME/.claude"
 BIN_DIR="$HOME/.local/bin"
 CLEANUP_TEMP=""
 
+# Check for existing installation (any Multivac file)
+EXISTING_INSTALL=""
+[ -f "$CLAUDE_DIR/agents/interview-agent.md" ] && EXISTING_INSTALL="yes"
+[ -f "$CLAUDE_DIR/commands/quiz.md" ] && EXISTING_INSTALL="yes"
+[ -f "$CLAUDE_DIR/commands/tutorial.md" ] && EXISTING_INSTALL="yes"
+[ -f "$CLAUDE_DIR/hooks/capstone-test-runner.sh" ] && EXISTING_INSTALL="yes"
+[ -f "$CLAUDE_DIR/prompts/tutorial-session.md" ] && EXISTING_INSTALL="yes"
+[ -d "$CLAUDE_DIR/mcp-servers/learning-tracker" ] && EXISTING_INSTALL="yes"
+[ -f "$BIN_DIR/multivac" ] && EXISTING_INSTALL="yes"
+
+if [[ -n "$EXISTING_INSTALL" ]]; then
+    echo "Existing Multivac installation detected."
+    echo ""
+    read -p "Update to latest version? (Y/n) " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
+        echo "Installation cancelled."
+        exit 0
+    fi
+    echo ""
+fi
+
 # Determine source directory (local clone or remote download)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || SCRIPT_DIR=""
 
@@ -89,42 +111,32 @@ mkdir -p "$CLAUDE_DIR/prompts"
 mkdir -p "$CLAUDE_DIR/mcp-servers/learning-tracker"
 mkdir -p "$BIN_DIR"
 
-# Function to copy file if it doesn't exist
-copy_if_not_exists() {
-    src="$1"
-    dest="$2"
-    if [ -f "$dest" ]; then
-        echo "  SKIP: $(basename "$dest") (already exists)"
-        return 1
-    else
-        cp "$src" "$dest"
-        echo "  COPY: $(basename "$dest")"
-        return 0
-    fi
-}
-
 # Copy agents
 echo ""
 echo "Installing agents..."
-copy_if_not_exists "$SCRIPT_DIR/agents/interview-agent.md" "$CLAUDE_DIR/agents/interview-agent.md"
+cp "$SCRIPT_DIR/agents/interview-agent.md" "$CLAUDE_DIR/agents/interview-agent.md"
+echo "  interview-agent.md"
 
 # Copy commands
 echo ""
 echo "Installing commands..."
-copy_if_not_exists "$SCRIPT_DIR/commands/quiz.md" "$CLAUDE_DIR/commands/quiz.md"
-copy_if_not_exists "$SCRIPT_DIR/commands/tutorial.md" "$CLAUDE_DIR/commands/tutorial.md"
+cp "$SCRIPT_DIR/commands/quiz.md" "$CLAUDE_DIR/commands/quiz.md"
+echo "  quiz.md"
+cp "$SCRIPT_DIR/commands/tutorial.md" "$CLAUDE_DIR/commands/tutorial.md"
+echo "  tutorial.md"
 
 # Copy hooks
 echo ""
 echo "Installing hooks..."
-if copy_if_not_exists "$SCRIPT_DIR/hooks/capstone-test-runner.sh" "$CLAUDE_DIR/hooks/capstone-test-runner.sh"; then
-    chmod +x "$CLAUDE_DIR/hooks/capstone-test-runner.sh"
-fi
+cp "$SCRIPT_DIR/hooks/capstone-test-runner.sh" "$CLAUDE_DIR/hooks/capstone-test-runner.sh"
+chmod +x "$CLAUDE_DIR/hooks/capstone-test-runner.sh"
+echo "  capstone-test-runner.sh"
 
 # Copy prompts
 echo ""
 echo "Installing prompts..."
-copy_if_not_exists "$SCRIPT_DIR/prompts/tutorial-session.md" "$CLAUDE_DIR/prompts/tutorial-session.md"
+cp "$SCRIPT_DIR/prompts/tutorial-session.md" "$CLAUDE_DIR/prompts/tutorial-session.md"
+echo "  tutorial-session.md"
 
 # Copy MCP server source
 echo ""
@@ -132,6 +144,7 @@ echo "Installing MCP server..."
 cp -r "$SCRIPT_DIR/mcp-servers/learning-tracker/src" "$CLAUDE_DIR/mcp-servers/learning-tracker/"
 cp "$SCRIPT_DIR/mcp-servers/learning-tracker/package.json" "$CLAUDE_DIR/mcp-servers/learning-tracker/"
 cp "$SCRIPT_DIR/mcp-servers/learning-tracker/tsconfig.json" "$CLAUDE_DIR/mcp-servers/learning-tracker/"
+echo "  learning-tracker/"
 
 # Build MCP server
 echo ""
@@ -139,14 +152,14 @@ echo "Building MCP server..."
 cd "$CLAUDE_DIR/mcp-servers/learning-tracker"
 npm install --silent
 npm run build --silent
-echo "  MCP server built successfully"
+echo "  Build complete"
 
 # Install multivac command
 echo ""
-echo "Installing multivac command..."
+echo "Installing CLI..."
 cp "$SCRIPT_DIR/bin/multivac" "$BIN_DIR/multivac"
 chmod +x "$BIN_DIR/multivac"
-echo "  Installed to $BIN_DIR/multivac"
+echo "  multivac -> $BIN_DIR/"
 
 echo ""
 echo "Installation complete!"
