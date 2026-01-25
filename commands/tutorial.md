@@ -83,12 +83,13 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 
 **If "Restart this curriculum":**
 - Call `reset_progress` from the MCP server
-- Then call `start_tutorial` to begin from lesson 1
-- Resume the lesson flow
+- Tell the user: "Progress reset. For a fresh learning experience, run `/clear` to reset the conversation context, then `/tutorial` to begin."
+- End the command (do not auto-start the tutorial)
 
 **If "Change topics and start fresh":**
 - Delete the `.multivac/learning.db` file
-- Go to Step 2 (New Tutorial Setup)
+- Tell the user: "Tutorial deleted. Run `/clear` to reset the conversation context, then `/tutorial` to set up your new topic."
+- End the command (do not auto-start the tutorial)
 
 ### If "Exit tutorial" selected:
 **Requires confirmation.** Ask: "Exit tutorial mode? Your progress is saved and you can resume anytime with /tutorial."
