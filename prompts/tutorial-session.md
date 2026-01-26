@@ -305,8 +305,8 @@ Call `log_capstone_result` with:
 
 **7. Display Completion Screen**
 
-- If Part I or II: Display the **Part Complete Screen** (see ASCII Art section)
-- If Part III (final): Display the **Victory Screen** (see ASCII Art section)
+- If Part I or II: Display the **Part Complete Screen** (see ASCII Art section), then continue to next part
+- If Part III (final): Display the **Victory Screen** (see ASCII Art section), then proceed to **Tutorial Completion** flow
 
 ### For General Tutorials: Part Complete (No Capstone)
 
@@ -318,12 +318,56 @@ General tutorials skip capstones because they require automated test verificatio
 
 **2. Display Completion Screen**
 
-- If Part I or II: Display the **Part Complete Screen (General)** (see ASCII Art section)
-- If Part III (final): Display the **Victory Screen (General)** (see ASCII Art section)
+- If Part I or II: Display the **Part Complete Screen (General)** (see ASCII Art section), then continue to next part
+- If Part III (final): Display the **Victory Screen (General)** (see ASCII Art section), then proceed to **Tutorial Completion** flow
 
-**3. Continue**
+---
 
-Proceed directly to the next part, or if Part III is complete, the tutorial is finished.
+## Tutorial Completion
+
+When the user completes Part III (the final part), follow this sequence after displaying the Victory Screen:
+
+### 1. Pause for Appreciation
+
+Use `AskUserQuestion` with a single "Continue" option to let the user appreciate the Victory Screen before it scrolls away.
+
+### 2. Offer Completion Certificate
+
+Ask: "Would you like me to save a copy of your completion certificate?"
+
+**If yes:**
+- Generate the certificate (see Certificate Template in ASCII Art section)
+- Pull actual stats from `get_tutorial`:
+  - Lessons completed (should be 48/48)
+  - Average quiz score across all quizzes
+  - Average interview score (convert to 5-star scale)
+  - Capstones completed (programming only)
+- Save to `{topic}-certificate.txt` in the project directory
+- Confirm: "Certificate saved to {filename}!"
+
+**If no:** Skip to step 3.
+
+### 3. Suggest Next Topics
+
+Generate personalized topic suggestions based on what they learned:
+
+> "Congratulations on mastering {Topic}! Based on what you've learned, here are some natural next steps:
+>
+> - **{Related Topic 1}** - {Brief description}
+> - **{Related Topic 2}** - {Brief description}
+> - **{Related Topic 3}** - {Brief description}
+>
+> Run `multivac <topic>` anytime to start a new adventure."
+
+Use your knowledge to suggest genuinely related topics. Examples:
+- Python → Django, FastAPI, Data Science, Machine Learning
+- JavaScript → TypeScript, React, Node.js, Vue
+- French → Spanish, Italian, French Literature
+- Chemistry → Organic Chemistry, Biochemistry, Physics
+
+### 4. Session End
+
+The tutorial is complete. The user can `/exit` or continue chatting.
 
 ---
 
@@ -555,6 +599,72 @@ Display after completing Part III for general tutorials:
 ║                      ▶ NEW GAME ◀                            ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
+
+### Completion Certificate (Programming)
+
+Generated when user requests a certificate after completing the tutorial:
+
+```
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║                    ★ CERTIFICATE OF COMPLETION ★                  ║
+║                                                                   ║
+║                            {TOPIC}                                ║
+║                                                                   ║
+║  ─────────────────────────────────────────────────────────────    ║
+║                                                                   ║
+║   Lessons Completed:    48/48  ████████████████████████  100%     ║
+║   Average Quiz Score:   {X}%   {bar}                              ║
+║   Interview Average:    {Y}/5  {stars}                            ║
+║   Capstones Completed:         ★ ★ ★                              ║
+║                                                                   ║
+║  ─────────────────────────────────────────────────────────────    ║
+║                                                                   ║
+║                    Completed: {DATE}                              ║
+║                                                                   ║
+║                      Powered by Multivac                          ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+```
+
+### Completion Certificate (General)
+
+For general tutorials (no capstones):
+
+```
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║                    ★ CERTIFICATE OF COMPLETION ★                  ║
+║                                                                   ║
+║                            {TOPIC}                                ║
+║                                                                   ║
+║  ─────────────────────────────────────────────────────────────    ║
+║                                                                   ║
+║   Lessons Completed:    48/48  ████████████████████████  100%     ║
+║   Average Quiz Score:   {X}%   {bar}                              ║
+║   Interview Average:    {Y}/5  {stars}                            ║
+║                                                                   ║
+║  ─────────────────────────────────────────────────────────────    ║
+║                                                                   ║
+║                    Completed: {DATE}                              ║
+║                                                                   ║
+║                      Powered by Multivac                          ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+```
+
+**Star conversion for Interview Average:**
+- 4.5-5.0 → ★★★★★
+- 3.5-4.4 → ★★★★☆
+- 2.5-3.4 → ★★★☆☆
+- 1.5-2.4 → ★★☆☆☆
+- 0.5-1.4 → ★☆☆☆☆
+- 0.0-0.4 → ☆☆☆☆☆
+
+**Bar graph for Quiz Score:**
+- Each █ represents ~4% (24 characters = 100%)
+- Use ░ for remaining portion
+- Example: 91% → `██████████████████████░░` (22 filled, 2 empty)
 
 ---
 
