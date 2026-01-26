@@ -281,7 +281,8 @@ mkdir -p "$PROJECT_DIR/.multivac"
 
 # Get paths to installed components
 MCP_SERVER_PATH="$HOME/.claude/mcp-servers/learning-tracker/dist/index.js"
-HOOK_PATH="$HOME/.claude/hooks/capstone-test-runner.sh"
+CAPSTONE_HOOK_PATH="$HOME/.claude/hooks/capstone-test-runner.sh"
+TUTORIAL_PROMPT_HOOK_PATH="$HOME/.claude/hooks/tutorial-prompt.sh"
 DATA_DIR="$PROJECT_DIR/.multivac"
 
 # Verify MCP server is installed
@@ -310,9 +311,12 @@ EOF
 cat > "$PROJECT_DIR/.claude/settings.json" << EOF
 {
   "hooks": {
+    "SessionStart": [{
+      "hooks": [{"type": "command", "command": "$TUTORIAL_PROMPT_HOOK_PATH"}]
+    }],
     "PreToolUse": [{
       "matcher": "TodoWrite",
-      "hooks": [{"type": "command", "command": "$HOOK_PATH"}]
+      "hooks": [{"type": "command", "command": "$CAPSTONE_HOOK_PATH"}]
     }]
   }
 }

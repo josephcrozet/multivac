@@ -17,7 +17,8 @@ multivac/
 │   ├── quiz.md                   # /quiz - 12 MC questions in 3 batches
 │   └── tutorial.md               # /tutorial - start, continue, manage, view progress
 ├── hooks/
-│   └── capstone-test-runner.sh   # PreToolUse hook on TodoWrite
+│   ├── capstone-test-runner.sh   # PreToolUse hook on TodoWrite
+│   └── tutorial-prompt.sh        # SessionStart hook to offer /tutorial
 ├── prompts/
 │   └── tutorial-session.md       # Full tutorial instructions
 ├── mcp-servers/learning-tracker/ # SQLite-backed progress tracker
@@ -37,6 +38,7 @@ multivac/
 7. **Single Entry Point** — /tutorial handles starting, continuing, viewing progress, and resetting tutorials
 8. **Local Project Data** — Each tutorial project stores its own data in `.multivac/learning.db`; MCP server configured per-project via `.mcp.json`
 9. **Tutorial Types** — `programming` (code interviews + capstones) vs `general` (knowledge interviews, no capstones); type auto-detected from topic
+10. **Auto-Prompt on Session Start** — SessionStart hook detects tutorial projects and offers to start/continue; checks for `learning.db` to determine which
 
 ## Interview Agent Details
 
@@ -82,7 +84,7 @@ Files install to `~/.claude/`:
 
 Per-project configuration (created by `multivac` command):
 - `.mcp.json` — MCP server config with `MULTIVAC_DATA_DIR` pointing to local data
-- `.claude/settings.json` — Hook config for capstone test runner
+- `.claude/settings.json` — Hook config (SessionStart for tutorial prompt, PreToolUse for capstone tests)
 - `.multivac/` — Local data directory containing `learning.db`
 
 ## Testing

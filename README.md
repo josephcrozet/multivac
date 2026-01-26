@@ -106,14 +106,13 @@ If `~/.local/bin` isn't in your PATH, the installer will show you how to add it.
 ```bash
 multivac python
 cd ~/multivac/python && claude
-# Then run /tutorial inside Claude Code
 ```
 
 This:
 1. Creates a tutorial project at `~/multivac/python/`
 2. You launch Claude Code in the project directory
 3. When prompted, approve the MCP server — this enables progress tracking and is required for tutorials to work
-4. Run `/tutorial` to begin learning
+4. Claude will offer to start your tutorial automatically (or run `/tutorial` manually)
 
 Claude generates a full curriculum on the fly and guides you through it.
 
@@ -151,6 +150,7 @@ This project demonstrates Claude Code's extensibility:
 | `/quiz` command     | Batched multiple-choice questions (3 prompts of 4) |
 | Mock interviews     | Agent spawned via Task tool                        |
 | Capstone tests      | PreToolUse hook that runs your test suite          |
+| Auto-prompt         | SessionStart hook offers to start/continue         |
 | Token management    | Session restarts at chapter boundaries             |
 
 ### File Structure
@@ -163,7 +163,8 @@ This project demonstrates Claude Code's extensibility:
 │   ├── quiz.md                 # /quiz - 12 MC questions in 3 batches
 │   └── tutorial.md             # /tutorial - start, continue, or manage
 ├── hooks/
-│   └── capstone-test-runner.sh # Runs tests on capstone todo completion
+│   ├── capstone-test-runner.sh # Runs tests on capstone todo completion
+│   └── tutorial-prompt.sh      # Offers to start/continue tutorial on session start
 ├── prompts/
 │   └── tutorial-session.md     # Full tutorial session instructions
 └── mcp-servers/
