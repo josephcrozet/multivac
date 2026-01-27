@@ -4,7 +4,7 @@ Start, continue, or manage a structured tutorial.
 
 ## Step 1: Check Tutorial State
 
-Call `get_tutorial` from the learning-tracker MCP server.
+Call `get_tutorial_metadata` from the learning-tracker MCP server.
 
 **If the call fails or the MCP server is not available:**
 
@@ -19,8 +19,8 @@ This isn't a Multivac tutorial project. Tell the user:
 
 **If the call succeeds:**
 
-- **Tutorial exists (`tutorial` is not null):** Go to Step 3 (Tutorial Menu)
-- **No tutorial exists (`tutorial: null`):** Go to Step 2 (New Tutorial Setup)
+- **Metadata exists (not null):** Go to Step 3 (Tutorial Menu) — pass the metadata along
+- **No metadata (`metadata: null`):** Go to Step 2 (New Tutorial Setup)
 
 ## Step 2: New Tutorial Setup
 
@@ -57,7 +57,44 @@ If the user selects a different topic than what's in CLAUDE.md, update the file:
 
 ## Step 3: Tutorial Menu
 
-A tutorial exists in this project. Use `AskUserQuestion` to present options:
+A tutorial exists in this project. Use the metadata from Step 1 to check status:
+- `status === 'completed'` → Tutorial is completed
+- `status === 'in_progress'` → Tutorial is in progress
+
+### If Tutorial is Completed
+
+Use `AskUserQuestion` to present options:
+
+**Question:** "You've completed this tutorial! What would you like to do?"
+
+**Options (in this order):**
+
+1. **Review** — "Work through your spaced repetition queue"
+2. **View progress** — "See your final stats, get certificate, and see suggested topics"
+3. **Start over** — "Clear all progress and restart from the beginning"
+4. **Exit** — "Return to regular Claude Code"
+
+#### If "Review" selected
+
+Read `~/.claude/prompts/tutorial-session.md` and follow the Review Queue instructions:
+- Call `get_review_queue`
+- For each lesson in the queue, ask a review question about one concept
+- Log results with `log_review_result`
+- Continue until queue is empty
+- When done, say "Review complete! Your queue is now empty." and return to this menu.
+
+#### If "View progress" selected (completed)
+
+1. Display the Progress Screen (see format below) — call `get_tutorial` for full stats
+2. Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completion certificate?"
+   - If yes: Generate the certificate (see `tutorial-session.md` for template), save to `{topic}-certificate.txt`, confirm save
+   - If no: Continue
+3. Generate and display topic suggestions (see `tutorial-session.md` for the "Suggest Next Topics" instructions) — use `difficulty_level` from metadata
+4. Return to this menu
+
+### If Tutorial is In Progress
+
+Use `AskUserQuestion` to present options:
 
 **Question:** "You have a tutorial in progress. What would you like to do?"
 
@@ -68,13 +105,13 @@ A tutorial exists in this project. Use `AskUserQuestion` to present options:
 3. **Start over** — "Clear all progress and restart from the beginning"
 4. **Exit tutorial** — "Leave tutorial mode and return to regular Claude Code"
 
-### If "Continue" selected
+#### If "Continue" selected
 
 Read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flow.
 
-### If "View progress" selected
+#### If "View progress" selected (in progress)
 
-Display the Progress Screen (see format below), then return to this menu.
+Display the Progress Screen (see format below) — call `get_tutorial` for full stats. Then return to this menu.
 
 ### If "Start over" selected
 
