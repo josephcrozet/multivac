@@ -340,20 +340,21 @@ Use `AskUserQuestion` with a single "Continue" option to let the user appreciate
 Ask: "Would you like me to save a copy of your completion certificate?"
 
 **If yes:**
-- Generate the certificate (see Certificate Template in ASCII Art section)
-- Pull actual stats from `get_tutorial`:
+- Call `get_tutorial` to get metadata and stats:
+  - `tutorial.name` and `tutorial.difficulty_level` for the certificate header
   - Lessons completed (should be 48/48)
   - Average quiz score across all quizzes
   - Average interview score (convert to 5-star scale)
   - Capstones completed (programming only)
-- Save to `{topic}-certificate.txt` in the project directory
+- Generate the certificate (see Certificate Template in ASCII Art section)
+- Save to `{difficulty}-{topic}-certificate.txt` in the project directory (e.g., `beginner-python-certificate.txt`)
 - Confirm: "Certificate saved to {filename}!"
 
 **If no:** Skip to step 3.
 
 ### 3. Suggest Next Topics
 
-Generate 4 personalized topic suggestions based on what they learned and their difficulty level.
+Get `name` and `difficulty_level`: use the `get_tutorial` response from step 2 if available, otherwise call `get_tutorial_metadata`. Generate 4 personalized topic suggestions.
 
 **If they completed Beginner or Intermediate:**
 
