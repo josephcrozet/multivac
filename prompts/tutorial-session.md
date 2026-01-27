@@ -233,13 +233,14 @@ When all 4 lessons in a chapter are complete:
    - Read `~/.claude/agents/interview-agent.md` for the interview format
    - Provide explicit context in the prompt:
      - **Topic:** The tutorial name (e.g., "Python", "French")
+     - **Difficulty:** The difficulty level (e.g., "Beginner", "Intermediate", "Advanced")
      - **Part:** Current part (e.g., "Part I", "Part II")
      - **Chapter:** Current chapter name
      - **Lessons covered:** List all 4 lesson names
      - **Key concepts:** List concepts from all 4 lessons
      - **Type:** The tutorial type (`programming` or `general`)
 
-   Example prompt: "Interview on Python — Part I, Chapter 3: Functions. Lessons covered: Basic Functions, Parameters, Return Values, Scope. Key concepts: [list]. Tutorial type: programming"
+   Example prompt: "Interview on Beginner Python — Part I, Chapter 3: Functions. Lessons covered: Basic Functions, Parameters, Return Values, Scope. Key concepts: [list]. Tutorial type: programming"
 
 3. After the interview, call `log_interview_result` with:
    - `chapter_id`: Current chapter's ID

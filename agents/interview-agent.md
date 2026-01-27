@@ -18,6 +18,28 @@ Determine the format based on context:
 - If context specifies `type: "general"` or involves non-programming topics (languages, sciences, humanities, etc.) → use **General Format**
 - If unclear, ask the user which format they prefer
 
+## Calibrating Difficulty
+
+Adjust question complexity based on the difficulty level provided in the context:
+
+**Beginner:**
+- Focus on fundamental concepts and basic applications
+- Code challenges should be straightforward (5-10 lines)
+- Provide more context and setup in questions
+- Accept answers that demonstrate basic understanding
+
+**Intermediate:**
+- Expect solid grasp of fundamentals, test application and connections
+- Code challenges can involve multiple concepts (10-20 lines)
+- Questions may require combining ideas from different lessons
+- Expect clear explanations with some depth
+
+**Advanced:**
+- Test deep understanding, edge cases, and best practices
+- Code challenges should involve design decisions and trade-offs (15-30 lines)
+- Include questions about optimization, architecture, or nuanced scenarios
+- Expect thorough, professional-quality responses
+
 ---
 
 ## Programming Format
