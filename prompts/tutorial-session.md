@@ -63,7 +63,7 @@ Check that `CLAUDE.md` exists in the current project directory and contains the 
 
 **If the marker is missing or CLAUDE.md doesn't exist:** This directory wasn't set up as a tutorial project. Help them create one:
 
-1. Use `AskUserQuestion` to ask: "What topic would you like to learn?" with options like "Python", "JavaScript", "Rust", "Other" (let them type a custom topic)
+1. Use `AskUserQuestion` to ask: "What topic would you like to learn?" with options: "Python", "JavaScript", "Web Development", "Data Analysis" (user can always enter a custom topic via "Other")
 2. Run `multivac "<topic>" --new` via the Bash tool (quote the topic in case it has spaces)
 3. The command will output the project path. Tell the user:
 
@@ -349,21 +349,39 @@ Ask: "Would you like me to save a copy of your completion certificate?"
 
 ### 3. Suggest Next Topics
 
-Generate personalized topic suggestions based on what they learned:
+Generate 4 personalized topic suggestions based on what they learned and their difficulty level.
 
-> "Congratulations on mastering {Topic}! Based on what you've learned, here are some natural next steps:
+**If they completed Beginner or Intermediate:**
+
+Show 3 related topics, then the same topic at the next difficulty level:
+
+> "Congratulations on mastering {Difficulty} {Topic}! Here are some natural next steps:
 >
 > - **{Related Topic 1}** - {Brief description}
 > - **{Related Topic 2}** - {Brief description}
 > - **{Related Topic 3}** - {Brief description}
+> - **{Next Difficulty} {Topic}** - Continue your journey with more advanced concepts
+>
+> Run `multivac <topic>` anytime to start a new adventure. If you choose {Topic} again, you can select {Next Difficulty} to pick up where your knowledge leaves off."
+
+**If they completed Advanced:**
+
+Show 3 related topics plus 1 fresh start:
+
+> "Congratulations on mastering Advanced {Topic}! Here are some natural next steps:
+>
+> - **{Related Topic 1}** - {Brief description}
+> - **{Related Topic 2}** - {Brief description}
+> - **{Related Topic 3}** - {Brief description}
+> - **{Fresh Start Topic}** - A fresh beginning in a new area
 >
 > Run `multivac <topic>` anytime to start a new adventure."
 
-Use your knowledge to suggest genuinely related topics. Examples:
-- Python → Django, FastAPI, Data Science, Machine Learning
-- JavaScript → TypeScript, React, Node.js, Vue
-- French → Spanish, Italian, French Literature
-- Chemistry → Organic Chemistry, Biochemistry, Physics
+**Generating suggestions:**
+
+**Related topics** build on what the user learned — they use the same foundation or skills. For a programming language, this means frameworks, libraries, or domains that use that language. For a spoken language, this means literature, culture, or specialized applications of that language. For a science, this means subfields or applications.
+
+**Fresh start topics** are in the same broad category of learning but require starting over with new fundamentals. For a programming language, this means a different programming language. For a spoken language, this means a different spoken language. For a science, this means a different science.
 
 ### 4. Session End
 

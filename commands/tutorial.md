@@ -44,11 +44,8 @@ Then proceed with setup:
 Present topic options using `AskUserQuestion`:
 
 - **First option:** The topic from CLAUDE.md (e.g., "Python") marked as "(Recommended)"
-- **Additional options:** 2-3 related topics based on the directory name:
-  - For "python": Django, FastAPI, Data Science with Python
-  - For "javascript": React, Node.js, TypeScript
-  - For "rust": Systems Programming with Rust, WebAssembly with Rust
-  - For generic names like "tutorial": Python, JavaScript, Go, Rust
+- **Additional options:** 3 related topics based on the directory name. Generate suggestions that would naturally follow from or complement studying that topic (e.g., a web framework after a language, advanced topics in the same domain, or complementary skills). Don't just suggest random popular topics.
+- **For generic names like "tutorial":** Python, JavaScript, Web Development, Data Analysis
 - User can always enter a custom topic
 
 **After topic selection:**
