@@ -45,6 +45,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               enum: ['programming', 'general'],
               description: 'Tutorial type. "programming" includes code-based interviews and capstone projects with automated tests. "general" includes knowledge-based interviews but no capstones. Defaults to "programming".',
             },
+            difficulty_level: {
+              type: 'string',
+              enum: ['beginner', 'intermediate', 'advanced'],
+              description: 'The difficulty level chosen by the user. Affects lesson depth and complexity. Defaults to "beginner".',
+            },
             parts: {
               type: 'array',
               description: 'Array of 3 parts (Part I, Part II, Part III)',
@@ -96,7 +101,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_tutorial',
-        description: 'Get complete tutorial details including structure, progress, and statistics. Returns { tutorial: null } if no tutorial exists yet.',
+        description: 'Get complete tutorial details including structure, progress, and statistics. Returns { tutorial: null } if no tutorial exists yet. Use this when you need full stats (progress screen, certificate). For quick checks (status, type, difficulty), use get_tutorial_metadata instead.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get_tutorial_metadata',
+        description: 'Get lightweight tutorial metadata without the full structure. Returns name, type, status, difficulty_level, and dates. Use this for quick checks like determining if tutorial is completed, what type it is, or what difficulty level was chosen. Returns null if no tutorial exists.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -285,6 +298,34 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               text: JSON.stringify({
                 success: true,
                 ...data,
+              }, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'get_tutorial_metadata': {
+        const metadata = database.getTutorialMetadata();
+        if (!metadata) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  success: true,
+                  metadata: null,
+                }, null, 2),
+              },
+            ],
+          };
+        }
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                ...metadata,
               }, null, 2),
             },
           ],

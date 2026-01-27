@@ -28,6 +28,7 @@ db.exec(`
     name TEXT NOT NULL UNIQUE,
     description TEXT,
     type TEXT DEFAULT 'programming' CHECK (type IN ('programming', 'general')),
+    difficulty_level TEXT DEFAULT 'beginner' CHECK (difficulty_level IN ('beginner', 'intermediate', 'advanced')),
     completed INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     completed_at TEXT
@@ -136,6 +137,7 @@ export interface Tutorial {
   name: string;
   description: string | null;
   type: 'programming' | 'general';
+  difficulty_level: 'beginner' | 'intermediate' | 'advanced';
   completed: boolean;
   created_at: string;
   completed_at: string | null;
@@ -241,6 +243,7 @@ export interface Curriculum {
   name: string;
   description?: string;
   type?: 'programming' | 'general';
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
   parts: CurriculumPart[];
 }
 
@@ -255,7 +258,7 @@ export const database = {
   // Tutorial operations
   createTutorial(curriculum: Curriculum): Tutorial {
     const insertTutorial = db.prepare(
-      'INSERT INTO tutorials (name, description, type) VALUES (?, ?, ?)'
+      'INSERT INTO tutorials (name, description, type, difficulty_level) VALUES (?, ?, ?, ?)'
     );
     const insertPart = db.prepare(
       'INSERT INTO parts (tutorial_id, name, difficulty, sort_order) VALUES (?, ?, ?, ?)'
@@ -274,7 +277,12 @@ export const database = {
     );
 
     const transaction = db.transaction(() => {
-      const tutorialResult = insertTutorial.run(curriculum.name, curriculum.description || null, curriculum.type || 'programming');
+      const tutorialResult = insertTutorial.run(
+        curriculum.name,
+        curriculum.description || null,
+        curriculum.type || 'programming',
+        curriculum.difficulty_level || 'beginner'
+      );
       const tutorialId = tutorialResult.lastInsertRowid as number;
 
       for (let pi = 0; pi < curriculum.parts.length; pi++) {
@@ -432,6 +440,30 @@ export const database = {
       total_interviews: interviewStats.total,
       completed_interviews: interviewStats.completed,
       average_interview_score: interviewStats.avg_score ? Math.round(interviewStats.avg_score * 10) / 10 : null
+    };
+  },
+
+  getTutorialMetadata(): {
+    name: string;
+    type: 'programming' | 'general';
+    status: 'not_started' | 'in_progress' | 'completed';
+    difficulty_level: 'beginner' | 'intermediate' | 'advanced';
+    created_at: string;
+    completed_at: string | null;
+  } | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const tutorial = db.prepare('SELECT * FROM tutorials WHERE id = ?').get(tutorialId) as Tutorial;
+    const progress = db.prepare('SELECT * FROM progress WHERE tutorial_id = ?').get(tutorialId) as Progress | undefined;
+
+    return {
+      name: tutorial.name,
+      type: tutorial.type,
+      status: progress?.status || 'not_started',
+      difficulty_level: tutorial.difficulty_level,
+      created_at: tutorial.created_at,
+      completed_at: tutorial.completed_at
     };
   },
 
