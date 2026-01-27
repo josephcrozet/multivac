@@ -63,10 +63,11 @@ Two formats based on tutorial type:
 
 | Tool | Purpose |
 |------|---------|
-| `create_tutorial` | Generate new curriculum |
-| `get_tutorial` | Full structure + progress (or `tutorial: null` if none) |
+| `create_tutorial` | Generate new curriculum (with type and difficulty_level) |
+| `get_tutorial` | Full structure + stats (heavy — use for progress screen, certificate) |
+| `get_tutorial_metadata` | Lightweight: name, type, status, difficulty_level, dates (quick checks) |
 | `start_tutorial` | Begin a tutorial |
-| `get_current_position` | Current lesson/chapter/part |
+| `get_current_position` | Current lesson/chapter/part, is_chapter_start |
 | `advance_position` | Move forward, add lesson to review queue |
 | `log_quiz_result` | Record quiz scores |
 | `log_interview_result` | Record interview performance |
