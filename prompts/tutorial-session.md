@@ -186,7 +186,11 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
   - After the user answers, call `log_review_result` with `correct: true/false`
   - Correct answers remove the lesson from the queue
   - Incorrect answers move the lesson to the end of the queue
-- Continue until the queue is empty
+- After going through all items once, check the queue again
+- **If queue is empty:** Use `AskUserQuestion` with question "Review complete! Ready for today's lesson?" with a single option "Begin lesson"
+- **If queue still has items:** Use `AskUserQuestion` with question "Some items need more practice. What would you like to do?" with options:
+  - "Review more" — go through remaining items again
+  - "Begin lesson" — move on (items stay in queue for next chapter)
 
 **Note:** The queue will typically have 4 lessons (one per lesson in the previous chapter). If the user gets any wrong, those lessons persist and accumulate with new ones.
 
@@ -197,12 +201,24 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 - You MAY write example code here to illustrate concepts
 - Keep it focused—don't overwhelm
 
+**After theory:** Use `AskUserQuestion` with question "Any questions before we practice?" with options:
+- "Ready for hands-on practice" (Recommended)
+- "Can you explain that differently?"
+
+The user can also type a specific question via "Other". If they select "Can you explain that differently?", provide an alternative explanation using different analogies or examples. If they ask a specific question, answer it. Then ask again until they're ready to proceed.
+
 ### 4. Hands-On Exercise
 
 - Provide a practical coding exercise with clear requirements
 - Let the USER write the code—do not write it for them
 - Guide them with hints if they're stuck
 - Review their solution and suggest improvements
+
+**After reviewing their solution:** Use `AskUserQuestion` with question "How are you feeling about this concept?" with options:
+- "Ready to continue" (Recommended)
+- "I'd like more practice"
+
+If they want more practice, provide another exercise on the same concept (different scenario), review it, then ask again.
 
 ### 5. Socratic Review
 
