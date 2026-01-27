@@ -88,12 +88,15 @@ Call `get_tutorial` from the learning-tracker MCP server. This returns the full 
 **If no tutorial exists (`tutorial: null`):**
 - Read the topic from CLAUDE.md (look for `<!-- topic: X -->` or `**Topic:** X`)
 - Confirm the topic with the user using `AskUserQuestion`
-- Ask about their experience level to calibrate lesson depth: "Beginner" (new to this topic), "Intermediate" (know the basics), or "Advanced" (looking to master it)
+- Ask about their experience level using `AskUserQuestion`: "Beginner", "Intermediate", or "Advanced"
+  - Beginner → new to this topic → `difficulty_level: "beginner"`
+  - Intermediate → knows the basics → `difficulty_level: "intermediate"`
+  - Advanced → looking to master it → `difficulty_level: "advanced"`
 - Determine the tutorial type:
   - **Programming topics** (Python, JavaScript, Rust, Go, SQL, etc.) → `type: "programming"`
   - **General topics** (French, Chemistry, History, Music Theory, etc.) → `type: "general"`
-- Design the curriculum (see Curriculum Structure below)
-- Call `create_tutorial` with the full curriculum, including the `type` field
+- Design the curriculum calibrated to their difficulty level (see Curriculum Structure below)
+- Call `create_tutorial` with the full curriculum, including `type` and `difficulty_level` fields
 - Call `start_tutorial` to begin
 - **Display the Opening Screen** (see ASCII Art section)
 - **PAUSE:** Use `AskUserQuestion` with a single option "Start" and the question "Ready to begin?" — this lets the user appreciate the opening screen before it scrolls away
@@ -395,7 +398,7 @@ Display retro video game-themed ASCII art at key moments. All screens use a cons
 
 ### Opening Screen (New Tutorial Start)
 
-Display when starting a brand new tutorial. Generate the topic name as large block letters.
+Display when starting a brand new tutorial. Generate the topic name as large block letters. Include the difficulty level (Beginner/Intermediate/Advanced).
 
 **For programming tutorials:**
 ```
@@ -411,7 +414,7 @@ Display when starting a brand new tutorial. Generate the topic name as large blo
 ║   │                                                      │   ║
 ║   │    ╔═══╗                                             │   ║
 ║   │    ║>>>║  48 LESSONS  •  12 INTERVIEWS  •  3 BOSSES  │   ║
-║   │    ╚═══╝                                             │   ║
+║   │    ╚═══╝           {DIFFICULTY} MODE                 │   ║
 ║   │                                                      │   ║
 ║   └──────────────────────────────────────────────────────┘   ║
 ║                                                              ║
@@ -435,7 +438,7 @@ Display when starting a brand new tutorial. Generate the topic name as large blo
 ║   │                                                      │   ║
 ║   │    ╔═══╗                                             │   ║
 ║   │    ║>>>║  48 LESSONS  •  12 INTERVIEWS               │   ║
-║   │    ╚═══╝                                             │   ║
+║   │    ╚═══╝           {DIFFICULTY} MODE                 │   ║
 ║   │                                                      │   ║
 ║   └──────────────────────────────────────────────────────┘   ║
 ║                                                              ║
@@ -564,7 +567,7 @@ Display after completing the final capstone (Part III) for programming tutorials
 ║   ┌──────────────────────────────────────────────────────┐   ║
 ║   │           ☆ TUTORIAL MASTERED ☆                      │   ║
 ║   │                                                      │   ║
-║   │   {Topic}                          RANK: ★★★         │   ║
+║   │   {Difficulty} {Topic}               RANK: ★★★       │   ║
 ║   │   ───────────────────────────────────────────────    │   ║
 ║   │   Parts Completed:      3/3   ████████████████ 100%  │   ║
 ║   │   Total Lessons:       48/48                         │   ║
@@ -601,7 +604,7 @@ Display after completing Part III for general tutorials:
 ║   ┌──────────────────────────────────────────────────────┐   ║
 ║   │           ☆ TUTORIAL MASTERED ☆                      │   ║
 ║   │                                                      │   ║
-║   │   {Topic}                          RANK: ★★★         │   ║
+║   │   {Difficulty} {Topic}               RANK: ★★★       │   ║
 ║   │   ───────────────────────────────────────────────    │   ║
 ║   │   Parts Completed:      3/3   ████████████████ 100%  │   ║
 ║   │   Total Lessons:       48/48                         │   ║
@@ -620,14 +623,14 @@ Display after completing Part III for general tutorials:
 
 ### Completion Certificate (Programming)
 
-Generated when user requests a certificate after completing the tutorial:
+Generated when user requests a certificate after completing the tutorial. Include the difficulty level (Beginner/Intermediate/Advanced).
 
 ```
 ╔═══════════════════════════════════════════════════════════════════╗
 ║                                                                   ║
 ║                    ★ CERTIFICATE OF COMPLETION ★                  ║
 ║                                                                   ║
-║                            {TOPIC}                                ║
+║                       {DIFFICULTY} {TOPIC}                        ║
 ║                                                                   ║
 ║  ─────────────────────────────────────────────────────────────    ║
 ║                                                                   ║
@@ -647,14 +650,14 @@ Generated when user requests a certificate after completing the tutorial:
 
 ### Completion Certificate (General)
 
-For general tutorials (no capstones):
+For general tutorials (no capstones). Include the difficulty level (Beginner/Intermediate/Advanced).
 
 ```
 ╔═══════════════════════════════════════════════════════════════════╗
 ║                                                                   ║
 ║                    ★ CERTIFICATE OF COMPLETION ★                  ║
 ║                                                                   ║
-║                            {TOPIC}                                ║
+║                       {DIFFICULTY} {TOPIC}                        ║
 ║                                                                   ║
 ║  ─────────────────────────────────────────────────────────────    ║
 ║                                                                   ║

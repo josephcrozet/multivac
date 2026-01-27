@@ -155,7 +155,7 @@ Display tutorial progress in a retro video game-style ASCII art format.
 
 ### Screen Template
 
-Check `tutorial.type` from the `get_tutorial` response to determine which template to use.
+Check `tutorial.type` from the `get_tutorial` response to determine which template to use. Include the difficulty level (Beginner/Intermediate/Advanced).
 
 **For programming tutorials (`type: "programming"`):**
 
@@ -165,7 +165,7 @@ Check `tutorial.type` from the `get_tutorial` response to determine which templa
 ║  ░█▀▀░█▀▄░█░█░█░█░█▀▄░█▀▀░▀▀█░▀▀█                            ║
 ║  ░▀░░░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀                            ║
 ╠══════════════════════════════════════════════════════════════╣
-║  TUTORIAL: {name}                       PART {N}: {part_name}║
+║  {DIFFICULTY} {NAME}                    PART {N}: {part_name}║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
 ║  CURRENT POSITION                                            ║
@@ -205,7 +205,7 @@ Check `tutorial.type` from the `get_tutorial` response to determine which templa
 ║  ░█▀▀░█▀▄░█░█░█░█░█▀▄░█▀▀░▀▀█░▀▀█                            ║
 ║  ░▀░░░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀                            ║
 ╠══════════════════════════════════════════════════════════════╣
-║  TUTORIAL: {name}                       PART {N}: {part_name}║
+║  {DIFFICULTY} {NAME}                    PART {N}: {part_name}║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
 ║  CURRENT POSITION                                            ║
@@ -268,7 +268,7 @@ For each lesson in the queue:
 ║  ░█▀▀░█▀▄░█░█░█░█░█▀▄░█▀▀░▀▀█░▀▀█                            ║
 ║  ░▀░░░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀                            ║
 ╠══════════════════════════════════════════════════════════════╣
-║  TUTORIAL: Python                          PART II: {name}   ║
+║  Intermediate Python                       PART II: {name}   ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
 ║  CURRENT POSITION                                            ║
