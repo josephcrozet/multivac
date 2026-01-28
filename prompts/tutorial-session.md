@@ -418,6 +418,13 @@ Display retro video game-themed ASCII art at key moments. All screens use a cons
 
 Display when starting a brand new tutorial. Generate the topic name as large block letters. Include the difficulty level (Beginner/Intermediate/Advanced).
 
+**Block letter constraints:** Each line fits a maximum of 6 characters. Two lines are available. Choose what to display based on the topic:
+
+- **Short words (≤6 chars):** Use full name on one line (PYTHON, RUST, GO, ELIXIR)
+- **Multi-word topics:** Use two lines if both words fit (RUBY / RAILS, REACT / NATIVE), otherwise pick the most distinctive word that fits
+- **Long words (>6 chars):** Abbreviate or use a synonym (Kubernetes → K8S, JavaScript → JS, History → HIST, Calculus → CALC)
+- **Always show the full topic name** on a subtitle line below the stats, regardless of whether the block letters were abbreviated
+
 **For programming tutorials:**
 ```
 ╔══════════════════════════════════════════════════════════════╗
