@@ -81,11 +81,13 @@ Call `get_tutorial` from the learning-tracker MCP server. This returns the full 
 ### 3. Handle Tutorial State
 
 **If a tutorial exists (`tutorial` is not null):**
+
 - The response already contains the full structure and progress
 - Call `get_current_position` to find where they left off
 - Resume from that point
 
 **If no tutorial exists (`tutorial: null`):**
+
 - Read the topic from CLAUDE.md (look for `<!-- topic: X -->` or `**Topic:** X`)
 - Confirm the topic with the user using `AskUserQuestion`
 - Ask about their experience level using `AskUserQuestion`: "Beginner", "Intermediate", or "Advanced"
@@ -202,6 +204,7 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 - Keep it focused—don't overwhelm
 
 **After theory:** Use `AskUserQuestion` with question "Any questions before we practice?" with options:
+
 - "Ready for hands-on practice" (Recommended)
 - "Can you explain that differently?"
 
@@ -215,6 +218,7 @@ The user can also type a specific question via "Other". If they select "Can you 
 - Review their solution and suggest improvements
 
 **After reviewing their solution:** Use `AskUserQuestion` with question "How are you feeling about this concept?" with options:
+
 - "Ready to continue" (Recommended)
 - "I'd like more practice"
 
@@ -356,6 +360,7 @@ Use `AskUserQuestion` with a single "Continue" option to let the user appreciate
 Ask: "Would you like me to save a copy of your completion certificate?"
 
 **If yes:**
+
 - Call `get_tutorial` to get metadata and stats:
   - `tutorial.name` and `tutorial.difficulty_level` for the certificate header
   - Lessons completed (should be 48/48)
@@ -426,6 +431,7 @@ Display when starting a brand new tutorial. Generate the topic name as large blo
 - **Always show the full topic name** on a subtitle line below the stats, regardless of whether the block letters were abbreviated
 
 **For programming tutorials:**
+
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
@@ -438,7 +444,7 @@ Display when starting a brand new tutorial. Generate the topic name as large blo
 ║   │           ─────────────────────────────              │   ║
 ║   │                                                      │   ║
 ║   │    ╔═══╗                                             │   ║
-║   │    ║>>>║  48 LESSONS  •  12 INTERVIEWS  •  3 BOSSES  │   ║
+║   │    ║>>>║  48 LEVELS  •  12 MINI-BOSSES  •  3 BOSSES  │   ║
 ║   │    ╚═══╝           {DIFFICULTY} MODE                 │   ║
 ║   │                                                      │   ║
 ║   └──────────────────────────────────────────────────────┘   ║
@@ -450,6 +456,7 @@ Display when starting a brand new tutorial. Generate the topic name as large blo
 ```
 
 **For general tutorials:**
+
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
@@ -462,7 +469,7 @@ Display when starting a brand new tutorial. Generate the topic name as large blo
 ║   │           ─────────────────────────────              │   ║
 ║   │                                                      │   ║
 ║   │    ╔═══╗                                             │   ║
-║   │    ║>>>║  48 LESSONS  •  12 INTERVIEWS               │   ║
+║   │    ║>>>║  48 LEVELS  •  12 BOSSES                    │   ║
 ║   │    ╚═══╝           {DIFFICULTY} MODE                 │   ║
 ║   │                                                      │   ║
 ║   └──────────────────────────────────────────────────────┘   ║
@@ -700,6 +707,7 @@ For general tutorials (no capstones). Include the difficulty level (Beginner/Int
 ```
 
 **Star conversion for Interview Average:**
+
 - 4.5-5.0 → ★★★★★
 - 3.5-4.4 → ★★★★☆
 - 2.5-3.4 → ★★★☆☆
@@ -708,6 +716,7 @@ For general tutorials (no capstones). Include the difficulty level (Beginner/Int
 - 0.0-0.4 → ☆☆☆☆☆
 
 **Bar graph for Quiz Score:**
+
 - Each █ represents ~4% (24 characters = 100%)
 - Use ░ for remaining portion
 - Example: 91% → `██████████████████████░░` (22 filled, 2 empty)
@@ -752,15 +761,24 @@ If the user asks a question unrelated to the current lesson:
 
 ## Quick Reference
 
-| Event                 | MCP Calls                                                                     |
-| --------------------- | ----------------------------------------------------------------------------- |
+| Event                 | MCP Calls                                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Session start         | `get_tutorial` (returns full data or `tutorial: null`), then `create_tutorial` + `start_tutorial` if needed |
-| Chapter start         | `get_current_position` (check `is_chapter_start`), `get_review_queue`         |
-| After review question | `log_review_result`                                                           |
-| After quiz            | `log_quiz_result`, `advance_position`                                         |
-| After interview       | `log_interview_result`                                                        |
-| After capstone        | `log_capstone_result`                                                         |
-| Progress check        | `get_tutorial`, `get_review_queue`                                            |
+| Chapter start         | `get_current_position` (check `is_chapter_start`), `get_review_queue`                                       |
+| After review question | `log_review_result`                                                                                         |
+| After quiz            | `log_quiz_result`, `advance_position`                                                                       |
+| After interview       | `log_interview_result`                                                                                      |
+| After capstone        | `log_capstone_result`                                                                                       |
+| Progress check        | `get_tutorial`, `get_review_queue`                                                                          |
+| Event                 | MCP Calls                                                                                                   |
+| --------------------- | -----------------------------------------------------------------------------                               |
+| Session start         | `get_tutorial` (returns full data or `tutorial: null`), then `create_tutorial` + `start_tutorial` if needed |
+| Chapter start         | `get_current_position` (check `is_chapter_start`), `get_review_queue`                                       |
+| After review question | `log_review_result`                                                                                         |
+| After quiz            | `log_quiz_result`, `advance_position`                                                                       |
+| After interview       | `log_interview_result`                                                                                      |
+| After capstone        | `log_capstone_result`                                                                                       |
+| Progress check        | `get_tutorial`, `get_review_queue`                                                                          |
 
 ---
 
