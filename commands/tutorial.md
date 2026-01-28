@@ -24,16 +24,7 @@ This isn't a Multivac tutorial project. Tell the user:
 
 ## Step 2: New Tutorial Setup
 
-No tutorial exists in this project yet. First, check for optional components:
-
-```bash
-missing=""; [ ! -f ~/.claude/commands/quiz.md ] && missing="$missing quiz"; [ ! -f ~/.claude/agents/interview-agent.md ] && missing="$missing interview"; [ ! -f ~/.claude/hooks/capstone-test-runner.sh ] && missing="$missing hook"; echo "${missing:-ok}"
-```
-
-- If output is "ok": Continue silently.
-- If output lists missing components: Warn the user, then ask "Continue anyway?"
-
-Then proceed with setup:
+No tutorial exists in this project yet.
 
 1. Read the topic from the CLAUDE.md file (look for `<!-- topic: X -->` or `**Topic:** X`)
 2. Inform the user: "For the best learning experience, please run `/output-style learning` if you haven't already."
