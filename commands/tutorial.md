@@ -27,8 +27,7 @@ This isn't a Multivac tutorial project. Tell the user:
 No tutorial exists in this project yet.
 
 1. Read the topic from the CLAUDE.md file (look for `<!-- topic: X -->` or `**Topic:** X`)
-2. Inform the user: "For the best learning experience, please run `/output-style learning` if you haven't already."
-3. Read and follow the complete tutorial instructions from: `~/.claude/prompts/tutorial-session.md`
+2. Read and follow the complete tutorial instructions from: `~/.claude/prompts/tutorial-session.md`
 
 **Topic Selection:**
 
@@ -85,7 +84,14 @@ Read `~/.claude/prompts/tutorial-session.md` and follow the Review Queue instruc
 
 ### If Tutorial is In Progress
 
-Use `AskUserQuestion` to present options:
+First, call `get_current_position` to check if `is_chapter_start` is true.
+
+**If at chapter start:** Display a tip before showing the menu:
+> Tip: Run `/rename {Topic}-{Part}-{Chapter}` to keep your sessions organized.
+
+Example: "Tip: Run `/rename Python-II-1` to keep your sessions organized."
+
+Then use `AskUserQuestion` to present options:
 
 **Question:** "You have a tutorial in progress. What would you like to do?"
 

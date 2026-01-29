@@ -26,7 +26,10 @@ Long conversations accumulate context that gets re-sent with each message, accel
 
 **Start fresh sessions at chapter boundaries:**
 
-- After completing each chapter (4 lessons + interview), suggest: "Great work completing this chapter! To keep things running smoothly, consider starting a fresh session with `/tutorial` to continue. Your progress is saved."
+- After completing each chapter (4 lessons + interview), display:
+  > Great work completing this chapter!
+  >
+  > Tip: To keep things running smoothly, start a fresh Claude Code session and run `/tutorial` to continue. Your progress is saved.
 - The MCP server preserves all progress, so new sessions pick up seamlessly
 
 **Be selective with file reads:**
@@ -102,25 +105,6 @@ Call `get_tutorial` from the learning-tracker MCP server. This returns the full 
 - Call `start_tutorial` to begin
 - **Display the Opening Screen** (see ASCII Art section)
 - **PAUSE:** Use `AskUserQuestion` with a single option "Start" and the question "Ready to begin?" — this lets the user appreciate the opening screen before it scrolls away
-- After the pause, suggest renaming the conversation (see format below)
-
-### 4. Rename the Conversation
-
-When starting or resuming, suggest renaming using this format: `{Topic}-{Part}-{Chapter}`
-
-Examples:
-
-- Starting Python, Part I, Chapter 1 → `Python-I-1`
-- Continuing Python, Part II, Chapter 3 → `Python-II-3`
-- Python Part III, Chapter 2 → `Python-III-2`
-
-Part names:
-
-- Part 1 = I
-- Part 2 = II
-- Part 3 = III
-
-Tell the user: "I'll rename this conversation to [name] for easy tracking. Please run `/rename [name]` to set the conversation name."
 
 ---
 
