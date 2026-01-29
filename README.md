@@ -124,7 +124,8 @@ multivac javascript              # Creates ~/multivac/javascript/
 multivac french                  # Creates ~/multivac/french/ (general tutorial)
 multivac 'organic chemistry'     # Creates ~/multivac/organic-chemistry/
 multivac python --new            # Creates ~/multivac/python-2 if python exists
-multivac --home ~/Desktop rust   # Creates ~/Desktop/rust/
+multivac python --launch         # Creates project and opens Claude Code
+multivac rust --dir ~/Desktop    # Creates ~/Desktop/rust/ (one-time override)
 ```
 
 ### Continuing a Tutorial

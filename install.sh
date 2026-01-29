@@ -100,6 +100,21 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Ask where to store tutorials
+echo "Where would you like to store tutorials?"
+echo "(Press Enter for default: ~/multivac)"
+echo ""
+read -p "Directory: " CUSTOM_HOME
+
+# Use default if empty, expand ~ if present
+if [[ -z "$CUSTOM_HOME" ]]; then
+    CUSTOM_HOME="$HOME/multivac"
+else
+    # Expand ~ to $HOME
+    CUSTOM_HOME="${CUSTOM_HOME/#\~/$HOME}"
+fi
+
+echo ""
 echo "Installing Multivac..."
 echo ""
 
@@ -165,6 +180,18 @@ cp "$SCRIPT_DIR/bin/multivac" "$BIN_DIR/multivac"
 chmod +x "$BIN_DIR/multivac"
 echo "  multivac -> $BIN_DIR/"
 
+# If custom directory was chosen, insert it into the script after "set -e"
+if [[ "$CUSTOM_HOME" != "$HOME/multivac" ]]; then
+    sed -i '' '/^set -e$/a\
+\
+# Custom default directory (set during installation)\
+MULTIVAC_HOME="${MULTIVAC_HOME:-'"$CUSTOM_HOME"'}"
+' "$BIN_DIR/multivac"
+fi
+
+echo ""
+echo "Tutorials will be stored in: $CUSTOM_HOME"
+
 echo ""
 echo "Installation complete!"
 echo ""
@@ -184,11 +211,11 @@ fi
 
 echo "To start a tutorial, run:"
 echo ""
-echo "  multivac <topic>"
+echo "  multivac <topic> --launch"
 echo ""
-echo "Examples: multivac python, multivac javascript, multivac rust"
+echo "Examples: multivac python --launch, multivac javascript --launch"
 echo ""
-echo "This creates a project at ~/multivac/<topic>/ and launches Claude Code."
+echo "This creates a project at $CUSTOM_HOME/<topic>/ and opens Claude Code."
 echo "When prompted, approve the MCP server to enable progress tracking."
 echo "Then run /tutorial to begin learning!"
 echo ""
