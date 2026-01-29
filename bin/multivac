@@ -1,9 +1,49 @@
 #!/bin/bash
 
 # Multivac - Create and start a tutorial project
-# Usage: multivac [topic] [--home <path>] [--new]
+# Usage: multivac [topic] [--home <path>] [--new] [--launch]
 
 set -e
+
+# Check if we're running inside Claude Code by walking up the process tree
+is_inside_claude() {
+    local pid=$$
+    while [ "$pid" != "1" ]; do
+        local cmd=$(ps -o comm= -p "$pid" 2>/dev/null)
+        [[ "$cmd" == *claude* ]] && return 0
+        pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+        [ -z "$pid" ] && break
+    done
+    return 1
+}
+
+# Launch Claude Code or print instructions
+# Usage: launch_or_instruct <dir> <action>  (action: "start" or "continue")
+launch_or_instruct() {
+    local dir="$1"
+    local action="$2"
+    if $LAUNCH_MODE; then
+        if is_inside_claude; then
+            echo ""
+            echo "Error: Cannot use --launch from within Claude Code"
+            echo ""
+            echo "To $action this tutorial, run: /tutorial"
+            echo ""
+            exit 1
+        fi
+        echo "Launching Claude Code..."
+        echo ""
+        cd "$dir" && exec claude
+    else
+        echo ""
+        echo "To $action this tutorial:"
+        echo "  cd $dir && claude"
+        echo ""
+        echo "Then inside Claude Code, run: /tutorial"
+        echo ""
+        exit 0
+    fi
+}
 
 # Default tutorial home directory
 MULTIVAC_HOME="${MULTIVAC_HOME:-$HOME/multivac}"
@@ -11,6 +51,7 @@ MULTIVAC_HOME="${MULTIVAC_HOME:-$HOME/multivac}"
 # Parse arguments
 TOPIC=""
 NEW_MODE=false
+LAUNCH_MODE=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         --home)
@@ -21,8 +62,12 @@ while [[ $# -gt 0 ]]; do
             NEW_MODE=true
             shift
             ;;
+        --launch|-l)
+            LAUNCH_MODE=true
+            shift
+            ;;
         -h|--help)
-            echo "Usage: multivac [topic] [--home <path>] [--new]"
+            echo "Usage: multivac [topic] [--home <path>] [--new] [--launch]"
             echo ""
             echo "Create and start a Multivac tutorial project."
             echo ""
@@ -37,6 +82,8 @@ while [[ $# -gt 0 ]]; do
             echo "                  Can also set MULTIVAC_HOME environment variable"
             echo "  --new, -n       Skip prompts and always create a new project"
             echo "                  (uses numbered suffix if directory exists)"
+            echo "  --launch, -l    Launch Claude Code after setup"
+            echo "                  (cannot be used from within Claude Code)"
             echo "  -h, --help      Show this help message"
             echo ""
             echo "Examples:"
@@ -44,6 +91,8 @@ while [[ $# -gt 0 ]]; do
             echo "  multivac python                    # creates ~/multivac/python"
             echo "  multivac 'data science'            # creates ~/multivac/data-science"
             echo "  multivac python --new              # creates ~/multivac/python-2 if python exists"
+            echo "  multivac python --launch           # creates project and opens Claude Code"
+            echo "  multivac python --new --launch     # creates new project and opens Claude Code"
             echo "  multivac rust --home ~/Desktop     # creates ~/Desktop/rust"
             echo "  MULTIVAC_HOME=~/learn multivac go  # creates ~/learn/go"
             exit 0
@@ -215,13 +264,7 @@ elif [[ ${#MULTIVAC_PROJECTS[@]} -eq 1 ]]; then
 
         case $REPLY in
             [Cc])
-                echo ""
-                echo "To continue this tutorial:"
-                echo "  cd $PROJECT_DIR && claude"
-                echo ""
-                echo "Then inside Claude Code, run: /tutorial"
-                echo ""
-                exit 0
+                launch_or_instruct "$PROJECT_DIR" "continue"
                 ;;
             [Nn])
                 use_next_topic_number "$BASE_TOPIC"
@@ -258,13 +301,7 @@ else
             idx=$((REPLY - 1))
             PROJECT_DIR="${MULTIVAC_DIRS[$idx]}"
             TOPIC="${MULTIVAC_PROJECTS[$idx]}"
-            echo ""
-            echo "To continue this tutorial:"
-            echo "  cd $PROJECT_DIR && claude"
-            echo ""
-            echo "Then inside Claude Code, run: /tutorial"
-            echo ""
-            exit 0
+            launch_or_instruct "$PROJECT_DIR" "continue"
         elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
             use_next_topic_number "$BASE_TOPIC"
         else
@@ -347,9 +384,4 @@ EOF
 
 echo ""
 echo "Tutorial project created!"
-echo ""
-echo "To start learning $TOPIC_DISPLAY:"
-echo "  cd $PROJECT_DIR && claude"
-echo ""
-echo "Then inside Claude Code, run: /tutorial"
-echo ""
+launch_or_instruct "$PROJECT_DIR" "start"
