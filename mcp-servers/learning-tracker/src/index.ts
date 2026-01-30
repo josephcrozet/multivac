@@ -216,10 +216,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_review_queue',
-        description: 'Get lessons in the review queue. Each lesson has multiple concepts; pick one concept per lesson for review questions. Use at the start of chapters to review previous material.',
+        description: 'Get lessons in the review queue. Each lesson has multiple concepts; pick one concept per lesson for review questions. Use at the start of chapters to review previous material. For completed tutorials, auto-replenishes with all 48 lessons if queue is empty.',
         inputSchema: {
           type: 'object',
-          properties: {},
+          properties: {
+            limit: {
+              type: 'number',
+              description: 'Maximum number of lessons to return. Use 4 for standard review sessions.',
+            },
+          },
         },
       },
       {
@@ -483,8 +488,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_review_queue': {
-        const queue = database.getReviewQueue();
-        if (!queue) {
+        const { limit } = args as { limit?: number };
+        const result = database.getReviewQueue(limit);
+        if (!result) {
           return {
             content: [
               {
@@ -503,8 +509,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               type: 'text',
               text: JSON.stringify({
                 success: true,
-                count: queue.length,
-                queue,
+                count: result.queue.length,
+                total_in_queue: result.total_in_queue,
+                queue_replenished: result.queue_replenished,
+                queue: result.queue,
                 instructions: 'For each lesson in the queue, randomly pick ONE concept and ask a review question about it.',
               }, null, 2),
             },

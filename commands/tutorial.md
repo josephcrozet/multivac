@@ -66,12 +66,15 @@ Use `AskUserQuestion` to present options:
 
 #### If "Review" selected
 
-Read `~/.claude/prompts/tutorial-session.md` and follow the Review Queue instructions:
-- Call `get_review_queue`
-- For each lesson in the queue, ask a review question about one concept
-- Log results with `log_review_result`
-- Continue until queue is empty
-- When done, say "Review complete! Your queue is now empty." and return to this menu.
+Start a review session using the same mechanics as midgame review:
+
+1. Call `get_review_queue` with `limit: 4`
+2. If `queue_replenished` is true, tell the user: "Starting a fresh review cycle with all 48 lessons!"
+3. Follow the "Review Queue" instructions in `~/.claude/prompts/tutorial-session.md` to review the returned lessons (ask questions, log results)
+4. After reviewing, report progress using `total_in_queue` from the response:
+   - If 0: "Review complete! Your queue is empty. Come back anytime to start a fresh cycle."
+   - Otherwise: "Session complete! {N} lessons remaining in your queue."
+5. Return to this menu.
 
 #### If "View progress" selected (completed)
 

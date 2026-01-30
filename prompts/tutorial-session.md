@@ -164,21 +164,17 @@ Each lesson follows this sequence:
 
 At the start of each chapter (lesson 1 of any chapter after the first), check the review queue:
 
-- Call `get_review_queue`
+- Call `get_review_queue` with `limit: 4` to get up to 4 lessons for this review session
 - The queue contains lessons (not individual concepts)—each lesson has multiple concepts
-- For EACH lesson in the queue:
+- For EACH lesson returned:
   - Randomly pick ONE concept from that lesson
   - Ask a review question about that concept
   - After the user answers, call `log_review_result` with `correct: true/false`
   - Correct answers remove the lesson from the queue
   - Incorrect answers move the lesson to the end of the queue
-- After going through all items once, check the queue again
-- **If queue is empty:** Use `AskUserQuestion` with question "Review complete! Ready for today's lesson?" with a single option "Begin lesson"
-- **If queue still has items:** Use `AskUserQuestion` with question "Some items need more practice. What would you like to do?" with options:
-  - "Review more" — go through remaining items again
-  - "Begin lesson" — move on (items stay in queue for next chapter)
+- After reviewing all returned items, proceed to the lesson
 
-**Note:** The queue will typically have 4 lessons (one per lesson in the previous chapter). If the user gets any wrong, those lessons persist and accumulate with new ones.
+**Note:** The queue typically has 4 items (from the previous chapter). If the user aces all reviews, the queue empties. If they get some wrong, those lessons move to the back and accumulate. The `limit: 4` caps each review session, so if the queue grows large (many wrong answers), users won't be stuck reviewing 20+ items at once.
 
 ### 3. Theory Introduction
 

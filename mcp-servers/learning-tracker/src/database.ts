@@ -628,22 +628,58 @@ export const database = {
     `).run(tutorialId, lessonId, newPosition);
   },
 
-  getReviewQueue(): {
-    lesson: Lesson;
-    concepts: Concept[];
-    queue_position: number;
-  }[] | null {
+  getReviewQueue(limit?: number): {
+    queue: {
+      lesson: Lesson;
+      concepts: Concept[];
+      queue_position: number;
+    }[];
+    total_in_queue: number;
+    queue_replenished: boolean;
+  } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
 
-    const queueItems = db.prepare(`
+    // Check if queue is empty - if so, auto-replenish for completed tutorials
+    let queueReplenished = false;
+    const countResult = db.prepare(
+      'SELECT COUNT(*) as count FROM review_queue WHERE tutorial_id = ?'
+    ).get(tutorialId) as { count: number };
+
+    if (countResult.count === 0) {
+      // Safety check: only replenish if tutorial is completed
+      // (During tutorial, queue should never be empty at review time since
+      // review only happens at chapter starts, after 4 lessons added)
+      const progress = db.prepare(
+        'SELECT status FROM progress WHERE tutorial_id = ?'
+      ).get(tutorialId) as { status: string } | undefined;
+
+      if (progress?.status === 'completed') {
+        this.replenishReviewQueue(tutorialId);
+        queueReplenished = true;
+      }
+    }
+
+    // Get total count (after potential replenishment)
+    const totalResult = db.prepare(
+      'SELECT COUNT(*) as count FROM review_queue WHERE tutorial_id = ?'
+    ).get(tutorialId) as { count: number };
+    const totalInQueue = totalResult.count;
+
+    // Build query with optional limit
+    let query = `
       SELECT rq.*, l.name as lesson_name, l.description as lesson_description,
              l.chapter_id, l.sort_order as lesson_sort_order, l.completed as lesson_completed
       FROM review_queue rq
       JOIN lessons l ON rq.lesson_id = l.id
       WHERE rq.tutorial_id = ?
       ORDER BY rq.position ASC
-    `).all(tutorialId) as (ReviewQueueItem & {
+    `;
+    if (limit !== undefined) {
+      query += ` LIMIT ${limit}`;
+    }
+
+    const queueItems = db.prepare(query).all(tutorialId) as (ReviewQueueItem & {
       lesson_name: string;
       lesson_description: string | null;
       chapter_id: number;
@@ -651,7 +687,7 @@ export const database = {
       lesson_completed: number;
     })[];
 
-    return queueItems.map(item => {
+    const queue = queueItems.map(item => {
       const concepts = db.prepare('SELECT * FROM concepts WHERE lesson_id = ?').all(item.lesson_id) as Concept[];
       return {
         lesson: {
@@ -666,6 +702,34 @@ export const database = {
         queue_position: item.position
       };
     });
+
+    return {
+      queue,
+      total_in_queue: totalInQueue,
+      queue_replenished: queueReplenished
+    };
+  },
+
+  replenishReviewQueue(tutorialId: number): void {
+    // Get all lessons for this tutorial
+    const lessons = db.prepare(`
+      SELECT l.id
+      FROM lessons l
+      JOIN chapters c ON l.chapter_id = c.id
+      JOIN parts p ON c.part_id = p.id
+      WHERE p.tutorial_id = ?
+      ORDER BY p.sort_order, c.sort_order, l.sort_order
+    `).all(tutorialId) as { id: number }[];
+
+    // Add all lessons to the queue
+    const insertStmt = db.prepare(`
+      INSERT INTO review_queue (tutorial_id, lesson_id, position, added_at)
+      VALUES (?, ?, ?, datetime('now'))
+    `);
+
+    for (let i = 0; i < lessons.length; i++) {
+      insertStmt.run(tutorialId, lessons[i].id, i + 1);
+    }
   },
 
   logReviewResult(lessonId: number, correct: boolean): { removed: boolean; new_position: number | null } | null {
