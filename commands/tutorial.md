@@ -60,9 +60,10 @@ Use `AskUserQuestion` to present options:
 **Options (in this order):**
 
 1. **Review** — "Work through your spaced repetition queue"
-2. **View progress** — "See your final stats, get certificate, and see suggested topics"
-3. **Start over** — "Clear all progress and restart from the beginning"
-4. **Exit** — "Return to regular Claude Code"
+2. **View curriculum** — "See the full table of contents"
+3. **View progress** — "See your final stats, get certificate, and see suggested topics"
+4. **Start over** — "Clear all progress and restart from the beginning"
+5. **Exit** — "Return to regular Claude Code"
 
 #### If "Review" selected
 
@@ -75,6 +76,10 @@ Start a review session using the same mechanics as midgame review:
    - If 0: "Review complete! Your queue is empty. Come back anytime to start a fresh cycle."
    - Otherwise: "Session complete! {N} lessons remaining in your queue."
 5. Return to this menu.
+
+#### If "View curriculum" selected
+
+Display the Curriculum Tree (see format below). Then return to this menu.
 
 #### If "View progress" selected (completed)
 
@@ -101,13 +106,18 @@ Then use `AskUserQuestion` to present options:
 **Options (in this order):**
 
 1. **Continue** — "Resume learning from your current position"
-2. **View progress** — "See your stats and progress in detail"
-3. **Start over** — "Clear all progress and restart from the beginning"
-4. **Exit tutorial** — "Leave tutorial mode and return to regular Claude Code"
+2. **View curriculum** — "See the full table of contents"
+3. **View progress** — "See your stats and progress in detail"
+4. **Start over** — "Clear all progress and restart from the beginning"
+5. **Exit tutorial** — "Leave tutorial mode and return to regular Claude Code"
 
 #### If "Continue" selected
 
 Read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flow.
+
+#### If "View curriculum" selected (in progress)
+
+Display the Curriculum Tree (see format below). Then return to this menu.
 
 #### If "View progress" selected (in progress)
 
@@ -301,3 +311,72 @@ For each lesson in the queue:
 ```
 
 For general tutorials, omit the "Capstone" row in PART PROGRESS and the "Capstones" line in STATS.
+
+---
+
+## Curriculum Tree Format
+
+Display the full curriculum as a tree diagram showing all parts, chapters, and lessons with progress indicators.
+
+### Data Collection
+
+Call `get_tutorial` to get the full curriculum structure including:
+- Parts (with completion status)
+- Chapters (with completion status)
+- Lessons (with completion status)
+
+Also call `get_current_position` to identify the current lesson.
+
+### Tree Structure
+
+```
+{TOPIC} - Full Curriculum
+══════════════════════════
+
+PART I: {part_name}
+├─ Chapter 1: {chapter_name}
+│  ├─ ✓ Lesson 1: {lesson_name}
+│  ├─ ✓ Lesson 2: {lesson_name}
+│  ├─ ► Lesson 3: {lesson_name}  ◄── YOU ARE HERE
+│  ├─ ○ Lesson 4: {lesson_name}
+│  └─ ○ Mock Interview
+├─ Chapter 2: {chapter_name}
+│  ├─ ○ Lesson 1: {lesson_name}
+│  ├─ ○ Lesson 2: {lesson_name}
+│  ├─ ○ Lesson 3: {lesson_name}
+│  ├─ ○ Lesson 4: {lesson_name}
+│  └─ ○ Mock Interview
+├─ Chapter 3: {chapter_name}
+│  └─ ...
+├─ Chapter 4: {chapter_name}
+│  └─ ...
+└─ ◆ Capstone Project
+
+PART II: {part_name}
+├─ Chapter 1: {chapter_name}
+│  └─ ...
+...
+
+PART III: {part_name}
+...
+
+──────────────────────────
+Legend: ✓ completed  ► current  ○ upcoming  ◆ capstone
+```
+
+### Progress Indicators
+
+- `✓` — Lesson or mock interview completed
+- `►` — Current lesson (with `◄── YOU ARE HERE` marker)
+- `○` — Upcoming lesson or mock interview (not yet started)
+- `◆` — Capstone project (programming tutorials only)
+
+### Display Rules
+
+1. Show ALL parts, chapters, and lessons (the full 48-lesson curriculum)
+2. Show `Mock Interview` at the end of each chapter (after the 4 lessons)
+3. For programming tutorials, show `◆ Capstone Project` at the end of each part
+4. For general tutorials, omit capstone projects (they don't have them)
+5. Use tree-drawing characters (`├─`, `│`, `└─`) for clean hierarchy
+6. Mark the current lesson with `►` and append `◄── YOU ARE HERE`
+7. For completed tutorials, all items show `✓` and omit the "YOU ARE HERE" marker
