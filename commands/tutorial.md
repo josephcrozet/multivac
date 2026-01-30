@@ -45,6 +45,18 @@ If the user selects a different topic than what's in CLAUDE.md, update the file:
 1. Replace `<!-- topic: X -->` with the new topic
 2. Replace `**Topic:** X` with the new topic
 
+**Book Feature:**
+
+Use `AskUserQuestion` to ask: "Would you like to save your lessons to a book for offline review?"
+
+**Options:**
+
+1. **Yes, build my book** — "Each lesson gets saved to a `book/` folder"
+2. **No thanks** — "I'll just use the interactive lessons"
+
+- If yes: Create the `book/` directory. The lesson flow will automatically save content there.
+- If no: Skip. (They can create the `book/` directory later to enable this.)
+
 ## Step 3: Tutorial Menu
 
 A tutorial exists in this project. Use the metadata from Step 1 to check status:

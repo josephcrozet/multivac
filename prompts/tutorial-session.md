@@ -183,6 +183,8 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 - You MAY write example code here to illustrate concepts
 - Keep it focused—don't overwhelm
 
+**Save to book (if enabled):** Immediately after delivering the theory, if the `book/` directory exists, create the lesson file with the theory section. See "Book Format" section below for file structure and format.
+
 **After theory:** Use `AskUserQuestion` with question "Any questions before we practice?" with options:
 
 - "Ready for hands-on practice" (Recommended)
@@ -197,12 +199,14 @@ The user can also type a specific question via "Other". If they select "Can you 
 - Guide them with hints if they're stuck
 - Review their solution and suggest improvements
 
+**Save to book (if enabled):** After reviewing their solution, if the `book/` directory exists, append this exercise (prompt + their working solution) to the lesson file.
+
 **After reviewing their solution:** Use `AskUserQuestion` with question "How are you feeling about this concept?" with options:
 
 - "Ready to continue" (Recommended)
 - "I'd like more practice"
 
-If they want more practice, provide another exercise on the same concept (different scenario), review it, then ask again.
+If they want more practice, provide another exercise on the same concept (different scenario), review it, append it to the book, then ask again.
 
 ### 5. Socratic Review
 
@@ -739,19 +743,85 @@ If the user asks a question unrelated to the current lesson:
 
 ---
 
+## Book Format
+
+When the `book/` directory exists, save lesson content incrementally as described in the Lesson Flow. This section defines the file structure and format.
+
+### Directory Structure
+
+```
+book/
+├── part-1-{part-name-slugified}/
+│   ├── chapter-1-{chapter-name-slugified}/
+│   │   ├── 01-{lesson-name-slugified}.md
+│   │   ├── 02-{lesson-name-slugified}.md
+│   │   ├── 03-{lesson-name-slugified}.md
+│   │   └── 04-{lesson-name-slugified}.md
+│   ├── chapter-2-{chapter-name-slugified}/
+│   │   └── ...
+│   └── ...
+├── part-2-{part-name-slugified}/
+│   └── ...
+└── part-3-{part-name-slugified}/
+    └── ...
+```
+
+**Slugify names:** lowercase, replace spaces with hyphens, remove special characters.
+- Example: `book/part-1-foundations/chapter-2-control-flow/03-loops.md`
+
+### File Format
+
+Each lesson file is written in two stages:
+
+**Stage 1 (after Theory):** Create the file with initial content:
+
+```markdown
+# {Lesson Name}
+
+**Part {N}: {Part Name} | Chapter {N}: {Chapter Name} | Lesson {N}**
+
+## Concepts
+
+- {concept_1}
+- {concept_2}
+- {concept_3}
+
+## Theory
+
+{The theory content, written verbatim as delivered to the user}
+```
+
+**Stage 2 (after each Exercise):** Append exercise content:
+
+```markdown
+
+## Exercises
+
+### Exercise 1: {title}
+
+{Exercise prompt as given to the user}
+
+**Solution:**
+
+```{language}
+{The user's working solution, verbatim}
+```
+```
+
+If user requests additional practice, append each subsequent exercise in the same format (Exercise 2, Exercise 3, etc.).
+
+### Important Notes
+
+- **Write verbatim:** Save content exactly as delivered/submitted—do not summarize or rewrite
+- **Create directories as needed:** Use the Write tool to create parent directories
+- **No confirmation needed:** Save silently; don't interrupt the lesson flow with "saved to book" messages
+
+---
+
 ## Quick Reference
 
 | Event                 | MCP Calls                                                                                                   |
 | --------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Session start         | `get_tutorial` (returns full data or `tutorial: null`), then `create_tutorial` + `start_tutorial` if needed |
-| Chapter start         | `get_current_position` (check `is_chapter_start`), `get_review_queue`                                       |
-| After review question | `log_review_result`                                                                                         |
-| After quiz            | `log_quiz_result`, `advance_position`                                                                       |
-| After interview       | `log_interview_result`                                                                                      |
-| After capstone        | `log_capstone_result`                                                                                       |
-| Progress check        | `get_tutorial`, `get_review_queue`                                                                          |
-| Event                 | MCP Calls                                                                                                   |
-| --------------------- | -----------------------------------------------------------------------------                               |
 | Session start         | `get_tutorial` (returns full data or `tutorial: null`), then `create_tutorial` + `start_tutorial` if needed |
 | Chapter start         | `get_current_position` (check `is_chapter_start`), `get_review_queue`                                       |
 | After review question | `log_review_result`                                                                                         |
