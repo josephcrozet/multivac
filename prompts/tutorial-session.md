@@ -203,7 +203,7 @@ Call `get_tutorial` from the learning-tracker MCP server. This returns the full 
 **If no tutorial exists (`tutorial: null`):**
 
 - Read the topic from CLAUDE.md (look for `<!-- topic: X -->` or `**Topic:** X`)
-- Say "Let me confirm a couple things before we start." Then use `AskUserQuestion` to confirm the topic
+- Say "This project is set up for {topic}, but you can choose a different topic if you prefer." Then use `AskUserQuestion` with the CLAUDE.md topic as the first option marked "(Recommended)"
 - Then use `AskUserQuestion` to ask about their experience level: "Beginner", "Intermediate", or "Advanced"
   - Beginner → new to this topic → `difficulty_level: "beginner"`
   - Intermediate → knows the basics → `difficulty_level: "intermediate"`
