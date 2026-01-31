@@ -257,6 +257,13 @@ General tutorials skip capstone projects because they require automated test ver
 
 Each lesson follows this sequence:
 
+### 0. Verify Current Information
+
+Before starting the lesson, follow the verification workflow (see "Always Use Current Information" above):
+- Read `.multivac/current-info.md` to refresh context on what's changed from training data
+- If this lesson covers topics not yet in the cache, run the full verification workflow
+- This step ensures you teach current patterns even after context compaction or session restarts
+
 ### 1. Chapter Start (if first lesson of chapter)
 
 - If `is_chapter_start` is true from `get_current_position`, display the **Chapter Start Screen** (see ASCII Art section)

@@ -39,7 +39,7 @@ multivac/
 8. **Local Project Data** — Each tutorial project stores its own data in `.multivac/learning.db`; MCP server configured per-project via `.mcp.json`
 9. **Tutorial Types** — `programming` (code interviews + capstones) vs `general` (knowledge interviews, no capstones); type auto-detected from topic
 10. **Auto-Prompt on Session Start** — SessionStart hook detects tutorial projects and offers to start/continue; checks for `learning.db` to determine which
-11. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache is checked before each lesson to avoid stale training data
+11. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache persists across context compaction and is checked before each lesson to short-circuit redundant searches and prevent fallback to stale training data
 
 ## Interview Agent Details
 
