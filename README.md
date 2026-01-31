@@ -178,7 +178,9 @@ This project demonstrates Claude Code's extensibility:
 ├── python/
 │   ├── .mcp.json               # MCP server config
 │   ├── .claude/settings.json   # Hook config
-│   ├── .multivac/learning.db   # Tutorial progress (SQLite)
+│   ├── .multivac/
+│   │   ├── learning.db         # Tutorial progress (SQLite)
+│   │   └── current-info.md     # Verified version/API info cache
 │   └── CLAUDE.md               # Tutorial mode marker
 └── javascript/
     └── ...
