@@ -64,6 +64,8 @@ Create a scratch file in the current working directory:
 - JavaScript interviews: `interview_scratch.js`
 - Other languages: `interview_scratch.{ext}`
 
+**Explain the process to the user:** "For code challenges, you'll write your answers in `interview_scratch.{ext}`. I'll clear it before each question and delete it when we're done."
+
 #### For Each Code Writing Question
 1. Clear the scratch file (write empty or a comment header like `# Question N: [brief description]`)
 2. Tell the user: "Write your answer in `interview_scratch.py` and let me know when you're ready."
