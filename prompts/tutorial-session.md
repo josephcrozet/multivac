@@ -302,14 +302,14 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 - You MAY write example code here to illustrate concepts
 - Keep it focused—don't overwhelm
 
-**Save to book (if enabled):** Immediately after delivering the theory, if the `book/` directory exists, create the lesson file with the theory section. See "Book Format" section below for file structure and format.
-
 **After theory:** Say "That covers the theory." Then use `AskUserQuestion` with question "Any questions before we practice?" with options:
 
 - "Ready for hands-on practice" (Recommended)
 - "Can you explain that differently?"
 
 The user can also type a specific question via "Other". If they select "Can you explain that differently?", provide an alternative explanation using different analogies or examples. If they ask a specific question, answer it. Then ask again until they're ready to proceed.
+
+**Save to book (if enabled):** Once the user is ready for practice, if the `book/` directory exists, create the lesson file with the theory section. See "Book Format" section below for file structure and format. Do this silently before presenting the exercise.
 
 ### 4. Hands-On Exercise
 
@@ -318,14 +318,14 @@ The user can also type a specific question via "Other". If they select "Can you 
 - Guide them with hints if they're stuck
 - Review their solution and suggest improvements
 
-**Save to book (if enabled):** After reviewing their solution, if the `book/` directory exists, append this exercise (prompt + their working solution) to the lesson file.
-
 **After reviewing their solution:** Say "Nice work on that exercise." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with options:
 
 - "Ready to continue" (Recommended)
 - "I'd like more practice"
 
-If they want more practice, provide another exercise on the same concept (different scenario), review it, append it to the book, then ask again.
+**Save to book (if enabled):** After each confirmation, if the `book/` directory exists, append this exercise to the lesson file. Save both the full exercise prompt (verbatim, including requirements and hints) and the user's working solution (verbatim). Do this silently before continuing.
+
+If they want more practice, provide another exercise on the same concept (different scenario), review it, ask again, and save that exercise too.
 
 ### 5. Socratic Review
 
@@ -918,7 +918,7 @@ Each lesson file is written in two stages:
 
 ### Exercise 1: {title}
 
-{Exercise prompt as given to the user}
+{Exercise prompt, verbatim — include all requirements, hints, and instructions}
 
 **Solution:**
 
