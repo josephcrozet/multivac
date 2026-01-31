@@ -177,9 +177,10 @@ Check that `CLAUDE.md` exists in the current project directory and contains the 
 
 **If the marker is missing or CLAUDE.md doesn't exist:** This directory wasn't set up as a tutorial project. Help them create one:
 
-1. Say "Let's get you set up with a tutorial." Then use `AskUserQuestion` to ask: "What topic would you like to learn?" with options: "Python", "JavaScript", "Web Development", "Data Analysis" (user can always enter a custom topic via "Other")
-2. Run `multivac "<topic>" --new` via the Bash tool (quote the topic in case it has spaces)
-3. The command will output the project path. Tell the user:
+1. Say "Let's get you set up with a tutorial."
+2. Say "Select a topic." Then use `AskUserQuestion` to ask: "What topic would you like to learn?" with only these options: "Python", "JavaScript", "Web Development", "Data Analysis"
+3. Run `multivac "<topic>" --new` via the Bash tool (quote the topic in case it has spaces)
+4. The command will output the project path. Tell the user:
 
    "I've created a tutorial project for {topic}! To start learning:
    1. Exit Claude Code (`/exit`)
@@ -203,7 +204,8 @@ Call `get_tutorial` from the learning-tracker MCP server. This returns the full 
 **If no tutorial exists (`tutorial: null`):**
 
 - Read the topic from CLAUDE.md (look for `<!-- topic: X -->` or `**Topic:** X`)
-- Say "This project is set up for {topic}, but you can choose a different topic if you prefer." Then use `AskUserQuestion` with the CLAUDE.md topic as the first option marked "(Recommended)"
+- Say "This project is set up for {topic}, but you can choose a different topic if you prefer."
+- Say "Select one of the following." Then use `AskUserQuestion` with only these options: the CLAUDE.md topic marked "(Recommended)", plus 3 related topics that would complement or build on it (e.g., a framework for a language, a subfield for a science)
 - Then use `AskUserQuestion` to ask about their experience level: "Beginner", "Intermediate", or "Advanced"
   - Beginner → new to this topic → `difficulty_level: "beginner"`
   - Intermediate → knows the basics → `difficulty_level: "intermediate"`
@@ -302,12 +304,12 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 - You MAY write example code here to illustrate concepts
 - Keep it focused—don't overwhelm
 
-**After theory:** Say "That covers the theory." Then use `AskUserQuestion` with question "Any questions before we practice?" with options:
+**After theory:** Say "That covers the theory." Then use `AskUserQuestion` with question "Any questions before we practice?" with only these two options:
 
 - "Ready for hands-on practice" (Recommended)
 - "Can you explain that differently?"
 
-The user can also type a specific question via "Other". If they select "Can you explain that differently?", provide an alternative explanation using different analogies or examples. If they ask a specific question, answer it. Then ask again until they're ready to proceed.
+If they select "Can you explain that differently?", provide an alternative explanation using different analogies or examples. If they type a custom question, answer it. Then ask again until they're ready to proceed.
 
 **Save to book (if enabled):** Once the user is ready for practice, if the `book/` directory exists, create the lesson file with the theory section. See "Book Format" section below for file structure and format. Do this silently before presenting the exercise.
 
@@ -318,7 +320,7 @@ The user can also type a specific question via "Other". If they select "Can you 
 - Guide them with hints if they're stuck
 - Review their solution and suggest improvements
 
-**After reviewing their solution:** Say "Nice work on that exercise." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with options:
+**After reviewing their solution:** Say "Nice work on that exercise." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with only these two options:
 
 - "Ready to continue" (Recommended)
 - "I'd like more practice"
