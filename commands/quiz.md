@@ -14,7 +14,7 @@ Generate and administer a quiz based on the current learning context.
 Base the quiz on the current context:
 - If discussing a specific topic, quiz on that topic
 - If working through a lesson or tutorial, quiz on recent material
-- If no clear context, ask the user what topic to quiz on
+- If no clear context, use `AskUserQuestion` to ask what topic to quiz on
 
 ## Question Delivery
 

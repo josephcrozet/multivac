@@ -154,6 +154,15 @@ Long conversations accumulate context that gets re-sent with each message, accel
 - Use targeted searches instead of broad exploration
 - Avoid unnecessary MCP calls—cache results mentally within a session
 
+### AskUserQuestion Rendering
+
+Due to a terminal rendering quirk, the last line of your output can get visually clipped when `AskUserQuestion` displays. **Always add a transitional phrase before using AskUserQuestion.** This creates a buffer so that if clipping occurs, it clips the transition rather than your important content.
+
+Good transitions:
+- "Let me ask you a quick question."
+- "One thing to clarify:"
+- "Before we continue..."
+
 ---
 
 ## Session Initialization
@@ -168,7 +177,7 @@ Check that `CLAUDE.md` exists in the current project directory and contains the 
 
 **If the marker is missing or CLAUDE.md doesn't exist:** This directory wasn't set up as a tutorial project. Help them create one:
 
-1. Use `AskUserQuestion` to ask: "What topic would you like to learn?" with options: "Python", "JavaScript", "Web Development", "Data Analysis" (user can always enter a custom topic via "Other")
+1. Say "Let's get you set up with a tutorial." Then use `AskUserQuestion` to ask: "What topic would you like to learn?" with options: "Python", "JavaScript", "Web Development", "Data Analysis" (user can always enter a custom topic via "Other")
 2. Run `multivac "<topic>" --new` via the Bash tool (quote the topic in case it has spaces)
 3. The command will output the project path. Tell the user:
 
@@ -194,8 +203,8 @@ Call `get_tutorial` from the learning-tracker MCP server. This returns the full 
 **If no tutorial exists (`tutorial: null`):**
 
 - Read the topic from CLAUDE.md (look for `<!-- topic: X -->` or `**Topic:** X`)
-- Confirm the topic with the user using `AskUserQuestion`
-- Ask about their experience level using `AskUserQuestion`: "Beginner", "Intermediate", or "Advanced"
+- Say "Let me confirm a couple things before we start." Then use `AskUserQuestion` to confirm the topic
+- Then use `AskUserQuestion` to ask about their experience level: "Beginner", "Intermediate", or "Advanced"
   - Beginner → new to this topic → `difficulty_level: "beginner"`
   - Intermediate → knows the basics → `difficulty_level: "intermediate"`
   - Advanced → looking to master it → `difficulty_level: "advanced"`
@@ -207,7 +216,7 @@ Call `get_tutorial` from the learning-tracker MCP server. This returns the full 
 - Call `create_tutorial` with the full curriculum, including `type` and `difficulty_level` fields
 - Call `start_tutorial` to begin
 - **Display the Opening Screen** (see ASCII Art section)
-- **PAUSE:** Use `AskUserQuestion` with a single option "Start" and the question "Ready to begin?" — this lets the user appreciate the opening screen before it scrolls away
+- **PAUSE:** Say "Your adventure awaits." Then use `AskUserQuestion` with a single option "Start" and the question "Ready to begin?" — this lets the user appreciate the opening screen before it scrolls away
 
 ---
 
@@ -267,7 +276,7 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
 ### 1. Chapter Start (if first lesson of chapter)
 
 - If `is_chapter_start` is true from `get_current_position`, display the **Chapter Start Screen** (see ASCII Art section)
-- **PAUSE:** Use `AskUserQuestion` with a single option "Continue" and the question "Ready for this chapter?" — this lets the user see the chapter overview before diving into content
+- **PAUSE:** Say "Here's what we'll cover." Then use `AskUserQuestion` with a single option "Continue" and the question "Ready for this chapter?" — this lets the user see the chapter overview before diving into content
 - Then proceed to review (if applicable)
 
 ### 2. Review Queue (at start of each chapter)
@@ -295,7 +304,7 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 
 **Save to book (if enabled):** Immediately after delivering the theory, if the `book/` directory exists, create the lesson file with the theory section. See "Book Format" section below for file structure and format.
 
-**After theory:** Use `AskUserQuestion` with question "Any questions before we practice?" with options:
+**After theory:** Say "That covers the theory." Then use `AskUserQuestion` with question "Any questions before we practice?" with options:
 
 - "Ready for hands-on practice" (Recommended)
 - "Can you explain that differently?"
@@ -311,7 +320,7 @@ The user can also type a specific question via "Other". If they select "Can you 
 
 **Save to book (if enabled):** After reviewing their solution, if the `book/` directory exists, append this exercise (prompt + their working solution) to the lesson file.
 
-**After reviewing their solution:** Use `AskUserQuestion` with question "How are you feeling about this concept?" with options:
+**After reviewing their solution:** Say "Nice work on that exercise." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with options:
 
 - "Ready to continue" (Recommended)
 - "I'd like more practice"
@@ -447,11 +456,11 @@ When the user completes Part III (the final part), follow this sequence after di
 
 ### 1. Pause for Appreciation
 
-Use `AskUserQuestion` with a single "Continue" option to let the user appreciate the Victory Screen before it scrolls away.
+Say "You did it." Then use `AskUserQuestion` with a single "Continue" option to let the user appreciate the Victory Screen before it scrolls away.
 
 ### 2. Offer Completion Certificate
 
-Ask: "Would you like me to save a copy of your completion certificate?"
+Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completion certificate?"
 
 **If yes:**
 

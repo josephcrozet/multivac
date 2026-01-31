@@ -158,7 +158,7 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 
 ### If "Exit tutorial" selected
 
-**Requires confirmation.** Ask: "Exit tutorial mode? Your progress is saved and you can resume anytime with /tutorial."
+**Requires confirmation.** Use `AskUserQuestion` to ask: "Exit tutorial mode? Your progress is saved and you can resume anytime with /tutorial."
 
 - If confirmed: End the command. Do not load tutorial-session.md.
 - If cancelled: Return to menu.
