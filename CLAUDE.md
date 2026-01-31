@@ -29,17 +29,25 @@ multivac/
 
 ## Key Design Decisions
 
-1. **Token Management** — Sessions restart at chapter boundaries; MCP server persists progress
+**Project Structure**
+1. **Local Project Data** — Each tutorial project stores its own data in `.multivac/learning.db`; MCP server configured per-project via `.mcp.json`
 2. **Local CLAUDE.md** — Created in tutorial project directories to survive compaction
-3. **Batched Quizzes** — 3 prompts of 4 questions, not 12 individual prompts
-4. **Incremental Capstone Tests** — Tests written per-milestone, not all at once (programming only)
-5. **Generic Commands** — /quiz and interview-agent work outside tutorials; tutorial-session.md adds MCP integration
-6. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at chapter start; correct answers remove from queue, incorrect answers move to end
-7. **Single Entry Point** — /tutorial handles starting, continuing, viewing progress, and resetting tutorials
-8. **Local Project Data** — Each tutorial project stores its own data in `.multivac/learning.db`; MCP server configured per-project via `.mcp.json`
-9. **Tutorial Types** — `programming` (code interviews + capstones) vs `general` (knowledge interviews, no capstones); type auto-detected from topic
-10. **Auto-Prompt on Session Start** — SessionStart hook detects tutorial projects and offers to start/continue; checks for `learning.db` to determine which
-11. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache persists across context compaction and is checked before each lesson to short-circuit redundant searches and prevent fallback to stale training data
+3. **Per-Lesson Exercise Directories** — Each lesson's code goes in `exercises/{part}/{chapter}/{lesson}/`; created when starting the exercise (not upfront); keeps modules, tests, and config isolated between lessons; scaffolding created as needed based on lesson goals
+
+**Session Management**
+4. **Token Management** — Sessions restart at chapter boundaries; MCP server persists progress
+5. **Auto-Prompt on Session Start** — SessionStart hook detects tutorial projects and offers to start/continue; checks for `learning.db` to determine which
+
+**Curriculum & Content**
+6. **Tutorial Types** — `programming` (code interviews + capstones) vs `general` (knowledge interviews, no capstones); type auto-detected from topic
+7. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache persists across context compaction and is checked before each lesson to short-circuit redundant searches and prevent fallback to stale training data
+8. **Generic Commands** — /quiz and interview-agent work outside tutorials; tutorial-session.md adds MCP integration
+
+**Learning Flow**
+9. **Single Entry Point** — /tutorial handles starting, continuing, viewing progress, and resetting tutorials
+10. **Batched Quizzes** — 3 prompts of 4 questions, not 12 individual prompts
+11. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at chapter start; correct answers remove from queue, incorrect answers move to end
+12. **Incremental Capstone Tests** — Tests written per-milestone, not all at once (programming only)
 
 ## Interview Agent Details
 

@@ -315,6 +315,14 @@ If they select "Can you explain that differently?", provide an alternative expla
 
 ### 4. Hands-On Exercise
 
+**Set up the exercise directory:**
+
+Create a directory for this lesson's code at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}/` (using the same slugify rules as the Book feature). Tell the user where it is ("We'll be working in `exercises/{path}/` for this exercise"), then present the exercise.
+
+**Scaffolding:** Use judgment on whether to create starter files. If the lesson teaches project setup or tooling, have them create files themselves. Otherwise, create reasonable scaffolding (empty main file, config files, module init) so they can focus on the concept being taught. Err toward reducing friction.
+
+**Present the exercise:**
+
 - Provide a practical coding exercise with clear requirements
 - Let the USER write the code—do not write it for them
 - Guide them with hints if they're stuck
