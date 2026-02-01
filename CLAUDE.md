@@ -14,8 +14,9 @@ multivac/
 ├── agents/interview-agent.md     # Mock interview agent (8 questions, dual format)
 ├── bin/multivac                  # CLI command to create tutorial projects
 ├── commands/
+│   ├── menu.md                   # /menu - pause menu (progress, curriculum, restart options)
 │   ├── quiz.md                   # /quiz - 12 MC questions in 3 batches
-│   └── tutorial.md               # /tutorial - start, continue, manage, view progress
+│   └── tutorial.md               # /tutorial - start or resume a tutorial
 ├── hooks/
 │   ├── capstone-test-runner.sh   # PreToolUse hook on TodoWrite
 │   └── tutorial-prompt.sh        # SessionStart hook to offer /tutorial
@@ -45,7 +46,7 @@ multivac/
 9. **Generic Commands** — /quiz and interview-agent work outside tutorials; tutorial-session.md adds MCP integration
 
 **Learning Flow**
-10. **Single Entry Point** — /tutorial handles starting, continuing, viewing progress, and resetting tutorials
+10. **Separated Commands** — /tutorial starts new tutorials; /menu is the pause menu for existing tutorials (view progress, curriculum, restart, exit); single responsibility per command
 11. **Batched Quizzes** — 3 prompts of 4 questions, not 12 individual prompts
 12. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at chapter start; correct answers remove from queue, incorrect answers move to end
 13. **Incremental Capstone Tests** — Tests written per-milestone, not all at once (programming only)
@@ -105,7 +106,7 @@ Per-project configuration (created by `multivac` command):
 To test components:
 - **MCP Server**: `cd ~/.claude/mcp-servers/learning-tracker && npm run build && npm start`
 - **Hook**: Echo mock JSON to the hook script
-- **Commands**: Run `/quiz` or `/tutorial` in Claude Code
+- **Commands**: Run `/quiz`, `/tutorial`, or `/menu` in Claude Code
 - **Interview Agent**: Use Task tool to spawn with agent instructions
 
 ## Secret Feature

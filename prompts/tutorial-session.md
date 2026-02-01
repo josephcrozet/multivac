@@ -145,7 +145,7 @@ Long conversations accumulate context that gets re-sent with each message, accel
 - After completing each chapter (4 lessons + interview), display:
   > Great work completing this chapter!
   >
-  > Tip: To keep things running smoothly, start a fresh Claude Code session and run `/tutorial` to continue. Your progress is saved.
+  > Tip: To keep things running smoothly, start a fresh Claude Code session. Your progress is saved — you'll be prompted to continue automatically.
 - The MCP server preserves all progress, so new sessions pick up seamlessly
 
 **Be selective with file reads:**
@@ -199,7 +199,7 @@ Check that `CLAUDE.md` exists in the current project directory and contains the 
    "I've created a tutorial project for {topic}! To start learning:
    1. Exit Claude Code (`/exit`)
    2. Run: `cd {project_path} && claude`
-   3. Then run `/tutorial` inside Claude Code"
+   3. You'll be prompted to start automatically"
 
 Then stop — don't continue with the rest of the initialization since the MCP server won't be available until they restart Claude Code in the new project directory.
 
@@ -515,7 +515,7 @@ Show 3 related topics, then the same topic at the next difficulty level:
 > - **{Related Topic 3}** - {Brief description}
 > - **{Next Difficulty} {Topic}** - Continue your journey with more advanced concepts
 >
-> Run `multivac <topic>` anytime to start a new adventure. If you choose {Topic} again, you can select {Next Difficulty} to pick up where your knowledge leaves off."
+> Run `multivac <topic> --launch` anytime to start a new adventure. If you choose {Topic} again, you can select {Next Difficulty} to pick up where your knowledge leaves off."
 
 **If they completed Advanced:**
 
@@ -528,7 +528,7 @@ Show 3 related topics plus 1 fresh start:
 > - **{Related Topic 3}** - {Brief description}
 > - **{Fresh Start Topic}** - A fresh beginning in a new area
 >
-> Run `multivac <topic>` anytime to start a new adventure."
+> Run `multivac <topic> --launch` anytime to start a new adventure."
 
 **Generating suggestions:**
 

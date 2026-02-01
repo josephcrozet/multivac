@@ -49,7 +49,7 @@ launch_or_instruct() {
         echo "To $action this tutorial:"
         echo "  cd $dir && claude"
         echo ""
-        echo "Then inside Claude Code, run: /tutorial"
+        echo "You'll be prompted to $action automatically."
         echo ""
         exit 0
     fi

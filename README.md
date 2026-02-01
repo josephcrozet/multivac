@@ -162,7 +162,8 @@ This project demonstrates Claude Code's extensibility:
 │   └── interview-agent.md      # Mock interview (8 questions, scratch file)
 ├── commands/
 │   ├── quiz.md                 # /quiz - 12 MC questions in 3 batches
-│   └── tutorial.md             # /tutorial - start, continue, or manage
+│   ├── menu.md                 # /menu - pause menu (progress, curriculum, restart)
+│   └── tutorial.md             # /tutorial - start or resume a tutorial
 ├── hooks/
 │   ├── capstone-test-runner.sh # Runs tests on capstone todo completion
 │   └── tutorial-prompt.sh      # Offers to start/continue tutorial on session start

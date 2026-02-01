@@ -12,7 +12,7 @@ fi
 
 # Output context for Claude to see
 cat << EOF
-This is a Multivac tutorial project. Offer to $ACTION the tutorial by asking the user: "Would you like to $ACTION your tutorial? I can run /tutorial for you." If they agree, use the Skill tool to run the tutorial skill.
+This is a Multivac tutorial project. Ask the user: "Would you like to $ACTION your tutorial?" If they agree, use the Skill tool to run the tutorial skill.
 EOF
 
 exit 0
