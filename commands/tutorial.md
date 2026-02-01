@@ -129,11 +129,11 @@ Read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flo
 
 #### If "View curriculum" selected (in progress)
 
-Display the Curriculum Tree (see format below). Then return to this menu.
+Display the Curriculum Tree (see format below). Then use `AskUserQuestion` with a single "Continue" option and the question "Ready to continue?" — this lets the user examine the curriculum before proceeding. Then read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flow.
 
 #### If "View progress" selected (in progress)
 
-Display the Progress Screen (see format below) — call `get_tutorial` for full stats. Then return to this menu.
+Display the Progress Screen (see format below) — call `get_tutorial` for full stats. Then use `AskUserQuestion` with a single "Continue" option and the question "Ready to continue?" — this lets the user examine their progress before proceeding. Then read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flow.
 
 ### If "Start over" selected
 
