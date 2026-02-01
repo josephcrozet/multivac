@@ -536,7 +536,24 @@ Show 3 related topics plus 1 fresh start:
 
 **Fresh start topics** are in the same broad category of learning but require starting over with new fundamentals. For a programming language, this means a different programming language. For a spoken language, this means a different spoken language. For a science, this means a different science.
 
-### 4. Session End
+### 4. Recommend Resources
+
+Use `WebSearch` to find authoritative resources for going deeper with {Topic}. Present exactly 4 recommendations, one from each category:
+
+> **Want to go deeper?** Here are some excellent resources from the {Topic} community:
+>
+> - **Reference**: {name} — {brief description}
+> - **Book**: {title} by {author} — {brief description}
+> - **Course**: {name} on {platform} — {brief description}
+> - **Creator**: {name} ({YouTube/blog/podcast}) — {brief description}
+
+**Selection criteria:**
+- **Reference**: The go-to authoritative resource for this topic (official docs, a definitive reference site, comprehensive wiki, or knowledge base)
+- **Book**: A well-regarded book for the skill level they just completed; prefer recent editions
+- **Course**: A popular course on a major platform (Coursera, Udemy, edX, freeCodeCamp, etc.)
+- **Creator**: A respected content creator who teaches this topic (YouTube channel, blog, podcast)
+
+### 5. Session End
 
 The tutorial is complete. The user can `/exit` or continue chatting.
 
