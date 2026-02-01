@@ -223,6 +223,12 @@ Multivac supports two tutorial types:
 
 The type is automatically detected based on your chosen topic.
 
+### A Note on General Topics
+
+Programming tutorials have a built-in safety net: code either runs or it doesn't. Errors surface quickly.
+
+General topics (languages, sciences, humanities) don't have this feedback loop. While the tutor is instructed to verify specific technical claims (terminology, formulas, linguistic rules) against authoritative sources, some errors may still slip through. If you're learning a topic where precision matters, cross-reference key facts with trusted sources.
+
 ## License
 
 MIT

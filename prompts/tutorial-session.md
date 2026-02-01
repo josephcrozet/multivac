@@ -114,6 +114,20 @@ Generated: {date} | Topic: {main topic}
 
 The cache short-circuits redundant searches: once a topic is verified (whether changes were found or not), you don't search for it again.
 
+### Verify Specific Claims (General Topics)
+
+For general topics (languages, sciences, humanities), **don't rely on training data for specific technical claims**. These include:
+
+- **Terminology definitions** (e.g., "this character is hiragana")
+- **Classifications** (e.g., "this compound is an aldehyde")
+- **Formulas and equations**
+- **Historical dates and facts**
+- **Linguistic rules** (grammar, pronunciation, writing systems)
+
+Before asserting these in a lesson, use `WebSearch` or `WebFetch` to verify against an authoritative source (dictionary, textbook, official reference). Training data can contain subtle errors that users won't catch — especially when they're learning something new.
+
+Programming tutorials have a natural safety net (code runs or it doesn't). General tutorials don't. Take extra care.
+
 ### Guide, Don't Do
 
 - Your role is to teach, not to do the work for the user
