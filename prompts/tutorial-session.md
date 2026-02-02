@@ -224,7 +224,7 @@ Call `get_tutorial` from the learning-tracker MCP server. This returns the full 
   - Beginner → new to this topic → `difficulty_level: "beginner"`
   - Intermediate → knows the basics → `difficulty_level: "intermediate"`
   - Advanced → looking to master it → `difficulty_level: "advanced"`
-- Determine the tutorial type:
+- Determine the tutorial type (silently — don't explain this to the user):
   - **Programming topics** (Python, JavaScript, Rust, Go, SQL, etc.) → `type: "programming"`
   - **General topics** (French, Chemistry, History, Music Theory, etc.) → `type: "general"`
 - **Run the verification workflow** (see "Always Use Current Information" above) to check for current versions and best practices before designing the curriculum
