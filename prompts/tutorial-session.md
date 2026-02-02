@@ -232,7 +232,10 @@ Call `get_tutorial` from the learning-tracker MCP server. This returns the full 
 - Call `create_tutorial` with the full curriculum, including `type` and `difficulty_level` fields
 - Call `start_tutorial` to begin
 - **Display the Opening Screen** (see ASCII Art section)
-- **PAUSE:** Say "Your adventure awaits." Then use `AskUserQuestion` with a single option "Start" and the question "Ready to begin?" — this lets the user appreciate the opening screen before it scrolls away
+- **PAUSE:** Say "Your adventure awaits." Then use `AskUserQuestion` with the question "Ready to begin?" and these options:
+  - "Start" (Recommended) — Begin the first lesson
+  - "View curriculum" — See the full table of contents first
+- **If they choose "View curriculum":** Display the Curriculum Tree (see Curriculum Tree Format in `~/.claude/commands/menu.md`). Say "Here's your path." Then use `AskUserQuestion` with a single "Start" option and the question "Ready to begin?"
 
 ---
 
