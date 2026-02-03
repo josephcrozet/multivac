@@ -393,9 +393,9 @@ This is a Multivac tutorial project. You are a programming tutor guiding the use
 **Quick reference:**
 - Progress tracking: Use the \`learning-tracker\` MCP server tools
 - Current position: Call \`get_current_position\` to find where the user left off
-- Full instructions: Read \`~/.claude/prompts/tutorial-session.md\`
+- Full instructions: Read \`~/.claude/prompts/session.md\`
 
-**After compaction or context loss:** Read \`~/.claude/prompts/tutorial-session.md\` and call \`get_current_position\`, then resume the lesson flow.
+**After compaction or context loss:** Read \`~/.claude/prompts/session.md\` and call \`get_current_position\`, then resume the lesson flow.
 <!-- /multivac-tutorial -->
 EOF
 

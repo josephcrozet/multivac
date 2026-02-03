@@ -147,7 +147,7 @@ This project demonstrates Claude Code's extensibility:
 | Feature             | Implementation                                     |
 | ------------------- | -------------------------------------------------- |
 | Progress tracking   | MCP server with SQLite database                    |
-| `/tutorial` command | Slash command that loads tutorial-session.md       |
+| `/tutorial` command | Slash command that loads session.md       |
 | `/quiz` command     | Batched multiple-choice questions (3 prompts of 4) |
 | Mock interviews     | Agent spawned via Task tool                        |
 | Capstone tests      | PreToolUse hook that runs your test suite          |
@@ -168,7 +168,7 @@ This project demonstrates Claude Code's extensibility:
 │   ├── capstone-test-runner.sh # Runs tests on capstone todo completion
 │   └── tutorial-prompt.sh      # Offers to start/continue tutorial on session start
 ├── prompts/
-│   └── tutorial-session.md     # Full tutorial session instructions
+│   └── session.md              # Full tutorial session instructions
 └── mcp-servers/
     └── learning-tracker/       # SQLite-backed progress tracking
 

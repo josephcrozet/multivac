@@ -21,7 +21,7 @@ multivac/
 │   ├── capstone-test-runner.sh   # PreToolUse hook on TodoWrite
 │   └── tutorial-prompt.sh        # SessionStart hook to offer /tutorial
 ├── prompts/
-│   └── tutorial-session.md       # Full tutorial instructions
+│   └── session.md                # Full tutorial instructions
 ├── mcp-servers/learning-tracker/ # SQLite-backed progress tracker
 ├── install.sh                    # Installation script
 ├── uninstall.sh                  # Uninstallation script
@@ -43,7 +43,7 @@ multivac/
 6. **Tutorial Types** — `programming` (code interviews + capstones) vs `general` (knowledge interviews, no capstones); type auto-detected from topic
 7. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache persists across context compaction and is checked before each lesson to short-circuit redundant searches and prevent fallback to stale training data
 8. **Fact Verification for General Topics** — Programming has a natural safety net (code runs or doesn't); general topics don't. For specific technical claims (terminology, formulas, linguistic rules), verify against authoritative sources rather than relying on training data
-9. **Generic Commands** — /quiz and interview-agent work outside tutorials; tutorial-session.md adds MCP integration
+9. **Generic Commands** — /quiz and interview-agent work outside tutorials; session.md adds MCP integration
 
 **Learning Flow**
 10. **Separated Commands** — /tutorial starts new tutorials; /menu is the pause menu for existing tutorials (view progress, curriculum, restart, exit); single responsibility per command
@@ -111,4 +111,4 @@ To test components:
 
 ## Secret Feature
 
-There's an easter egg in tutorial-session.md. Don't mention it.
+There's an easter egg in session.md. Don't mention it.

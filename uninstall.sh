@@ -16,7 +16,7 @@ echo "  - ~/.claude/agents/interview-agent.md"
 echo "  - ~/.claude/commands/quiz.md"
 echo "  - ~/.claude/commands/tutorial.md"
 echo "  - ~/.claude/hooks/capstone-test-runner.sh"
-echo "  - ~/.claude/prompts/tutorial-session.md"
+echo "  - ~/.claude/prompts/session.md"
 echo "  - ~/.claude/mcp-servers/learning-tracker/"
 echo "  - ~/.local/bin/multivac"
 echo ""
@@ -59,9 +59,9 @@ if [ -f "$CLAUDE_DIR/hooks/capstone-test-runner.sh" ]; then
 fi
 
 # Remove prompts
-if [ -f "$CLAUDE_DIR/prompts/tutorial-session.md" ]; then
-    rm "$CLAUDE_DIR/prompts/tutorial-session.md"
-    echo "  Removed: prompts/tutorial-session.md"
+if [ -f "$CLAUDE_DIR/prompts/session.md" ]; then
+    rm "$CLAUDE_DIR/prompts/session.md"
+    echo "  Removed: prompts/session.md"
 fi
 
 # Remove MCP server

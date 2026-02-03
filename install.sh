@@ -39,7 +39,7 @@ EXISTING_INSTALL=""
 [ -f "$CLAUDE_DIR/commands/tutorial.md" ] && EXISTING_INSTALL="yes"
 [ -f "$CLAUDE_DIR/hooks/capstone-test-runner.sh" ] && EXISTING_INSTALL="yes"
 [ -f "$CLAUDE_DIR/hooks/tutorial-prompt.sh" ] && EXISTING_INSTALL="yes"
-[ -f "$CLAUDE_DIR/prompts/tutorial-session.md" ] && EXISTING_INSTALL="yes"
+[ -f "$CLAUDE_DIR/prompts/session.md" ] && EXISTING_INSTALL="yes"
 [ -d "$CLAUDE_DIR/mcp-servers/learning-tracker" ] && EXISTING_INSTALL="yes"
 [ -f "$BIN_DIR/multivac" ] && EXISTING_INSTALL="yes"
 
@@ -154,8 +154,8 @@ echo "  tutorial-prompt.sh"
 # Copy prompts
 echo ""
 echo "Installing prompts..."
-cp "$SCRIPT_DIR/prompts/tutorial-session.md" "$CLAUDE_DIR/prompts/tutorial-session.md"
-echo "  tutorial-session.md"
+cp "$SCRIPT_DIR/prompts/session.md" "$CLAUDE_DIR/prompts/session.md"
+echo "  session.md"
 
 # Copy MCP server source
 echo ""

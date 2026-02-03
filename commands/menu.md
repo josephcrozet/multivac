@@ -48,7 +48,7 @@ Start a review session using the same mechanics as midgame review:
 
 1. Call `get_review_queue` with `limit: 4`
 2. If `queue_replenished` is true, tell the user: "Starting a fresh review cycle with all 48 lessons!"
-3. Follow the "Review Queue" instructions in `~/.claude/prompts/tutorial-session.md` to review the returned lessons (ask questions, log results)
+3. Follow the "Review Queue" instructions in `~/.claude/prompts/session.md` to review the returned lessons (ask questions, log results)
 4. After reviewing, report progress using `total_in_queue` from the response:
    - If 0: "Review complete! Your queue is empty. Come back anytime to start a fresh cycle."
    - Otherwise: "Session complete! {N} lessons remaining in your queue."
@@ -62,9 +62,9 @@ Display the Curriculum Tree (see format below). Then return to this menu.
 
 1. Display the Progress Screen (see format below) — call `get_tutorial` for full stats
 2. Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completion certificate?"
-   - If yes: Generate the certificate (see `tutorial-session.md` for template), save to `{topic}-certificate.txt`, confirm save
+   - If yes: Generate the certificate (see `session.md` for template), save to `{topic}-certificate.txt`, confirm save
    - If no: Continue
-3. Generate and display topic suggestions (see `tutorial-session.md` for the "Suggest Next Topics" instructions) — use `difficulty_level` from metadata
+3. Generate and display topic suggestions (see `session.md` for the "Suggest Next Topics" instructions) — use `difficulty_level` from metadata
 4. Return to this menu
 
 ### If Tutorial is In Progress
@@ -90,15 +90,15 @@ Then use `AskUserQuestion` to present options:
 
 #### If "Continue" selected
 
-Read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flow.
+Read and follow `~/.claude/prompts/session.md` to resume the lesson flow.
 
 #### If "View curriculum" selected (in progress)
 
-Display the Curriculum Tree (see format below). Then use `AskUserQuestion` with a single "Continue" option and the question "Ready to continue?" — this lets the user examine the curriculum before proceeding. Then read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flow.
+Display the Curriculum Tree (see format below). Then use `AskUserQuestion` with a single "Continue" option and the question "Ready to continue?" — this lets the user examine the curriculum before proceeding. Then read and follow `~/.claude/prompts/session.md` to resume the lesson flow.
 
 #### If "View progress" selected (in progress)
 
-Display the Progress Screen (see format below) — call `get_tutorial` for full stats. Then use `AskUserQuestion` with a single "Continue" option and the question "Ready to continue?" — this lets the user examine their progress before proceeding. Then read and follow `~/.claude/prompts/tutorial-session.md` to resume the lesson flow.
+Display the Progress Screen (see format below) — call `get_tutorial` for full stats. Then use `AskUserQuestion` with a single "Continue" option and the question "Ready to continue?" — this lets the user examine their progress before proceeding. Then read and follow `~/.claude/prompts/session.md` to resume the lesson flow.
 
 ### If "Start over" selected
 
@@ -125,7 +125,7 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 
 **Requires confirmation.** Use `AskUserQuestion` to ask: "Exit tutorial mode? Your progress is saved and you can resume anytime with /tutorial."
 
-- If confirmed: End the command. Do not load tutorial-session.md.
+- If confirmed: End the command. Do not load session.md.
 - If cancelled: Return to menu.
 
 ---

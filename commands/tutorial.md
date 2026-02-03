@@ -27,7 +27,7 @@ This isn't a Multivac tutorial project. Tell the user:
 No tutorial exists in this project yet.
 
 1. Read the topic from the CLAUDE.md file (look for `<!-- topic: X -->` or `**Topic:** X`)
-2. Read and follow the complete tutorial instructions from: `~/.claude/prompts/tutorial-session.md`
+2. Read and follow the complete tutorial instructions from: `~/.claude/prompts/session.md`
 
 **Topic Selection:**
 
@@ -59,6 +59,6 @@ Use `AskUserQuestion` to ask: "Would you like to save your lessons to a book for
 
 ## Step 3: Resume Tutorial
 
-A tutorial already exists in this project. Read and follow the complete tutorial instructions from: `~/.claude/prompts/tutorial-session.md`
+A tutorial already exists in this project. Read and follow the complete tutorial instructions from: `~/.claude/prompts/session.md`
 
 This will check the current position and resume from where the user left off.
