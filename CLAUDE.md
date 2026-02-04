@@ -21,7 +21,7 @@ multivac/
 │   ├── capstone-test-runner.sh   # PreToolUse hook on TodoWrite
 │   └── tutorial-prompt.sh        # SessionStart hook to offer /tutorial
 ├── prompts/
-│   └── session.md                # Full tutorial instructions
+│   └── session.md                # Lesson flow: teach, quiz, interview, advance
 ├── mcp-servers/learning-tracker/ # SQLite-backed progress tracker
 ├── install.sh                    # Installation script
 ├── uninstall.sh                  # Uninstallation script

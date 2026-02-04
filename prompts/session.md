@@ -205,17 +205,16 @@ Then stop — don't continue with the rest of the initialization since the MCP s
 
 ### 2. Check for Existing Tutorial
 
-Call `get_tutorial` from the learning-tracker MCP server. This returns the full tutorial structure if one exists, or `{ tutorial: null }` if not.
+Call `get_current_position` from the learning-tracker MCP server. This is a lightweight call that returns the current position if a tutorial exists.
 
 ### 3. Handle Tutorial State
 
-**If a tutorial exists (`tutorial` is not null):**
+**If a tutorial exists (call succeeded):**
 
-- The response already contains the full structure and progress
-- Call `get_current_position` to find where they left off
-- Resume from that point
+- You now have the current position (part, chapter, lesson, `is_chapter_start`)
+- Resume from that point — proceed to Lesson Flow
 
-**If no tutorial exists (`tutorial: null`):**
+**If no tutorial exists (call failed or returned null):**
 
 - Read the topic from CLAUDE.md (look for `<!-- topic: X -->` or `**Topic:** X`)
 - Say "This project is set up for {topic}, but you can choose a different topic if you prefer."
@@ -985,7 +984,7 @@ If user requests additional practice, append each subsequent exercise in the sam
 
 | Event                 | MCP Calls                                                                                                   |
 | --------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Session start         | `get_tutorial` (returns full data or `tutorial: null`), then `create_tutorial` + `start_tutorial` if needed |
+| Session start         | `get_current_position` (lightweight), then `create_tutorial` + `start_tutorial` if no tutorial exists       |
 | Chapter start         | `get_current_position` (check `is_chapter_start`), `get_review_queue`                                       |
 | After review question | `log_review_result`                                                                                         |
 | After quiz            | `log_quiz_result`, `advance_position`                                                                       |
