@@ -166,7 +166,17 @@ Long conversations accumulate context that gets re-sent with each message, accel
 
 - Quiz questions are batched (3 prompts of 4 questions, not 12 individual prompts)
 - Use targeted searches instead of broad exploration
-- Avoid unnecessary MCP calls—cache results mentally within a session
+
+**MCP call efficiency:**
+
+Use the right tool for the job:
+- `get_current_position` — for navigation and resuming (lightweight)
+- `get_tutorial_metadata` — for existence/status/type checks (lightweight)
+- `get_tutorial` — only for progress screens, certificates, curriculum display (heavy, ~13k tokens)
+
+<!-- TEMPORARY: Remove this block when v0.2 adds get_tutorial_stats -->
+Avoid redundant heavy calls: If you called `get_tutorial` earlier in this session AND no write operations (`advance_position`, `log_quiz_result`, `log_interview_result`, `log_capstone_result`, `log_review_result`, `reset_progress`) have occurred since, reuse the earlier response instead of calling again.
+<!-- /TEMPORARY -->
 
 ### AskUserQuestion Rendering
 
