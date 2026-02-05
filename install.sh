@@ -150,6 +150,9 @@ echo "  capstone-test-runner.sh"
 cp "$SCRIPT_DIR/hooks/tutorial-prompt.sh" "$CLAUDE_DIR/hooks/tutorial-prompt.sh"
 chmod +x "$CLAUDE_DIR/hooks/tutorial-prompt.sh"
 echo "  tutorial-prompt.sh"
+cp "$SCRIPT_DIR/hooks/compact-hook.sh" "$CLAUDE_DIR/hooks/compact-hook.sh"
+chmod +x "$CLAUDE_DIR/hooks/compact-hook.sh"
+echo "  compact-hook.sh"
 
 # Copy prompts
 echo ""

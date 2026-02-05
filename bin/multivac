@@ -337,6 +337,7 @@ mkdir -p "$PROJECT_DIR/.multivac"
 MCP_SERVER_PATH="$HOME/.claude/mcp-servers/learning-tracker/dist/index.js"
 CAPSTONE_HOOK_PATH="$HOME/.claude/hooks/capstone-test-runner.sh"
 TUTORIAL_PROMPT_HOOK_PATH="$HOME/.claude/hooks/tutorial-prompt.sh"
+COMPACT_HOOK_PATH="$HOME/.claude/hooks/compact-hook.sh"
 DATA_DIR="$PROJECT_DIR/.multivac"
 
 # Verify MCP server is installed
@@ -365,9 +366,24 @@ EOF
 cat > "$PROJECT_DIR/.claude/settings.json" << EOF
 {
   "hooks": {
-    "SessionStart": [{
-      "hooks": [{"type": "command", "command": "$TUTORIAL_PROMPT_HOOK_PATH"}]
-    }],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [{"type": "command", "command": "$TUTORIAL_PROMPT_HOOK_PATH"}]
+      },
+      {
+        "matcher": "resume",
+        "hooks": [{"type": "command", "command": "$TUTORIAL_PROMPT_HOOK_PATH"}]
+      },
+      {
+        "matcher": "clear",
+        "hooks": [{"type": "command", "command": "$TUTORIAL_PROMPT_HOOK_PATH"}]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [{"type": "command", "command": "$COMPACT_HOOK_PATH"}]
+      }
+    ],
     "PreToolUse": [{
       "matcher": "TodoWrite",
       "hooks": [{"type": "command", "command": "$CAPSTONE_HOOK_PATH"}]
