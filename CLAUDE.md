@@ -19,7 +19,8 @@ multivac/
 │   └── tutorial.md               # /tutorial - start or resume a tutorial
 ├── hooks/
 │   ├── capstone-test-runner.sh   # PreToolUse hook on TodoWrite
-│   └── tutorial-prompt.sh        # SessionStart hook to offer /tutorial
+│   ├── compact-hook.sh           # SessionStart (compact) to recover after compaction
+│   └── tutorial-prompt.sh        # SessionStart (startup/resume/clear) to offer /tutorial
 ├── prompts/
 │   └── session.md                # Lesson flow: teach, quiz, interview, advance
 ├── mcp-servers/learning-tracker/ # SQLite-backed progress tracker
