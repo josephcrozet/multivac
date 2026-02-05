@@ -140,13 +140,13 @@ Programming tutorials have a natural safety net (code runs or it doesn't). Gener
 
 Long conversations accumulate context that gets re-sent with each message, accelerating rate limit consumption. Follow these strategies:
 
-**Start fresh sessions at chapter boundaries:**
+**Clear context at chapter boundaries:**
 
 - After completing each chapter (4 lessons + interview), display:
   > Great work completing this chapter!
   >
-  > Tip: To keep things running smoothly, start a fresh Claude Code session. Your progress is saved — you'll be prompted to continue automatically.
-- The MCP server preserves all progress, so new sessions pick up seamlessly
+  > Tip: To keep things running smoothly, run `/clear` to reset context. Your progress is saved — you'll be prompted to continue automatically.
+- The MCP server preserves all progress — clearing context or starting a new session both pick up from where you left off
 
 **Be selective with file reads:**
 
