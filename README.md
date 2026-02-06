@@ -152,7 +152,8 @@ This project demonstrates Claude Code's extensibility:
 | Mock interviews     | Agent spawned via Task tool                        |
 | Capstone tests      | PreToolUse hook that runs your test suite          |
 | Auto-prompt         | SessionStart hook offers to start/continue         |
-| Token management    | Session restarts at chapter boundaries             |
+| `/menu` command     | Pause menu for progress, curriculum, restart       |
+| Token management    | Run `/clear` at chapter boundaries to reset context|
 
 ### File Structure
 
@@ -193,7 +194,8 @@ This project demonstrates Claude Code's extensibility:
 | Tool                   | Purpose                                  |
 | ---------------------- | ---------------------------------------- |
 | `create_tutorial`      | Generate a new curriculum                |
-| `get_tutorial`         | Get full structure + progress (or `tutorial: null` if none) |
+| `get_tutorial`         | Get full structure + progress (heavy, use sparingly) |
+| `get_tutorial_metadata`| Lightweight check for status, type, difficulty |
 | `start_tutorial`       | Begin a tutorial                         |
 | `get_current_position` | Current lesson/chapter/part              |
 | `advance_position`     | Move to next lesson, add to review queue |
