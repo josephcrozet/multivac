@@ -295,7 +295,13 @@ while [[ $# -gt 0 ]]; do
             LAUNCH_MODE=true
             shift
             ;;
+        --version|-v)
+            echo "multivac $MULTIVAC_VERSION"
+            exit 0
+            ;;
         -h|--help)
+            echo "multivac $MULTIVAC_VERSION"
+            echo ""
             echo "Usage: multivac [topic] [--dir <path>] [--new] [--launch]"
             echo "       multivac upgrade [path]"
             echo ""
@@ -319,6 +325,7 @@ while [[ $# -gt 0 ]]; do
             echo "                  (uses numbered suffix if directory exists)"
             echo "  --launch, -l    Launch Claude Code after setup"
             echo "                  (cannot be used from within Claude Code)"
+            echo "  --version, -v   Show version number"
             echo "  -h, --help      Show this help message"
             echo ""
             echo "The default directory can be set during installation or via MULTIVAC_HOME."

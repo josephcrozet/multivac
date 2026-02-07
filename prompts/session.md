@@ -213,11 +213,23 @@ Check that `CLAUDE.md` exists in the current project directory and contains the 
 
 Then stop — don't continue with the rest of the initialization since the MCP server won't be available until they restart Claude Code in the new project directory.
 
-### 2. Check for Existing Tutorial
+### 2. Check Project Version
+
+Read the `<!-- multivac-version: X.X.X -->` comment from CLAUDE.md. Compare it against the installed version by running `multivac --version` via the Bash tool.
+
+**If the versions don't match (or the version comment is missing):**
+
+Run `multivac upgrade .` via the Bash tool to update the project config files. Then tell the user:
+
+> "I've upgraded your project to the latest Multivac version. Continuing where you left off."
+
+This ensures the MCP server paths, hook config, and CLAUDE.md are current before proceeding.
+
+### 3. Check for Existing Tutorial
 
 Call `get_current_position` from the learning-tracker MCP server. This is a lightweight call that returns the current position if a tutorial exists.
 
-### 3. Handle Tutorial State
+### 4. Handle Tutorial State
 
 **If a tutorial exists (call succeeded):**
 
