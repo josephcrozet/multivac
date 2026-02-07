@@ -76,6 +76,152 @@ get_topic_name() {
     fi
 }
 
+# Get project version from CLAUDE.md
+get_project_version() {
+    local dir="$1"
+    if [[ -f "$dir/CLAUDE.md" ]]; then
+        sed -n 's/.*<!-- multivac-version: \(.*\) -->.*/\1/p' "$dir/CLAUDE.md" 2>/dev/null | head -1
+    fi
+}
+
+# Write project config files (.mcp.json, .claude/settings.json, CLAUDE.md)
+write_project_config() {
+    local project_dir="$1"
+    local topic_display="$2"
+
+    # Get paths to installed components
+    local mcp_server_path="$HOME/.claude/mcp-servers/learning-tracker/dist/index.js"
+    local capstone_hook_path="$HOME/.claude/hooks/capstone-test-runner.sh"
+    local tutorial_prompt_hook_path="$HOME/.claude/hooks/tutorial-prompt.sh"
+    local compact_hook_path="$HOME/.claude/hooks/compact-hook.sh"
+    local data_dir="$project_dir/.multivac"
+
+    # Verify MCP server is installed
+    if [[ ! -f "$mcp_server_path" ]]; then
+        echo "Error: MCP server not found at $mcp_server_path"
+        echo "Please run the Multivac installer first."
+        exit 1
+    fi
+
+    mkdir -p "$project_dir/.claude"
+
+    # MCP server config — tells Claude Code where to find the learning-tracker server
+    cat > "$project_dir/.mcp.json" << EOF
+{
+  "mcpServers": {
+    "learning-tracker": {
+      "command": "node",
+      "args": ["$mcp_server_path"],
+      "env": {
+        "MULTIVAC_DATA_DIR": "$data_dir"
+      }
+    }
+  }
+}
+EOF
+
+    # Hook config — SessionStart hooks for auto-prompt and compaction recovery,
+    # PreToolUse hook for capstone test runner
+    cat > "$project_dir/.claude/settings.json" << EOF
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [{"type": "command", "command": "$tutorial_prompt_hook_path"}]
+      },
+      {
+        "matcher": "resume",
+        "hooks": [{"type": "command", "command": "$tutorial_prompt_hook_path"}]
+      },
+      {
+        "matcher": "clear",
+        "hooks": [{"type": "command", "command": "$tutorial_prompt_hook_path"}]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [{"type": "command", "command": "$compact_hook_path"}]
+      }
+    ],
+    "PreToolUse": [{
+      "matcher": "TodoWrite",
+      "hooks": [{"type": "command", "command": "$capstone_hook_path"}]
+    }]
+  }
+}
+EOF
+
+    # Tutorial marker — tells Claude Code this is a Multivac project,
+    # includes version stamp for upgrade detection and topic for display
+    cat > "$project_dir/CLAUDE.md" << EOF
+<!-- multivac-tutorial -->
+<!-- multivac-version: $MULTIVAC_VERSION -->
+<!-- topic: $topic_display -->
+## Tutorial Mode
+
+This is a Multivac tutorial project. You are a programming tutor guiding the user through a structured curriculum.
+
+**Topic:** $topic_display
+
+**Quick reference:**
+- Progress tracking: Use the \`learning-tracker\` MCP server tools
+- Current position: Call \`get_current_position\` to find where the user left off
+- Full instructions: Read \`~/.claude/prompts/session.md\`
+
+**After compaction or context loss:** Read \`~/.claude/prompts/session.md\` and call \`get_current_position\`, then resume the lesson flow.
+<!-- /multivac-tutorial -->
+EOF
+}
+
+# Upgrade a project to the current version
+upgrade_project() {
+    local project_dir="$1"
+
+    if ! is_multivac_project "$project_dir"; then
+        echo "Error: Not a Multivac project: $project_dir"
+        exit 1
+    fi
+
+    local topic_display
+    topic_display=$(get_topic_name "$project_dir")
+    local old_version
+    old_version=$(get_project_version "$project_dir")
+
+    if [[ -z "$topic_display" ]]; then
+        echo "Error: Could not determine topic from CLAUDE.md"
+        exit 1
+    fi
+
+    echo "Upgrading project: $topic_display"
+    echo "  Version: ${old_version:-unknown} -> $MULTIVAC_VERSION"
+    echo ""
+
+    write_project_config "$project_dir" "$topic_display"
+    echo "  Updated .mcp.json"
+    echo "  Updated .claude/settings.json"
+    echo "  Updated CLAUDE.md"
+
+    echo ""
+    echo "Upgrade complete!"
+}
+
+# Offer to upgrade if project version doesn't match current version
+offer_upgrade_if_needed() {
+    local project_dir="$1"
+    local project_version
+    project_version=$(get_project_version "$project_dir")
+
+    if [[ "$project_version" != "$MULTIVAC_VERSION" ]]; then
+        echo ""
+        echo "This project was created with Multivac ${project_version:-<unknown>} (current: $MULTIVAC_VERSION)"
+        read -p "  Upgrade now? (Y/n) " -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+            upgrade_project "$project_dir"
+        fi
+    fi
+}
+
 # Find next available topic number (sets TOPIC and PROJECT_DIR)
 use_next_topic_number() {
     local base_topic="$1"
@@ -116,6 +262,18 @@ initialize_existing_directory() {
 }
 
 # ------------------------------------------------------------------------------
+# Subcommands
+# ------------------------------------------------------------------------------
+
+if [[ "${1:-}" == "upgrade" ]]; then
+    shift
+    target="${1:-.}"
+    target="$(cd "$target" 2>/dev/null && pwd)" || { echo "Error: Directory not found: ${1:-.}"; exit 1; }
+    upgrade_project "$target"
+    exit 0
+fi
+
+# ------------------------------------------------------------------------------
 # Argument parsing
 # ------------------------------------------------------------------------------
 
@@ -139,6 +297,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         -h|--help)
             echo "Usage: multivac [topic] [--dir <path>] [--new] [--launch]"
+            echo "       multivac upgrade [path]"
             echo ""
             echo "Create and start a Multivac tutorial project."
             echo ""
@@ -147,6 +306,11 @@ while [[ $# -gt 0 ]]; do
             echo "                  Examples: python, javascript, rust"
             echo "                  Multi-word topics are converted to lowercase with hyphens"
             echo "                  e.g., 'Data Science' becomes 'data-science'"
+            echo ""
+            echo "Subcommands:"
+            echo "  upgrade [path]  Upgrade a project to the current Multivac version"
+            echo "                  Rewrites config files while preserving progress"
+            echo "                  (defaults to current directory if no path given)"
             echo ""
             echo "Options:"
             echo "  --dir, -d       Create tutorial in this directory instead of the default"
@@ -167,7 +331,8 @@ while [[ $# -gt 0 ]]; do
             echo "  multivac python --launch           # creates project and opens Claude Code"
             echo "  multivac python --new --launch     # creates new project and opens Claude Code"
             echo "  multivac rust --dir ~/code         # creates ~/code/rust (one-time)"
-            echo "  MULTIVAC_HOME=~/learn multivac go  # creates ~/learn/go"
+            echo "  multivac upgrade                   # upgrades project in current directory"
+            echo "  multivac upgrade ~/multivac/python # upgrades a specific project"
             exit 0
             ;;
         -*)
@@ -283,6 +448,7 @@ elif [[ ${#MULTIVAC_PROJECTS[@]} -eq 1 ]]; then
 
         case $REPLY in
             [Cc])
+                offer_upgrade_if_needed "$PROJECT_DIR"
                 launch_or_instruct "$PROJECT_DIR" "continue"
                 ;;
             [Nn])
@@ -320,6 +486,7 @@ else
             idx=$((REPLY - 1))
             PROJECT_DIR="${MULTIVAC_DIRS[$idx]}"
             TOPIC="${MULTIVAC_PROJECTS[$idx]}"
+            offer_upgrade_if_needed "$PROJECT_DIR"
             launch_or_instruct "$PROJECT_DIR" "continue"
         elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
             use_next_topic_number "$BASE_TOPIC"
@@ -332,91 +499,14 @@ fi
 
 # Create project structure
 echo "Creating tutorial project at $PROJECT_DIR..."
-mkdir -p "$PROJECT_DIR/.claude"
 mkdir -p "$PROJECT_DIR/.multivac"
-
-# Get paths to installed components
-MCP_SERVER_PATH="$HOME/.claude/mcp-servers/learning-tracker/dist/index.js"
-CAPSTONE_HOOK_PATH="$HOME/.claude/hooks/capstone-test-runner.sh"
-TUTORIAL_PROMPT_HOOK_PATH="$HOME/.claude/hooks/tutorial-prompt.sh"
-COMPACT_HOOK_PATH="$HOME/.claude/hooks/compact-hook.sh"
-DATA_DIR="$PROJECT_DIR/.multivac"
-
-# Verify MCP server is installed
-if [[ ! -f "$MCP_SERVER_PATH" ]]; then
-    echo "Error: MCP server not found at $MCP_SERVER_PATH"
-    echo "Please run the Multivac installer first."
-    exit 1
-fi
-
-# Create .mcp.json at project root for MCP server config
-cat > "$PROJECT_DIR/.mcp.json" << EOF
-{
-  "mcpServers": {
-    "learning-tracker": {
-      "command": "node",
-      "args": ["$MCP_SERVER_PATH"],
-      "env": {
-        "MULTIVAC_DATA_DIR": "$DATA_DIR"
-      }
-    }
-  }
-}
-EOF
-
-# Create .claude/settings.json for hooks config
-cat > "$PROJECT_DIR/.claude/settings.json" << EOF
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup",
-        "hooks": [{"type": "command", "command": "$TUTORIAL_PROMPT_HOOK_PATH"}]
-      },
-      {
-        "matcher": "resume",
-        "hooks": [{"type": "command", "command": "$TUTORIAL_PROMPT_HOOK_PATH"}]
-      },
-      {
-        "matcher": "clear",
-        "hooks": [{"type": "command", "command": "$TUTORIAL_PROMPT_HOOK_PATH"}]
-      },
-      {
-        "matcher": "compact",
-        "hooks": [{"type": "command", "command": "$COMPACT_HOOK_PATH"}]
-      }
-    ],
-    "PreToolUse": [{
-      "matcher": "TodoWrite",
-      "hooks": [{"type": "command", "command": "$CAPSTONE_HOOK_PATH"}]
-    }]
-  }
-}
-EOF
 
 # Convert base topic to title case for display (e.g., "data-science" -> "Data Science")
 # Use BASE_TOPIC so numbered suffixes like "python-2" still display as "Python"
 TOPIC_DISPLAY="$(echo "$BASE_TOPIC" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')"
 
-# Create CLAUDE.md with topic
-cat > "$PROJECT_DIR/CLAUDE.md" << EOF
-<!-- multivac-tutorial -->
-<!-- multivac-version: $MULTIVAC_VERSION -->
-<!-- topic: $TOPIC_DISPLAY -->
-## Tutorial Mode
-
-This is a Multivac tutorial project. You are a programming tutor guiding the user through a structured curriculum.
-
-**Topic:** $TOPIC_DISPLAY
-
-**Quick reference:**
-- Progress tracking: Use the \`learning-tracker\` MCP server tools
-- Current position: Call \`get_current_position\` to find where the user left off
-- Full instructions: Read \`~/.claude/prompts/session.md\`
-
-**After compaction or context loss:** Read \`~/.claude/prompts/session.md\` and call \`get_current_position\`, then resume the lesson flow.
-<!-- /multivac-tutorial -->
-EOF
+# Write .mcp.json (MCP server config), .claude/settings.json (hooks), and CLAUDE.md (tutorial marker)
+write_project_config "$PROJECT_DIR" "$TOPIC_DISPLAY"
 
 echo ""
 echo "Tutorial project created!"
