@@ -35,22 +35,23 @@ multivac/
 1. **Local Project Data** — Each tutorial project stores its own data in `.multivac/learning.db`; MCP server configured per-project via `.mcp.json`
 2. **Local CLAUDE.md** — Created in tutorial project directories to survive compaction
 3. **Per-Lesson Exercise Directories** — Each lesson's code goes in `exercises/{part}/{chapter}/{lesson}/`; created when starting the exercise (not upfront); keeps modules, tests, and config isolated between lessons; scaffolding created as needed based on lesson goals
+4. **Version Management** — Projects embed `<!-- multivac-version: X.X.X -->` in CLAUDE.md; session.md checks this against the installed version on startup and runs `multivac upgrade` if outdated; database has `schema_version` table for migration support
 
 **Session Management**
-4. **Token Management** — Sessions restart at chapter boundaries; MCP server persists progress
-5. **Auto-Prompt on Session Start** — SessionStart hook detects tutorial projects and offers to start/continue; checks for `learning.db` to determine which
+5. **Token Management** — Sessions restart at chapter boundaries; MCP server persists progress
+6. **Auto-Prompt on Session Start** — SessionStart hook detects tutorial projects and offers to start/continue; checks for `learning.db` to determine which
 
 **Curriculum & Content**
-6. **Tutorial Types** — `programming` (code interviews + capstones) vs `general` (knowledge interviews, no capstones); type auto-detected from topic
-7. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache persists across context compaction and is checked before each lesson to short-circuit redundant searches and prevent fallback to stale training data
-8. **Fact Verification for General Topics** — Programming has a natural safety net (code runs or doesn't); general topics don't. For specific technical claims (terminology, formulas, linguistic rules), verify against authoritative sources rather than relying on training data
-9. **Generic Commands** — /quiz and interview-agent work outside tutorials; session.md adds MCP integration
+7. **Tutorial Types** — `programming` (code interviews + capstones) vs `general` (knowledge interviews, no capstones); type auto-detected from topic
+8. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache persists across context compaction and is checked before each lesson to short-circuit redundant searches and prevent fallback to stale training data
+9. **Fact Verification for General Topics** — Programming has a natural safety net (code runs or doesn't); general topics don't. For specific technical claims (terminology, formulas, linguistic rules), verify against authoritative sources rather than relying on training data
+10. **Generic Commands** — /quiz and interview-agent work outside tutorials; session.md adds MCP integration
 
 **Learning Flow**
-10. **Separated Commands** — /tutorial starts new tutorials; /menu is the pause menu for existing tutorials (view progress, curriculum, restart, exit); single responsibility per command
-11. **Batched Quizzes** — 3 prompts of 4 questions, not 12 individual prompts
-12. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at chapter start; correct answers remove from queue, incorrect answers move to end
-13. **Incremental Capstone Tests** — Tests written per-milestone, not all at once (programming only)
+11. **Separated Commands** — /tutorial starts new tutorials; /menu is the pause menu for existing tutorials (view progress, curriculum, restart, exit); single responsibility per command
+12. **Batched Quizzes** — 3 prompts of 4 questions, not 12 individual prompts
+13. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at chapter start; correct answers remove from queue, incorrect answers move to end
+14. **Incremental Capstone Tests** — Tests written per-milestone, not all at once (programming only)
 
 ## Interview Agent Details
 

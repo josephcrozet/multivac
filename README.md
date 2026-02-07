@@ -119,13 +119,15 @@ Claude generates a full curriculum on the fly and guides you through it.
 ### Other Examples
 
 ```bash
-multivac                         # Creates ~/multivac/tutorial/
-multivac javascript              # Creates ~/multivac/javascript/
-multivac french                  # Creates ~/multivac/french/ (general tutorial)
-multivac 'organic chemistry'     # Creates ~/multivac/organic-chemistry/
-multivac python --new            # Creates ~/multivac/python-2 if python exists
-multivac python --launch         # Creates project and opens Claude Code
-multivac rust --dir ~/Desktop    # Creates ~/Desktop/rust/ (one-time override)
+multivac                            # Creates ~/multivac/tutorial/
+multivac javascript                 # Creates ~/multivac/javascript/
+multivac french                     # Creates ~/multivac/french/ (general tutorial)
+multivac 'organic chemistry'        # Creates ~/multivac/organic-chemistry/
+multivac python --new               # Creates ~/multivac/python-2 if python exists
+multivac python --launch            # Creates project and opens Claude Code
+multivac rust --dir ~/Desktop       # Creates ~/Desktop/rust/ (one-time override)
+multivac upgrade                    # Upgrades project in current directory
+multivac upgrade ~/multivac/python  # Upgrades a specific project
 ```
 
 ### Continuing a Tutorial
@@ -154,6 +156,7 @@ This project demonstrates Claude Code's extensibility:
 | Auto-prompt         | SessionStart hook offers to start/continue         |
 | `/menu` command     | Pause menu for progress, curriculum, restart       |
 | Token management    | Run `/clear` at chapter boundaries to reset context|
+| Project upgrades    | Version stamp in CLAUDE.md, auto-detected on start |
 
 ### File Structure
 
