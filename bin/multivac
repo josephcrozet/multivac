@@ -3,6 +3,8 @@
 # Multivac - Create and start a tutorial project
 # Usage: multivac [topic] [--dir <path>] [--new] [--launch]
 
+MULTIVAC_VERSION="0.1.0"
+
 set -e
 
 # Default tutorial home directory (can be changed during install or via env var)
@@ -399,6 +401,7 @@ TOPIC_DISPLAY="$(echo "$BASE_TOPIC" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $
 # Create CLAUDE.md with topic
 cat > "$PROJECT_DIR/CLAUDE.md" << EOF
 <!-- multivac-tutorial -->
+<!-- multivac-version: $MULTIVAC_VERSION -->
 <!-- topic: $TOPIC_DISPLAY -->
 ## Tutorial Mode
 
