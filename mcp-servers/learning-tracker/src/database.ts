@@ -21,7 +21,59 @@ if (!existsSync(DATA_DIR)) {
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 
-// Initialize schema
+// ---------------------------------------------------------------------------
+// Schema migrations
+// ---------------------------------------------------------------------------
+// Handles upgrades for users who installed an earlier version of Multivac.
+// Each migration bumps the version by 1 and makes the necessary schema changes.
+//
+// To add a migration:
+// 1. Increment CURRENT_SCHEMA_VERSION
+// 2. Add a new block: if (currentVersion < N) { ... }
+// 3. Use columnExists() helper for safe ALTER TABLE additions
+// ---------------------------------------------------------------------------
+
+const CURRENT_SCHEMA_VERSION = 1;
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS schema_version (
+    version INTEGER NOT NULL
+  )
+`);
+
+const versionRow = db.prepare('SELECT version FROM schema_version LIMIT 1').get() as { version: number } | undefined;
+const currentVersion = versionRow?.version ?? 0;
+
+function columnExists(table: string, column: string): boolean {
+  const columns = db.pragma(`table_info(${table})`) as { name: string }[];
+  return columns.some(col => col.name === column);
+}
+
+if (currentVersion < CURRENT_SCHEMA_VERSION) {
+  db.transaction(() => {
+    // Migration 0 -> 1: baseline schema (v0.1.0)
+    // No changes needed — this just sets the initial version marker.
+    // All v0.1.0 databases are created with the full schema below.
+
+    // Future migrations:
+    // if (currentVersion < 2) {
+    //   if (!columnExists('tutorials', 'new_column')) {
+    //     db.exec("ALTER TABLE tutorials ADD COLUMN new_column TEXT DEFAULT 'value'");
+    //   }
+    // }
+
+    if (versionRow) {
+      db.prepare('UPDATE schema_version SET version = ?').run(CURRENT_SCHEMA_VERSION);
+    } else {
+      db.prepare('INSERT INTO schema_version (version) VALUES (?)').run(CURRENT_SCHEMA_VERSION);
+    }
+  })();
+}
+
+// ---------------------------------------------------------------------------
+// Schema initialization (creates tables for new databases)
+// ---------------------------------------------------------------------------
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS tutorials (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
