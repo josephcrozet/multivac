@@ -96,7 +96,8 @@ Files install to `~/.claude/`:
 - MCP server goes to `~/.claude/mcp-servers/learning-tracker/`
 - `multivac` command goes to `~/.local/bin/`
 
-Per-project configuration (created by `multivac` command):
+Per-project configuration (created by `multivac` command, updated by `multivac upgrade`):
+- `CLAUDE.md` — Tutorial marker with version stamp (`<!-- multivac-version: X.X.X -->`) and topic
 - `.mcp.json` — MCP server config with `MULTIVAC_DATA_DIR` pointing to local data
 - `.claude/settings.json` — Hook config (SessionStart for tutorial prompt, PreToolUse for capstone tests)
 - `.multivac/` — Local data directory containing:
