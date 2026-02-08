@@ -222,6 +222,19 @@ offer_upgrade_if_needed() {
     fi
 }
 
+# Find the project root by searching upward for a multivac CLAUDE.md (like git finds .git)
+find_project_root() {
+    local dir="$1"
+    while [[ "$dir" != "/" ]]; do
+        if is_multivac_project "$dir"; then
+            echo "$dir"
+            return 0
+        fi
+        dir="$(dirname "$dir")"
+    done
+    return 1
+}
+
 # Find next available topic number (sets TOPIC and PROJECT_DIR)
 use_next_topic_number() {
     local base_topic="$1"
@@ -267,8 +280,17 @@ initialize_existing_directory() {
 
 if [[ "${1:-}" == "upgrade" ]]; then
     shift
-    target="${1:-.}"
-    target="$(cd "$target" 2>/dev/null && pwd)" || { echo "Error: Directory not found: ${1:-.}"; exit 1; }
+    if [[ -n "${1:-}" ]]; then
+        # Explicit path given — use it directly
+        target="$(cd "$1" 2>/dev/null && pwd)" || { echo "Error: Directory not found: $1"; exit 1; }
+    else
+        # No path given — search upward from CWD for project root
+        target=$(find_project_root "$(pwd)") || {
+            echo "Error: Not inside a Multivac project."
+            echo "Specify a path: multivac upgrade <path>"
+            exit 1
+        }
+    fi
     upgrade_project "$target"
     exit 0
 fi

@@ -215,15 +215,17 @@ Then stop — don't continue with the rest of the initialization since the MCP s
 
 ### 2. Check Project Version
 
+**Skip this step after context compaction** — the version can't change mid-session.
+
 Read the `<!-- multivac-version: X.X.X -->` comment from CLAUDE.md. Compare it against the installed version by running `multivac --version` via the Bash tool.
 
 **If the versions don't match (or the version comment is missing):**
 
-Run `multivac upgrade .` via the Bash tool to update the project config files. Then tell the user:
+Run `multivac upgrade` via the Bash tool to update the project config files (no path needed — it finds the project root automatically). Then tell the user:
 
 > "I've upgraded your project to the latest Multivac version. Continuing where you left off."
 
-This ensures the MCP server paths, hook config, and CLAUDE.md are current before proceeding.
+This updates the MCP server paths, hook config, and CLAUDE.md to match the current version.
 
 ### 3. Check for Existing Tutorial
 
