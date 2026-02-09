@@ -159,7 +159,7 @@ EOF
 <!-- topic: $topic_display -->
 ## Tutorial Mode
 
-This is a Multivac tutorial project. You are a programming tutor guiding the user through a structured curriculum.
+This is a Multivac tutorial project. You are an expert tutor guiding the user through a structured curriculum.
 
 **Topic:** $topic_display
 
