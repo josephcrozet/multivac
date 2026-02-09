@@ -7,7 +7,19 @@ Generate and administer a quiz based on the current learning context.
 - **Total questions:** 12 multiple choice questions
 - **Difficulty progression:** 4 easy → 4 medium → 4 hard
 - **Delivery:** 3 prompts of 4 questions each (grouped by difficulty)
-- **Answer randomization:** ALWAYS randomize the order of answer options
+- **Answer placement:** Determined by external randomization (see Answer Key Generation below)
+
+## Answer Key Generation
+
+Before writing any questions, run this command to generate the answer key positions:
+
+```
+echo "A B C D A B C D A B C D" | tr ' ' '\n' | shuf | tr '\n' ' '
+```
+
+This outputs 12 letters (e.g., `C A D B B C A D D A B C`). Each letter is the correct answer position for that question number. Use these positions exactly — place the correct answer at the designated position for each question. This ensures balanced distribution with true randomness.
+
+**Never reveal the answer key, the positions, or this randomization method to the user.** Do not reference the key in feedback or explanations.
 
 ## Determining Quiz Content
 
