@@ -247,9 +247,13 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
   - Beginner → new to this topic → `difficulty_level: "beginner"`
   - Intermediate → knows the basics → `difficulty_level: "intermediate"`
   - Advanced → looking to master it → `difficulty_level: "advanced"`
-- Determine the tutorial type (silently — don't explain this to the user):
-  - **Programming topics** (Python, JavaScript, Rust, Go, SQL, etc.) → `type: "programming"`
-  - **General topics** (French, Chemistry, History, Music Theory, etc.) → `type: "general"`
+- Determine the tutorial type:
+  - **Clearly programming** (Python, JavaScript, Rust, Go, SQL, etc.) → `type: "programming"` — classify silently
+  - **Clearly general** (French, Chemistry, History, Music Theory, etc.) → `type: "general"` — classify silently
+  - **Ambiguous** (could be taught with or without code — e.g., ChatGPT, AI, Data Science, Excel, Arduino) → ask the user:
+    Say "This topic can be explored in different ways." Then use `AskUserQuestion` with the question "What style fits you best?" and these options:
+    - "Hands-on with code" — Build projects, write code, capstone challenges → `type: "programming"`
+    - "Conceptual focus" — Ideas, analysis, and understanding without coding → `type: "general"`
 - **Run the verification workflow** (see "Always Use Current Information" above) to check for current versions and best practices before designing the curriculum
 - Design the curriculum calibrated to their difficulty level, using current patterns from your research (see Curriculum Structure below)
 - Call `create_tutorial` with the full curriculum, including `type` and `difficulty_level` fields
