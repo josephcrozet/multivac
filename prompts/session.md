@@ -213,19 +213,21 @@ Check that `CLAUDE.md` exists in the current project directory and contains the 
 
 Then stop — don't continue with the rest of the initialization since the MCP server won't be available until they restart Claude Code in the new project directory.
 
-### 2. Check Project Version
+### 2. Check Project Version and Location
 
-**Skip this step after context compaction** — the version can't change mid-session.
+**Skip this step after context compaction** — neither the version nor the location can change mid-session.
 
-Read the `<!-- multivac-version: X.X.X -->` comment from CLAUDE.md. Compare it against the installed version by running `multivac --version` via the Bash tool.
+Read the `<!-- multivac-version: X.X.X -->` and `<!-- multivac-root: /path -->` comments from CLAUDE.md. Compare the version against the installed version by running `multivac --version` via the Bash tool. Compare the root path against the current working directory.
 
-**If the versions don't match (or the version comment is missing):**
+Check for two conditions:
+- **Version mismatch:** version doesn't match or is missing
+- **Path mismatch:** root path doesn't match the current working directory, or is missing
 
-Run `multivac upgrade` via the Bash tool to update the project config files (no path needed — it finds the project root automatically). Then tell the user:
+**If either (or both) conditions are true**, run `multivac upgrade` once via the Bash tool to update the project config files (no path needed — it finds the project root automatically).
 
-> "I've upgraded your project to the latest Multivac version. Continuing where you left off."
+This updates the MCP server paths, hook config, and CLAUDE.md to match the current version and location. The MCP server was started before this check, so it's running with the old config. Tell the user:
 
-This updates the MCP server paths, hook config, and CLAUDE.md to match the current version.
+> "I've updated your project to match the latest Multivac version. Please run `/exit` and restart Claude Code so the changes take effect. Your progress is saved — you'll pick up right where you left off."
 
 ### 3. Check for Existing Tutorial
 

@@ -35,7 +35,7 @@ multivac/
 1. **Local Project Data** — Each tutorial project stores its own data in `.multivac/learning.db`; MCP server configured per-project via `.mcp.json`
 2. **Local CLAUDE.md** — Created in tutorial project directories to survive compaction
 3. **Per-Lesson Exercise Directories** — Each lesson's code goes in `exercises/{part}/{chapter}/{lesson}/`; created when starting the exercise (not upfront); keeps modules, tests, and config isolated between lessons; scaffolding created as needed based on lesson goals
-4. **Version Management** — Projects embed `<!-- multivac-version: X.X.X -->` in CLAUDE.md; session.md checks this against the installed version on startup and runs `multivac upgrade` if outdated; database has `schema_version` table for migration support
+4. **Version Management** — Projects embed `<!-- multivac-version: X.X.X -->` and `<!-- multivac-root: /path -->` in CLAUDE.md; session.md checks both on startup and runs `multivac upgrade` if the version is outdated or the project was moved; database has `schema_version` table for migration support
 
 **Session Management**
 5. **Token Management** — Sessions restart at chapter boundaries; MCP server persists progress

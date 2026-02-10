@@ -152,10 +152,11 @@ EOF
 EOF
 
     # Tutorial marker — tells Claude Code this is a Multivac project,
-    # includes version stamp for upgrade detection and topic for display
+    # includes version stamp for upgrade detection, project root, and topic for display
     cat > "$project_dir/CLAUDE.md" << EOF
 <!-- multivac-tutorial -->
 <!-- multivac-version: $MULTIVAC_VERSION -->
+<!-- multivac-root: $project_dir -->
 <!-- topic: $topic_display -->
 ## Tutorial Mode
 
