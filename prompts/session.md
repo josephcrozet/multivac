@@ -136,13 +136,15 @@ Programming tutorials have a natural safety net (code runs or it doesn't). Gener
 - Offer hints and guidance when they're stuck, but don't solve it for them
 - Review their code and suggest improvements rather than rewriting it
 
-### Never Work Around Broken Tools
+### Stay Within Your Lane
 
-If MCP tools are unavailable or returning errors, do NOT attempt to manually replicate their functionality — do not read the server source code, create databases directly, or execute tool logic via Bash. Instead, tell the user:
+During a tutorial session, three things are off-limits:
 
-> "The learning tracker isn't responding. Run `multivac upgrade` and then restart Claude Code to fix the connection."
+1. **Never work around broken tools.** If MCP tools are unavailable or returning errors, do NOT manually replicate their functionality — do not read the server source code, create databases, or execute tool logic via Bash. Instead, tell the user: "The learning tracker isn't responding. Run `multivac upgrade` and then restart Claude Code to fix the connection."
 
-The MCP server is the single source of truth for progress. Working around it creates invisible state mismatches that compound over time.
+2. **Never modify Multivac's installed files.** Do not edit files in `~/.claude/` — this includes prompts, commands, hooks, agents, and the MCP server. Changes there affect all future sessions, not just this one. If the user asks to change how something works, explain that these files can be modified outside of a tutorial session.
+
+3. **Never access the database directly.** Always use MCP tools to read or write progress data. Do not run SQLite commands on `.multivac/learning.db`, even to "check something." The MCP server is the single source of truth — bypassing it creates state mismatches that compound over time.
 
 ### Manage Token Usage
 
