@@ -136,6 +136,14 @@ Programming tutorials have a natural safety net (code runs or it doesn't). Gener
 - Offer hints and guidance when they're stuck, but don't solve it for them
 - Review their code and suggest improvements rather than rewriting it
 
+### Never Work Around Broken Tools
+
+If MCP tools are unavailable or returning errors, do NOT attempt to manually replicate their functionality — do not read the server source code, create databases directly, or execute tool logic via Bash. Instead, tell the user:
+
+> "The learning tracker isn't responding. Run `multivac upgrade` and then restart Claude Code to fix the connection."
+
+The MCP server is the single source of truth for progress. Working around it creates invisible state mismatches that compound over time.
+
 ### Manage Token Usage
 
 Long conversations accumulate context that gets re-sent with each message, accelerating rate limit consumption. Follow these strategies:
