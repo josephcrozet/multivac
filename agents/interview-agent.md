@@ -16,6 +16,7 @@ Conduct a mock interview based on the provided learning context.
 Determine the format based on context:
 - If context specifies `type: "programming"` or involves coding/programming topics → use **Programming Format**
 - If context specifies `type: "general"` or involves non-programming topics (languages, sciences, humanities, etc.) → use **General Format**
+  - Also check if the topic is a human language or math/quantitative subject — see **Subject-Specific Interview Adjustments** below
 - If unclear, ask the user which format they prefer
 
 ## Calibrating Difficulty
@@ -24,21 +25,21 @@ Adjust question complexity based on the difficulty level provided in the context
 
 **Beginner:**
 - Focus on fundamental concepts and basic applications
-- Code challenges should be straightforward (5-10 lines)
+- Programming: code challenges should be straightforward (5-10 lines)
+- General: accept brief responses that demonstrate basic understanding
 - Provide more context and setup in questions
-- Accept answers that demonstrate basic understanding
 
 **Intermediate:**
 - Expect solid grasp of fundamentals, test application and connections
-- Code challenges can involve multiple concepts (10-20 lines)
+- Programming: code challenges can involve multiple concepts (10-20 lines)
+- General: expect clear explanations with some depth (multi-sentence responses)
 - Questions may require combining ideas from different lessons
-- Expect clear explanations with some depth
 
 **Advanced:**
 - Test deep understanding, edge cases, and best practices
-- Code challenges should involve design decisions and trade-offs (15-30 lines)
+- Programming: code challenges should involve design decisions and trade-offs (15-30 lines)
+- General: expect thorough, professional-quality responses with nuanced reasoning
 - Include questions about optimization, architecture, or nuanced scenarios
-- Expect thorough, professional-quality responses
 
 ---
 
@@ -78,9 +79,10 @@ Delete the scratch file when the interview is complete.
 ### Code Writing Challenges (Questions 1-4)
 
 Ask the user to write code that demonstrates understanding:
-- "Write a function that..."
-- "Implement a class that..."
-- "Create a solution that..."
+- **Write:** "Write a function that..."
+- **Implement:** "Implement a class that..."
+- **Create:** "Create a solution that..."
+- **Design:** "Design a data structure that..."
 
 Scope should be achievable in 5-15 lines of code.
 
@@ -110,13 +112,30 @@ Use this format for non-programming tutorials (French, Chemistry, History, etc.)
 - **Style:** Comprehensive oral examination
 - **No multiple choice** — All questions require written responses
 
+### Scratch File for Written Responses
+
+For longer responses, use a scratch file:
+
+#### Setup (at interview start)
+Create `interview_scratch.txt` in the current working directory.
+
+**Explain the process to the user:** "For each question, you can write your answer in `interview_scratch.txt` or type it directly in the chat — whichever you prefer. I'll clear the file before each question and delete it when we're done."
+
+#### For Each Question
+1. Clear the scratch file (write a header like `Question N: [brief description]`)
+2. If the user says "ready," read the file and evaluate their response
+3. Provide feedback before moving to the next question
+
+#### Cleanup (after interview)
+Delete the scratch file when the interview is complete.
+
 ### Knowledge Demonstration Questions (Questions 1-4)
 
 Ask the user to demonstrate understanding:
-- "Explain the concept of..."
-- "Describe the process of..."
-- "How would you apply [concept] to [situation]?"
-- "What are the key principles of..."
+- **Explain:** "Explain the concept of..."
+- **Describe:** "Describe the process of..."
+- **Apply:** "How would you apply [concept] to [situation]?"
+- **Demonstrate:** "What are the key principles of..."
 
 Questions should require substantive responses (2-4 sentences minimum).
 
@@ -131,6 +150,38 @@ Present scenarios, texts, or problems and ask the user to:
 ### General Introduction
 
 > "Welcome to your comprehensive interview on [topic]. I'll be asking you 8 questions — 4 to demonstrate your knowledge and 4 analysis questions. Take your time to think through each response. Let's begin."
+
+---
+
+## Subject-Specific Interview Adjustments
+
+### Human Language Interviews
+
+For interviews on human languages (Spanish, French, Japanese, etc.), progressively shift the interview into the target language based on difficulty level:
+
+- **Beginner:** Ask questions in English. Accept answers in English with target language examples.
+- **Intermediate:** Mix both languages. Ask some questions in the target language. Accept answers in either language.
+- **Advanced:** Conduct the interview primarily in the target language. Use English only for metalinguistic explanations.
+
+### Math and Quantitative Interviews
+
+For math, physics, statistics, and other quantitative subjects, reframe the two question categories:
+
+#### Problem Solving Questions (Questions 1-4)
+
+Ask the user to produce a solution and show their work step by step:
+- **Compute:** "Calculate the derivative of..."
+- **Solve:** "Find all values of x that satisfy..."
+- **Prove:** "Show that... holds for all..."
+- **Model:** "Write an equation that represents..."
+
+#### Mathematical Reasoning Questions (Questions 5-8)
+
+Present existing mathematical work and ask the user to examine it:
+- **Verify:** "Find and correct the error in this derivation"
+- **Interpret:** "Given this graph, what can you conclude about...?"
+- **Compare:** "Which approach is more efficient and why?"
+- **Evaluate:** "What are the strengths and weaknesses of this approach?"
 
 ---
 
