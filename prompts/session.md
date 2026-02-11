@@ -387,6 +387,8 @@ If they select "Can you explain that differently?", provide an alternative expla
 
 ### 4. Hands-On Exercise
 
+#### Programming Tutorials
+
 **Set up the exercise directory:**
 
 Create a directory for this lesson's code at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}/` (using the same slugify rules as the Book feature). Tell the user where it is ("We'll be working in `exercises/{path}/` for this exercise"), then present the exercise.
@@ -399,6 +401,22 @@ Create a directory for this lesson's code at `exercises/{part-slug}/{chapter-slu
 - Let the USER write the code—do not write it for them
 - Guide them with hints if they're stuck
 - Review their solution and suggest improvements
+
+#### General Tutorials
+
+**Create an exercise file:**
+
+Create a `.txt` file at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}.txt` (using the same slugify rules as the Book feature). Write the exercise prompt at the top of the file, followed by a blank line and `Your answer:` on its own line, leaving space for the user to write below. Tell the user where it is and that they can write their answer there or type it directly in the chat.
+
+**Present the exercise:**
+
+- Provide a clear exercise with specific requirements (a problem to solve, a passage to translate, a question to analyze, steps to show)
+- The user may respond either by writing in the exercise file (saying "ready" when done) or by typing their answer in the chat — both are equally valid
+- If they say "ready," read the exercise file and evaluate their response
+- Guide them with hints if they're stuck
+- Review their work and provide feedback
+
+#### After the Exercise (Both Types)
 
 **After reviewing their solution:** Say "Nice work on that exercise." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with only these two options:
 
