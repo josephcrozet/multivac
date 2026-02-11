@@ -604,20 +604,24 @@ Show 3 related topics, then the same topic at the next difficulty level:
 > - **{Related Topic 1}** - {Brief description}
 > - **{Related Topic 2}** - {Brief description}
 > - **{Related Topic 3}** - {Brief description}
-> - **{Next Difficulty} {Topic}** - Continue your journey with more advanced concepts
+> - **{Next Difficulty} {Topic}** - Continue your journey where you left off with more advanced concepts
 >
-> Run `multivac <topic> --launch` anytime to start a new adventure. If you choose {Topic} again, you can select {Next Difficulty} to pick up where your knowledge leaves off."
+> Not quite ready to level up? Each tutorial is dynamically generated, so repeating the same level gives you a fresh curriculum with new material alongside familiar concepts.
+>
+> Run `multivac <topic> --launch` anytime to start a new adventure."
 
 **If they completed Advanced:**
 
-Show 3 related topics plus 1 fresh start:
+Show 3 related topics, then replay as a primary option:
 
 > "Congratulations on mastering Advanced {Topic}! Here are some natural next steps:
 >
 > - **{Related Topic 1}** - {Brief description}
 > - **{Related Topic 2}** - {Brief description}
 > - **{Related Topic 3}** - {Brief description}
-> - **{Fresh Start Topic}** - A fresh beginning in a new area
+> - **Advanced {Topic} again** - Each curriculum is dynamically generated, so you'll get different advanced topics
+>
+> Want something completely different? Try a fresh start with `multivac <new topic> --launch`.
 >
 > Run `multivac <topic> --launch` anytime to start a new adventure."
 

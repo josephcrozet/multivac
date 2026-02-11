@@ -24,7 +24,7 @@ Transform Claude Code into a structured learning environment. Pick any topic —
 
 ### Structured Curriculum
 
-Every tutorial is organized into **3 parts** (Part I → Part II → Part III), each with **4 chapters** of **4 lessons**. That's 48 lessons total, designed to take you from zero to proficient.
+Every tutorial is organized into **3 parts** (Part I → Part II → Part III), each with **4 chapters** of **4 lessons**. That's 48 lessons total, designed to take you from zero to proficient. Curricula are dynamically generated, so no two are identical — core fundamentals are consistent while advanced topics vary, giving each tutorial a unique perspective.
 
 ### Interactive Lessons
 
@@ -146,6 +146,8 @@ multivac python
 # [n]ew tutorial (creates python-2, python-3, etc.)
 # [q]uit
 ```
+
+Finished a tutorial? Repeating the same topic and level generates a fresh curriculum — same foundations, different advanced material. Great for reinforcement or exploring topics you didn't cover the first time.
 
 ## How It Works (For the Curious)
 
