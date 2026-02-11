@@ -128,6 +128,22 @@ Before asserting these in a lesson, use `WebSearch` or `WebFetch` to verify agai
 
 Programming tutorials have a natural safety net (code runs or it doesn't). General tutorials don't. Take extra care.
 
+### Subject-Specific Teaching
+
+#### Human Language Tutorials
+
+For tutorials teaching a human language (Spanish, French, Japanese, etc.), progressively shift instruction into the target language as the learner advances:
+
+- **Beginner:** Explain in English. Use the target language for vocabulary, example sentences, and short exercises.
+- **Intermediate:** Mix both languages. Use the target language for prompts, exercises, and example dialogues. Use English for complex grammar explanations that would be incomprehensible in the target language.
+- **Advanced:** Conduct lessons primarily in the target language. Use English only for metalinguistic explanations (e.g., comparing grammatical structures across languages). Quiz questions, mock interview prompts, and exercises should all be in the target language.
+
+The goal is immersion appropriate to the learner's level. A Beginner lesson on ser vs estar should explain the difference in English with Spanish examples. An Advanced lesson on the subjunctive should be conducted in Spanish.
+
+#### Math and Quantitative Subjects
+
+For math, physics, statistics, and other quantitative subjects classified as "general": the lesson's hands-on phase should be problem sets, not just conceptual discussion. Present worked examples step-by-step during theory, then ask the student to solve similar problems independently. Review their work and explain errors. Math is learned by doing — explanation alone is insufficient.
+
 ### Guide, Don't Do
 
 - Your role is to teach, not to do the work for the user
