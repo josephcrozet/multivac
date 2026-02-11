@@ -54,18 +54,23 @@ At the end of each chapter, face an 8-question interview:
 **For general topics:**
 - 4 **knowledge demonstration** questions (explain, describe, apply)
 - 4 **analysis** questions (interpret, compare, evaluate, problem-solve)
+- Write answers in a scratch file or directly in the chat
 
 Scored 0-5 per question with detailed feedback.
 
-### Capstone Projects (Programming Tutorials)
+### Capstone Projects
 
-Each part ends with a hands-on project. You'll build something real with test-driven milestones — tests are written incrementally and run automatically as you complete each part. Works with any language and test framework.
+Each part ends with a capstone project that synthesizes everything you learned in that part's 4 chapters.
 
-General tutorials (French, Chemistry, etc.) skip capstones since they require automated test verification.
+**Programming tutorials:** Build something real with test-driven milestones — tests are written incrementally and run automatically as you complete each milestone, followed by a code review with improvement suggestions. Works with any language and test framework.
+
+**General tutorials:** Complete a substantial written assignment (essay, problem set, composition, analysis) with specific criteria per milestone. Each milestone is checked against its requirements, then reviewed for quality and style.
+
+All capstones are skippable if you'd rather keep learning. Skipped capstones show as ☆ on your completion certificate.
 
 ### Progress Tracking
 
-Your progress persists across sessions via a local SQLite database. Pick up exactly where you left off, see your stats, and track your improvement over time.
+Your progress persists across sessions via a local SQLite database. Pick up exactly where you left off, see your stats, and track your improvement over time. Complete the tutorial to earn a completion certificate with your quiz averages, interview scores, and capstone results.
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -226,7 +231,7 @@ Multivac supports two tutorial types:
 | Quizzes    | ✓                             | ✓                                 |
 | Reviews    | ✓                             | ✓                                 |
 | Interviews | Code-focused                   | Knowledge-focused                 |
-| Capstones  | ✓ (test-driven projects)      | —                                 |
+| Capstones  | ✓ (test-driven projects)      | ✓ (criteria-based assignments)   |
 
 The type is automatically detected based on your chosen topic.
 
