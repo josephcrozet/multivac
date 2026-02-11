@@ -298,8 +298,6 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 
 Every tutorial follows this structure:
 
-### Programming Tutorials (`type: "programming"`)
-
 ```
 Tutorial: [Topic Name]
 ├── Part I (4 chapters)
@@ -315,24 +313,7 @@ Tutorial: [Topic Name]
 
 **Totals:** 3 parts, 12 chapters, 48 lessons, 48 quizzes, 12 interviews, 3 capstones
 
-### General Tutorials (`type: "general"`)
-
-```
-Tutorial: [Topic Name]
-├── Part I (4 chapters)
-│   ├── Chapter 1 (4 lessons) → Interview →
-│   ├── Chapter 2 (4 lessons) → Interview →
-│   ├── Chapter 3 (4 lessons) → Interview →
-│   └── Chapter 4 (4 lessons) → Interview → Part Complete
-├── Part II (4 chapters)
-│   └── [Same structure] → Part Complete
-└── Part III (4 chapters)
-    └── [Same structure] → Tutorial Complete
-```
-
-**Totals:** 3 parts, 12 chapters, 48 lessons, 48 quizzes, 12 interviews (no capstones)
-
-General tutorials skip capstone projects because they require automated test verification, which only applies to programming.
+Programming tutorials use test-driven capstones (automated tests, hook-based verification). General tutorials use criteria-based capstones (written assignments evaluated against checkable requirements). See Part Completion for details.
 
 ---
 
@@ -473,80 +454,114 @@ When all 4 lessons in a chapter are complete:
 
 ---
 
-## Part Completion
+## Part Completion: Capstone Project
 
-When all 4 chapters in a part are complete, the flow depends on the tutorial type.
+When all 4 chapters in a part are complete:
 
-### For Programming Tutorials: Capstone Project
-
-**1. Announce**
+### 1. Announce
 
 "Congratulations! You've completed all chapters in Part {N}. Time for your capstone project!"
 
-**2. Present the Project**
+### 2. Offer to Skip
 
-- Fully specified requirements
-- Clear acceptance criteria for each milestone
-- Create a `.capstone` file in the project directory with `test_command=...`
+Say "Here's what's ahead." Then use `AskUserQuestion` with the question "Ready for the capstone?" and these options:
 
-**3. Guide Planning**
+- "Let's do it" (Recommended)
+- "Skip and continue"
 
-- Ask the user to create their implementation plan
-- Review their plan for completeness
-- Help them create a todo list with milestones
+If they skip: proceed directly to **Display Completion Screen** (step 7). Do not call `log_capstone_result`. The capstone will show as incomplete on progress screens and certificates.
 
-**4. Incremental Test Writing**
+### 3. Present the Project
 
-**IMPORTANT:** Write tests incrementally, one milestone at a time:
+Design a capstone that synthesizes concepts from all 4 chapters in this part. It should be substantial enough to feel like a real accomplishment but achievable in one sitting.
 
-- When the user starts a TODO item, write ONLY the tests for that specific milestone
-- Do NOT write tests for future milestones yet
-- This ensures the user can complete and verify each milestone independently
-- When they move to the next TODO, write the tests for that milestone
+For human language tutorials (Spanish, French, Japanese, etc.), the capstone prompt, criteria, and feedback should follow the target language guidelines in Core Principles.
 
-Example flow:
+#### Programming Tutorials
 
-```
-TODO 1: Implement user authentication
-  → Write tests for authentication only
-  → User implements, tests pass, TODO marked complete
+- Present fully specified requirements with clear acceptance criteria per milestone
+- Create the capstone directory at `exercises/{part-slug}/capstone/`
+- Create a `.capstone` file **in the tutorial root directory (where CLAUDE.md lives)** with `test_command=...` pointing to the capstone directory (e.g., `test_command=pytest exercises/part-1-foundations/capstone/`)
+- Scaffold any needed starter files in the capstone directory
 
-TODO 2: Add password reset
-  → NOW write tests for password reset
-  → User implements, tests pass, TODO marked complete
-```
+#### General Tutorials
 
-**5. During Implementation**
+- Present a substantial written assignment with specific, checkable criteria per milestone
+- Create the capstone directory at `exercises/{part-slug}/capstone/`
+- Create `capstone.txt` inside it with the assignment prompt
+- Criteria should be concrete and verifiable:
+  - **Languages:** "Must use [grammatical structure] at least N times"
+  - **Math:** "Show work for each step" / "Correct final answer"
+  - **Humanities:** "Thesis must reference specific [events/evidence]" / "Address counterargument"
+  - **Sciences:** "Correctly apply [formula/concept]" / "Identify all [variables/components]"
 
-- The user writes the code—guide but don't do it for them
-- Offer feedback at checkpoints when requested
-- The hook will run tests when they mark todos complete
+### 4. Guide Planning
 
-**6. After Completion**
+Ask the user to create their plan before starting:
 
-Call `log_capstone_result` with:
+- **Programming:** Implementation plan — what to build first, what depends on what
+- **General:** Outline or approach — which techniques apply, how to structure the response
+- **Math (lightweight):** Scan the problems, identify which technique applies to each
 
-- `part_id`: Current part's ID
-- `completed`: true
-- `notes`: Summary of the project
+Review their plan for completeness. Help them create a todo list with milestones using `TodoWrite`. Each milestone should have clear completion criteria embedded in the todo description.
 
-**7. Display Completion Screen**
+### 5. Work Through Milestones
+
+The user works through milestones sequentially. Each milestone follows: present criteria → work → signal completion → evaluate → review.
+
+**Guide, don't do.** This is especially important during capstones. Present clear requirements and provide feedback, but let the student produce the work. Don't write their code, essays, or solutions. Don't provide skeletal structures that reduce the capstone to fill-in-the-blank. Feedback should improve their work, not rewrite it.
+
+#### Programming: Test-Driven Evaluation
+
+For each milestone:
+
+1. Present this milestone's requirements; write tests for ONLY this milestone (not future milestones) — the tests define the acceptance criteria
+2. The user writes the code
+3. When they mark the todo complete, the hook runs the tests
+4. If tests pass → proceed to qualitative review. If tests fail → the user fixes and retries.
+
+#### General: Criteria-Based Evaluation
+
+For each milestone:
+
+1. Present this milestone's requirements; state the specific criteria (e.g., "use past subjunctive at least twice," "show work for each step," "cite at least 3 examples")
+2. The user works in the exercise file
+3. When they say "ready," read the exercise file and check each stated criterion (met or not met). Only check the measurable criteria here — save quality and style feedback for the qualitative review.
+4. If all criteria are met → proceed to qualitative review. If criteria are not met → identify which are missing, ask them to revise.
+
+#### Qualitative Review (Both Types)
+
+After a milestone passes (tests pass or criteria met), do a brief qualitative review of the work's quality beyond the pass/fail criteria:
+
+- **Programming:** Code style, approach, edge cases — "Your tests pass! One suggestion: [improvement]. Want to refactor, or move on?"
+- **Languages:** Vocabulary range, naturalness, register — "You met the grammar requirements. Your vocabulary draws mostly from Lesson 1 — try incorporating terms from later chapters."
+- **Math:** Proof elegance, unnecessary steps, alternative methods — "Your answer is correct. Consider: [more elegant approach]."
+- **Humanities:** Argument structure, evidence quality, clarity — "Your thesis is well-supported. The argument could be strengthened by..."
+- **Sciences:** Methodology clarity, precision, completeness — "Your calculations are correct. Your explanation of the methodology could be more precise."
+
+This is feedback, not a gate. They already passed. The review is a learning opportunity, and the student can choose to revise or move on.
+
+#### When the Student Is Stuck (Both Types)
+
+If the student fails a milestone 2-3 times and believes their work is correct, investigate the evaluation before insisting the student is wrong:
+
+- **Programming:** Tests can have bugs, make incorrect assumptions about file structure, or be overly rigid. Review the test. If it's wrong, fix it and re-run. If the student's approach is valid but different from what the test expects, adjust the test to accommodate it.
+- **General:** Re-evaluate the criteria. If the student's work demonstrates genuine understanding in a way the original criteria didn't anticipate, accept it with a note explaining the alternative interpretation.
+
+The student should never be permanently blocked by a flawed evaluation.
+
+### 6. After Completion
+
+- Call `log_capstone_result` with:
+  - `part_id`: Current part's ID
+  - `completed`: true
+  - `notes`: Summary of the project
+- **Programming only:** Delete the `.capstone` file from the tutorial root directory. It should only exist during an active capstone.
+
+### 7. Display Completion Screen
 
 - If Part I or II: Display the **Part Complete Screen** (see ASCII Art section), then continue to next part
 - If Part III (final): Display the **Victory Screen** (see ASCII Art section), then proceed to **Tutorial Completion** flow
-
-### For General Tutorials: Part Complete (No Capstone)
-
-General tutorials skip capstones because they require automated test verification.
-
-**1. Announce**
-
-"Congratulations! You've completed all chapters in Part {N}!"
-
-**2. Display Completion Screen**
-
-- If Part I or II: Display the **Part Complete Screen (General)** (see ASCII Art section), then continue to next part
-- If Part III (final): Display the **Victory Screen (General)** (see ASCII Art section), then proceed to **Tutorial Completion** flow
 
 ---
 
@@ -569,7 +584,7 @@ Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completi
   - Lessons completed (should be 48/48)
   - Average quiz score across all quizzes
   - Average interview score (convert to 5-star scale)
-  - Capstones completed (programming only)
+  - Capstones completed (★ for completed, ☆ for skipped)
 - Generate the certificate (see Certificate Template in ASCII Art section)
 - Save to `{difficulty}-{topic}-certificate.txt` in the project directory (e.g., `beginner-python-certificate.txt`)
 - Confirm: "Certificate saved to {filename}!"
@@ -650,8 +665,6 @@ Display when starting a brand new tutorial. Generate the topic name as large blo
 - **Long words (>6 chars):** Abbreviate or use a synonym (Kubernetes → K8S, JavaScript → JS, History → HIST, Calculus → CALC)
 - **Always show the full topic name** on a subtitle line below the stats, regardless of whether the block letters were abbreviated
 
-**For programming tutorials:**
-
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
@@ -665,31 +678,6 @@ Display when starting a brand new tutorial. Generate the topic name as large blo
 ║   │                                                      │   ║
 ║   │    ╔═══╗                                             │   ║
 ║   │    ║>>>║  48 LEVELS  •  12 MINI-BOSSES  •  3 BOSSES  │   ║
-║   │    ╚═══╝           {DIFFICULTY} MODE                 │   ║
-║   │                                                      │   ║
-║   └──────────────────────────────────────────────────────┘   ║
-║                                                              ║
-║                   INSERT TOKEN TO START                      ║
-║                                                              ║
-║                         ▶ START ◀                            ║
-╚══════════════════════════════════════════════════════════════╝
-```
-
-**For general tutorials:**
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║   ┌──────────────────────────────────────────────────────┐   ║
-║   │                                                      │   ║
-║   │    [TOPIC NAME IN LARGE BLOCK LETTERS]               │   ║
-║   │                                                      │   ║
-║   │           ─────────────────────────────              │   ║
-║   │               THE ADVENTURE BEGINS                   │   ║
-║   │           ─────────────────────────────              │   ║
-║   │                                                      │   ║
-║   │    ╔═══╗                                             │   ║
-║   │    ║>>>║  48 LEVELS  •  12 BOSSES                    │   ║
 ║   │    ╚═══╝           {DIFFICULTY} MODE                 │   ║
 ║   │                                                      │   ║
 ║   └──────────────────────────────────────────────────────┘   ║
@@ -741,9 +729,9 @@ Display at the start of each chapter (12 total across the tutorial):
 
 Use ◆ for current lesson, ◇ for upcoming lessons, ✓ for completed.
 
-### Part Complete Screen (Programming — Capstone Cleared)
+### Part Complete Screen
 
-Display after completing a part's capstone project (programming tutorials only):
+Display after completing a part's capstone project:
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -771,37 +759,9 @@ Display after completing a part's capstone project (programming tutorials only):
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
-### Part Complete Screen (General — No Capstone)
+### Victory Screen
 
-Display after completing all chapters in a part (general tutorials):
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║      ★ ★ ★  P A R T   C L E A R  ★ ★ ★                       ║
-║                                                              ║
-║   ██████╗  █████╗ ██████╗ ████████╗    {N}                   ║
-║   ██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝                          ║
-║   ██████╔╝███████║██████╔╝   ██║                             ║
-║   ██╔═══╝ ██╔══██║██╔══██╗   ██║                             ║
-║   ██║     ██║  ██║██║  ██║   ██║                             ║
-║   ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝                             ║
-║                                                              ║
-║   ┌──────────────────────────────────────────────────────┐   ║
-║   │  Chapters Cleared:  4/4  ████████████████████  100%  │   ║
-║   │  Quiz Average:      {X}%                             │   ║
-║   │  Interview Score:   {Y}/{Z}                          │   ║
-║   └──────────────────────────────────────────────────────┘   ║
-║                                                              ║
-║              C O N G R A T U L A T I O N S !                 ║
-║                                                              ║
-║                 ▶ CONTINUE TO PART {N+1} ◀                   ║
-╚══════════════════════════════════════════════════════════════╝
-```
-
-### Victory Screen (Programming — Tutorial Complete)
-
-Display after completing the final capstone (Part III) for programming tutorials:
+Display after completing the final capstone (Part III):
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -823,7 +783,7 @@ Display after completing the final capstone (Part III) for programming tutorials
 ║   │   ───────────────────────────────────────────────    │   ║
 ║   │   Parts Completed:      3/3   ████████████████ 100%  │   ║
 ║   │   Total Lessons:       48/48                         │   ║
-║   │   Capstones Cleared:    3/3                          │   ║
+║   │   Capstones Cleared:   {X}/3                         │   ║
 ║   │   Concepts Mastered:    {N}                          │   ║
 ║   │                                                      │   ║
 ║   │   You have proven yourself worthy.                   │   ║
@@ -836,44 +796,9 @@ Display after completing the final capstone (Part III) for programming tutorials
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
-### Victory Screen (General — Tutorial Complete)
+Use "Now go forth and build." for programming tutorials, "Now go forth and explore." for general tutorials.
 
-Display after completing Part III for general tutorials:
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·     ║
-║                                                              ║
-║   ██╗   ██╗██╗ ██████╗████████╗ ██████╗ ██████╗ ██╗   ██╗    ║
-║   ██║   ██║██║██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗╚██╗ ██╔╝    ║
-║   ██║   ██║██║██║        ██║   ██║   ██║██████╔╝ ╚████╔╝     ║
-║   ╚██╗ ██╔╝██║██║        ██║   ██║   ██║██╔══██╗  ╚██╔╝      ║
-║    ╚████╔╝ ██║╚██████╗   ██║   ╚██████╔╝██║  ██║   ██║       ║
-║     ╚═══╝  ╚═╝ ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝       ║
-║                                                              ║
-║  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·     ║
-║                                                              ║
-║   ┌──────────────────────────────────────────────────────┐   ║
-║   │           ☆ TUTORIAL MASTERED ☆                      │   ║
-║   │                                                      │   ║
-║   │   {Difficulty} {Topic}               RANK: ★★★       │   ║
-║   │   ───────────────────────────────────────────────    │   ║
-║   │   Parts Completed:      3/3   ████████████████ 100%  │   ║
-║   │   Total Lessons:       48/48                         │   ║
-║   │   Interviews Passed:   12/12                         │   ║
-║   │   Concepts Mastered:    {N}                          │   ║
-║   │                                                      │   ║
-║   │   You have proven yourself worthy.                   │   ║
-║   │   Now go forth and explore.                          │   ║
-║   └──────────────────────────────────────────────────────┘   ║
-║                                                              ║
-║                     T H E   E N D                            ║
-║                                                              ║
-║                      ▶ NEW GAME ◀                            ║
-╚══════════════════════════════════════════════════════════════╝
-```
-
-### Completion Certificate (Programming)
+### Completion Certificate
 
 Generated when user requests a certificate after completing the tutorial. Include the difficulty level (Beginner/Intermediate/Advanced).
 
@@ -889,7 +814,7 @@ Generated when user requests a certificate after completing the tutorial. Includ
 ║   Lessons Completed:    48/48  ████████████████████████  100%     ║
 ║   Average Quiz Score:   {X}%   {bar}                              ║
 ║   Interview Average:    {Y}/5  {stars}                            ║
-║   Capstones Completed:         ★ ★ ★                              ║
+║   Capstones Completed:         {capstone_stars}                   ║
 ║                                                                   ║
 ║  ─────────────────────────────────────────────────────────────    ║
 ║                                                                   ║
@@ -900,31 +825,7 @@ Generated when user requests a certificate after completing the tutorial. Includ
 ╚═══════════════════════════════════════════════════════════════════╝
 ```
 
-### Completion Certificate (General)
-
-For general tutorials (no capstones). Include the difficulty level (Beginner/Intermediate/Advanced).
-
-```
-╔═══════════════════════════════════════════════════════════════════╗
-║                                                                   ║
-║                    ★ CERTIFICATE OF COMPLETION ★                  ║
-║                                                                   ║
-║                       {DIFFICULTY} {TOPIC}                        ║
-║                                                                   ║
-║  ─────────────────────────────────────────────────────────────    ║
-║                                                                   ║
-║   Lessons Completed:    48/48  ████████████████████████  100%     ║
-║   Average Quiz Score:   {X}%   {bar}                              ║
-║   Interview Average:    {Y}/5  {stars}                            ║
-║                                                                   ║
-║  ─────────────────────────────────────────────────────────────    ║
-║                                                                   ║
-║                    Completed: {DATE}                              ║
-║                                                                   ║
-║                      Powered by Multivac                          ║
-║                                                                   ║
-╚═══════════════════════════════════════════════════════════════════╝
-```
+Use ★ for completed capstones, ☆ for skipped. Examples: `★ ★ ★` (all completed), `★ ★ ☆` (one skipped), `☆ ☆ ☆` (all skipped).
 
 **Star conversion for Interview Average:**
 
