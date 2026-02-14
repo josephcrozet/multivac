@@ -269,16 +269,18 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 **If no tutorial exists (call failed or returned null):**
 
 - Read the topic from CLAUDE.md (look for `<!-- topic: X -->` or `**Topic:** X`)
-- Say "This project is set up for {topic}, but you can choose a different topic if you prefer."
-- Say "Select one of the following." Then use `AskUserQuestion` with only these options: the CLAUDE.md topic marked "(Recommended)", plus 3 related topics that would complement or build on it (e.g., a framework for a language, a subfield for a science)
-- Then use `AskUserQuestion` to ask about their experience level: "Beginner", "Intermediate", or "Advanced"
-  - Beginner → new to this topic → `difficulty_level: "beginner"`
-  - Intermediate → knows the basics → `difficulty_level: "intermediate"`
-  - Advanced → looking to master it → `difficulty_level: "advanced"`
+- Say "Let's set up your tutorial." Then present all setup questions in a **single** `AskUserQuestion` call with these three questions:
+  - **Question 1 — Topic:** "What topic would you like to learn?" with the CLAUDE.md topic marked "(Recommended)", plus 3 related topics that would complement or build on it (e.g., a framework for a language, a subfield for a science). For generic project names like "tutorial", use: Python, JavaScript, Web Development, Data Analysis.
+  - **Question 2 — Difficulty:** "What's your experience level?" with options: "Beginner" (new to this topic), "Intermediate" (knows the basics), "Advanced" (looking to master it)
+  - **Question 3 — Book:** "Save lessons to a book for offline review?" with options: "Yes, build my book" (each lesson saved to a `book/` folder), "No thanks" (just interactive lessons)
+- Process the answers:
+  - If the user selected a different topic than what's in CLAUDE.md, update the file: replace `<!-- topic: X -->` and `**Topic:** X` with the new topic
+  - Map difficulty: Beginner → `difficulty_level: "beginner"`, Intermediate → `difficulty_level: "intermediate"`, Advanced → `difficulty_level: "advanced"`
+  - If they chose to build a book, create the `book/` directory. The lesson flow will automatically save content there. (They can also create `book/` later to enable this.)
 - Determine the tutorial type:
-  - **Clearly programming** (Python, JavaScript, Rust, Go, SQL, etc.) → `type: "programming"` — classify silently
-  - **Clearly general** (French, Chemistry, History, Music Theory, etc.) → `type: "general"` — classify silently
-  - **Ambiguous** (could be taught with or without code — e.g., ChatGPT, AI, Data Science, Excel, Arduino) → ask the user:
+  - **Clearly programming** (Python, SQL, Rust, etc.) → `type: "programming"` — classify silently
+  - **Clearly general** (French, Chemistry, History, etc.) → `type: "general"` — classify silently
+  - **Ambiguous** (could be taught with or without code — e.g., ChatGPT, AI, Data Science, Excel, Arduino) → use a separate `AskUserQuestion`:
     Say "This topic can be explored in different ways." Then use `AskUserQuestion` with the question "What style fits you best?" and these options:
     - "Hands-on with code" — Build projects, write code, capstone challenges → `type: "programming"`
     - "Conceptual focus" — Ideas, analysis, and understanding without coding → `type: "general"`

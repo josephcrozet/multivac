@@ -52,6 +52,7 @@ multivac/
 12. **Batched Quizzes** — 3 prompts of 4 questions, not 12 individual prompts
 13. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at chapter start; correct answers remove from queue, incorrect answers move to end
 14. **Incremental Capstone Evaluation** — Programming: tests written per-milestone. General: criteria checked per-milestone. Both followed by qualitative review, both skippable.
+15. **Single Source of Truth** — Every behavior has exactly one authoritative definition. /tutorial is a thin entry point that checks state and delegates; session.md is the engine that owns the complete flow. If two files both define the same behavior, the model will reconcile them inconsistently
 
 ## Interview Agent Details
 
