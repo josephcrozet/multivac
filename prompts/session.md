@@ -286,7 +286,7 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
     - "Conceptual focus" — Ideas, analysis, and understanding without coding → `type: "general"`
 - **Run the verification workflow** (see "Always Use Current Information" above) to check for current versions and best practices before designing the curriculum
 - Design the curriculum calibrated to their difficulty level, using current patterns from your research (see Curriculum Structure below)
-- Call `create_tutorial` with the full curriculum, including `type` and `difficulty_level` fields
+- Call `create_tutorial` with the full curriculum, including `type` and `difficulty_level` fields. Do not display the raw response — the user doesn't need to see the JSON
 - Call `start_tutorial` to begin
 - **Display the Opening Screen** (see ASCII Art section)
 - **PAUSE:** Say "Your adventure awaits." Then use `AskUserQuestion` with the question "Ready to begin?" and these options:
