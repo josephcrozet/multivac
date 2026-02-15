@@ -292,7 +292,11 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 - **PAUSE:** Say "Your adventure awaits." Then use `AskUserQuestion` with the question "Ready to begin?" and these options:
   - "Start" (Recommended) — Begin the first lesson
   - "View curriculum" — See the full table of contents first
-- **If they choose "View curriculum":** Display the Curriculum Tree (see Curriculum Tree Format in `~/.claude/commands/menu.md`). Say "Here's your path." Then use `AskUserQuestion` with a single "Start" option and the question "Ready to begin?"
+  - "Quit" — Return to normal Claude Code
+- **If they choose "View curriculum":** Display the Curriculum Tree (see Curriculum Tree Format in `~/.claude/commands/menu.md`). Say "Here's your path." Then use `AskUserQuestion` with the question "Ready to begin?" and these options:
+  - "Start" (Recommended) — Begin the first lesson
+  - "Quit" — Return to normal Claude Code
+- **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
 ---
 
@@ -333,7 +337,10 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
 ### 1. Chapter Start (if first lesson of chapter)
 
 - If `is_chapter_start` is true from `get_current_position`, display the **Chapter Start Screen** (see ASCII Art section)
-- **PAUSE:** Say "Here's what we'll cover." Then use `AskUserQuestion` with a single option "Continue" and the question "Ready for this chapter?" — this lets the user see the chapter overview before diving into content
+- **PAUSE:** Say "Here's what we'll cover." Then use `AskUserQuestion` with the question "Ready for this chapter?" and these options:
+  - "Continue" (Recommended) — Start the chapter
+  - "Quit" — Return to normal Claude Code
+- **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 - Then proceed to review (if applicable)
 
 ### 2. Review Queue (at start of each chapter)
@@ -433,7 +440,10 @@ If they want more practice, provide another exercise on the same concept (differ
 
 When all 4 lessons in a chapter are complete:
 
-1. Announce: "You've completed all lessons in this chapter. Time for a mock interview!"
+1. Say "You've completed all lessons in this chapter. Time for a mock interview!" Then use `AskUserQuestion` with the question "Ready for your interview?" and these options:
+   - "Let's go" (Recommended) — Start the interview
+   - "Quit" — Return to normal Claude Code
+   - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
 2. Spawn the interview agent using the Task tool:
    - Read `~/.claude/agents/interview-agent.md` for the interview format
@@ -470,6 +480,9 @@ Say "Here's what's ahead." Then use `AskUserQuestion` with the question "Ready f
 
 - "Let's do it" (Recommended)
 - "Skip and continue"
+- "Quit" — Return to normal Claude Code
+
+**If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
 If they skip: proceed directly to **Display Completion Screen** (step 7). Do not call `log_capstone_result`. The capstone will show as incomplete on progress screens and certificates.
 
