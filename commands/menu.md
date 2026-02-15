@@ -39,8 +39,7 @@ Use `AskUserQuestion` to present options:
 1. **Review** — "Work through your spaced repetition queue"
 2. **View curriculum** — "See the full table of contents"
 3. **View progress** — "See your final stats, get certificate, and see suggested topics"
-4. **Start over** — "Clear all progress and restart from the beginning"
-5. **Exit** — "Return to regular Claude Code"
+4. **More...** — "Credits, start over, or quit"
 
 #### If "Review" selected
 
@@ -54,7 +53,7 @@ Start a review session using the same mechanics as midgame review:
    - Otherwise: "Session complete! {N} lessons remaining in your queue."
 5. Return to this menu.
 
-#### If "View curriculum" selected
+#### If "View curriculum" selected (completed)
 
 Display the Curriculum Tree (see format below). Then return to this menu.
 
@@ -85,8 +84,7 @@ Then use `AskUserQuestion` to present options:
 1. **Continue** — "Resume learning from your current position"
 2. **View curriculum** — "See the full table of contents"
 3. **View progress** — "See your stats and progress in detail"
-4. **Start over** — "Clear all progress and restart from the beginning"
-5. **Exit tutorial** — "Leave tutorial mode and return to regular Claude Code"
+4. **More...** — "Credits, start over, or quit"
 
 #### If "Continue" selected
 
@@ -94,13 +92,58 @@ Read and follow `~/.claude/prompts/session.md` to resume the lesson flow.
 
 #### If "View curriculum" selected (in progress)
 
-Display the Curriculum Tree (see format below). Then use `AskUserQuestion` with a single "Continue" option and the question "Ready to continue?" — this lets the user examine the curriculum before proceeding. Then read and follow `~/.claude/prompts/session.md` to resume the lesson flow.
+Display the Curriculum Tree (see format below). Say "Take your time." Then use `AskUserQuestion` with the question "What next?" and these options:
+
+- "Continue" (Recommended) — Resume the lesson
+- "Back to menu" — Return to the main menu
+
+If they choose "Continue", resume the lesson flow from the current position. If "Back to menu", return to the main menu.
 
 #### If "View progress" selected (in progress)
 
-Display the Progress Screen (see format below) — call `get_tutorial` for full stats. Then use `AskUserQuestion` with a single "Continue" option and the question "Ready to continue?" — this lets the user examine their progress before proceeding. Then read and follow `~/.claude/prompts/session.md` to resume the lesson flow.
+Display the Progress Screen (see format below) — call `get_tutorial` for full stats. Say "Here's where you stand." Then use `AskUserQuestion` with the question "What next?" and these options:
 
-### If "Start over" selected
+- "Continue" (Recommended) — Resume the lesson
+- "Back to menu" — Return to the main menu
+
+If they choose "Continue", resume the lesson flow from the current position. If "Back to menu", return to the main menu.
+
+### If "More..." selected
+
+Use `AskUserQuestion` with the question "More options:" and these options:
+
+1. **Back to menu** — "Return to the main menu"
+2. **Credits** — "See who made this"
+3. **Start over** — "Clear all progress and restart"
+4. **Quit** — "Return to normal Claude Code"
+
+#### If "Back to menu" selected
+
+Return to the main menu (completed or in-progress, whichever state applies).
+
+#### If "Credits" selected
+
+Display the credits screen:
+
+```
+═══════════════════════════════════
+          C R E D I T S
+═══════════════════════════════════
+
+  Created by Joseph Crozet
+  lastquestion.dev
+
+  Powered by Claude
+  Built with Claude Code
+
+  github.com/josephcrozet/multivac
+
+═══════════════════════════════════
+```
+
+Then return to the main menu.
+
+#### If "Start over" selected
 
 Use `AskUserQuestion` to ask: "How would you like to restart?"
 
@@ -108,6 +151,9 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 
 1. **Restart this curriculum** — "Reset your progress but keep the same lesson structure"
 2. **Change topics and start fresh** — "Delete everything and create a new curriculum"
+3. **Cancel** — "Go back without changing anything"
+
+**If "Cancel":** Return to the main menu.
 
 **If "Restart this curriculum":**
 
@@ -121,12 +167,9 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 - Tell the user: "Tutorial deleted. Run `/clear` to reset the conversation context, then `/tutorial` to set up your new topic."
 - End the command (do not auto-start the tutorial)
 
-### If "Exit tutorial" selected
+#### If "Quit" selected
 
-**Requires confirmation.** Use `AskUserQuestion` to ask: "Exit tutorial mode? Your progress is saved and you can resume anytime with /tutorial."
-
-- If confirmed: End the command. Do not load session.md.
-- If cancelled: Return to menu.
+Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
 ---
 

@@ -586,9 +586,31 @@ When the user completes Part III (the final part), follow this sequence after di
 
 ### 1. Pause for Appreciation
 
-Say "*Psst — legend has it Multivac still responds to those who remember the old boot sequence.*" Then on a new line, say "You did it." Then use `AskUserQuestion` with a single "Continue" option to let the user appreciate the Victory Screen before it scrolls away.
+Say "You did it." Then use `AskUserQuestion` with a single "Continue" option to let the user appreciate the Victory Screen before it scrolls away.
 
-### 2. Offer Completion Certificate
+### 2. Roll Credits
+
+Display the credits:
+
+```
+═══════════════════════════════════
+          C R E D I T S
+═══════════════════════════════════
+
+  Created by Joseph Crozet
+  lastquestion.dev
+
+  Powered by Claude
+  Built with Claude Code
+
+  github.com/josephcrozet/multivac
+
+═══════════════════════════════════
+```
+
+Say "*Psst — legend has it Multivac still responds to those who remember the old boot sequence.*" Then on a new line, say "Thanks for playing."
+
+### 3. Offer Completion Certificate
 
 Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completion certificate?"
 
@@ -604,11 +626,11 @@ Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completi
 - Save to `{difficulty}-{topic}-certificate.txt` in the project directory (e.g., `beginner-python-certificate.txt`)
 - Confirm: "Certificate saved to {filename}!"
 
-**If no:** Skip to step 3.
+**If no:** Skip to step 4.
 
-### 3. Suggest Next Topics
+### 4. Suggest Next Topics
 
-Get `name` and `difficulty_level`: use the `get_tutorial` response from step 2 if available, otherwise call `get_tutorial_metadata`. Generate 4 personalized topic suggestions.
+Get `name` and `difficulty_level`: use the `get_tutorial` response from step 3 if available, otherwise call `get_tutorial_metadata`. Generate 4 personalized topic suggestions.
 
 **If they completed Beginner or Intermediate:**
 
@@ -646,7 +668,7 @@ Show 3 related topics, then replay as a primary option:
 
 **Fresh start topics** are in the same broad category of learning but require starting over with new fundamentals. For a programming language, this means a different programming language. For a spoken language, this means a different spoken language. For a science, this means a different science.
 
-### 4. Recommend Resources
+### 5. Recommend Resources
 
 Use `WebSearch` to find authoritative resources for going deeper with {Topic}. Present exactly 4 recommendations, one from each category:
 
@@ -663,7 +685,7 @@ Use `WebSearch` to find authoritative resources for going deeper with {Topic}. P
 - **Course**: A popular course on a major platform (Coursera, Udemy, edX, freeCodeCamp, etc.)
 - **Creator**: A respected content creator who teaches this topic (YouTube channel, blog, podcast)
 
-### 5. Session End
+### 6. Session End
 
 The tutorial is complete. The user can `/exit` or continue chatting.
 
