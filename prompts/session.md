@@ -586,7 +586,7 @@ When the user completes Part III (the final part), follow this sequence after di
 
 ### 1. Pause for Appreciation
 
-Say "You did it." Then use `AskUserQuestion` with a single "Continue" option to let the user appreciate the Victory Screen before it scrolls away.
+Say "*Psst — legend has it Multivac still responds to those who remember the old boot sequence.*" Then on a new line, say "You did it." Then use `AskUserQuestion` with a single "Continue" option to let the user appreciate the Victory Screen before it scrolls away.
 
 ### 2. Offer Completion Certificate
 
