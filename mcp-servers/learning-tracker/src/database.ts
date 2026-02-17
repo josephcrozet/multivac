@@ -83,7 +83,8 @@ db.exec(`
     difficulty_level TEXT DEFAULT 'beginner' CHECK (difficulty_level IN ('beginner', 'intermediate', 'advanced')),
     completed INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
-    completed_at TEXT
+    completed_at TEXT,
+    preferences TEXT DEFAULT '{}'
   );
 
   CREATE TABLE IF NOT EXISTS parts (
@@ -184,6 +185,21 @@ db.exec(`
 `);
 
 // Types
+export interface Preferences {
+  book: boolean;
+  language: string;
+}
+
+const DEFAULT_PREFERENCES: Preferences = { book: false, language: 'en' };
+
+function parsePreferences(raw: string | null): Preferences {
+  try {
+    return { ...DEFAULT_PREFERENCES, ...JSON.parse(raw || '{}') };
+  } catch {
+    return { ...DEFAULT_PREFERENCES };
+  }
+}
+
 export interface Tutorial {
   id: number;
   name: string;
@@ -193,6 +209,7 @@ export interface Tutorial {
   completed: boolean;
   created_at: string;
   completed_at: string | null;
+  preferences: Preferences;
 }
 
 export interface Part {
@@ -296,6 +313,7 @@ export interface Curriculum {
   description?: string;
   type?: 'programming' | 'general';
   difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
+  preferences?: Partial<Preferences>;
   parts: CurriculumPart[];
 }
 
@@ -310,7 +328,7 @@ export const database = {
   // Tutorial operations
   createTutorial(curriculum: Curriculum): Tutorial {
     const insertTutorial = db.prepare(
-      'INSERT INTO tutorials (name, description, type, difficulty_level) VALUES (?, ?, ?, ?)'
+      'INSERT INTO tutorials (name, description, type, difficulty_level, preferences) VALUES (?, ?, ?, ?, ?)'
     );
     const insertPart = db.prepare(
       'INSERT INTO parts (tutorial_id, name, difficulty, sort_order) VALUES (?, ?, ?, ?)'
@@ -329,11 +347,13 @@ export const database = {
     );
 
     const transaction = db.transaction(() => {
+      const prefs = { ...DEFAULT_PREFERENCES, ...curriculum.preferences };
       const tutorialResult = insertTutorial.run(
         curriculum.name,
         curriculum.description || null,
         curriculum.type || 'programming',
-        curriculum.difficulty_level || 'beginner'
+        curriculum.difficulty_level || 'beginner',
+        JSON.stringify(prefs)
       );
       const tutorialId = tutorialResult.lastInsertRowid as number;
 
@@ -361,7 +381,8 @@ export const database = {
 
       insertProgress.run(tutorialId, 'not_started');
 
-      return db.prepare('SELECT * FROM tutorials WHERE id = ?').get(tutorialId) as Tutorial;
+      const row = db.prepare('SELECT * FROM tutorials WHERE id = ?').get(tutorialId) as any;
+      return { ...row, preferences: parsePreferences(row.preferences) } as Tutorial;
     });
 
     return transaction();
@@ -393,7 +414,8 @@ export const database = {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
 
-    const tutorial = db.prepare('SELECT * FROM tutorials WHERE id = ?').get(tutorialId) as Tutorial;
+    const tutorialRow = db.prepare('SELECT * FROM tutorials WHERE id = ?').get(tutorialId) as any;
+    const tutorial = { ...tutorialRow, preferences: parsePreferences(tutorialRow.preferences) } as Tutorial;
     const parts = db.prepare('SELECT * FROM parts WHERE tutorial_id = ? ORDER BY sort_order').all(tutorialId) as Part[];
 
     const result = {
@@ -517,6 +539,26 @@ export const database = {
       created_at: tutorial.created_at,
       completed_at: tutorial.completed_at
     };
+  },
+
+  getPreferences(): Preferences | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const row = db.prepare('SELECT preferences FROM tutorials WHERE id = ?').get(tutorialId) as { preferences: string } | undefined;
+    return parsePreferences(row?.preferences ?? null);
+  },
+
+  updatePreferences(updates: Partial<Preferences>): Preferences | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const row = db.prepare('SELECT preferences FROM tutorials WHERE id = ?').get(tutorialId) as { preferences: string } | undefined;
+    const current = parsePreferences(row?.preferences ?? null);
+    const merged = { ...current, ...updates };
+
+    db.prepare('UPDATE tutorials SET preferences = ? WHERE id = ?').run(JSON.stringify(merged), tutorialId);
+    return merged;
   },
 
   getCurrentPosition(): {

@@ -276,7 +276,7 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 - Process the answers:
   - If the user selected a different topic than what's in CLAUDE.md, update the file: replace `<!-- topic: X -->` and `**Topic:** X` with the new topic
   - Map difficulty: Beginner → `difficulty_level: "beginner"`, Intermediate → `difficulty_level: "intermediate"`, Advanced → `difficulty_level: "advanced"`
-  - If they chose to build a book, create the `book/` directory. The lesson flow will automatically save content there. (They can also create `book/` later to enable this.)
+  - If they chose to build a book, create the `book/` directory.
 - Determine the tutorial type:
   - **Clearly programming** (Python, SQL, Rust, etc.) → `type: "programming"` — classify silently
   - **Clearly general** (French, Chemistry, History, etc.) → `type: "general"` — classify silently
@@ -286,7 +286,7 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
     - "Conceptual focus" — Ideas, analysis, and understanding without coding → `type: "general"`
 - **Run the verification workflow** (see "Always Use Current Information" above) to check for current versions and best practices before designing the curriculum
 - Design the curriculum calibrated to their difficulty level, using current patterns from your research (see Curriculum Structure below)
-- Call `create_tutorial` with the full curriculum, including `type` and `difficulty_level` fields. Do not display the raw response — the user doesn't need to see the JSON
+- Call `create_tutorial` with the full curriculum, including `type`, `difficulty_level`, and `preferences` (e.g., `{ "book": true }` if they chose book). Do not display the raw response — the user doesn't need to see the JSON
 - Call `start_tutorial` to begin
 - **Display the Opening Screen** (see ASCII Art section)
 - **PAUSE:** Say "Your adventure awaits." Then use `AskUserQuestion` with the question "Ready to begin?" and these options:
@@ -373,7 +373,7 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 
 If they select "Can you explain that differently?", provide an alternative explanation using different analogies or examples. If they type a custom question, answer it. Then ask again until they're ready to proceed.
 
-**Save to book (if enabled):** Once the user is ready for practice, if the `book/` directory exists, create the lesson file with the theory section. See "Book Format" section below for file structure and format. Do this silently before presenting the exercise.
+**Save to book (if enabled):** Once the user is ready for practice, call `get_preferences` — if `book` is true, create the lesson file with the theory section. See "Book Format" section below for file structure and format. Do this silently before presenting the exercise.
 
 ### 4. Hands-On Exercise
 
@@ -413,7 +413,7 @@ Create a `.txt` file at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}.txt`
 - "Ready to continue" (Recommended)
 - "I'd like more practice"
 
-**Save to book (if enabled):** After each confirmation, if the `book/` directory exists, append this exercise to the lesson file. Save both the full exercise prompt (verbatim, including requirements and hints) and the user's working solution (verbatim). Do this silently before continuing.
+**Save to book (if enabled):** After each confirmation, call `get_preferences` — if `book` is true, append this exercise to the lesson file. Save both the full exercise prompt (verbatim, including requirements and hints) and the user's working solution (verbatim). Do this silently before continuing.
 
 If they want more practice, provide another exercise on the same concept (different scenario), review it, ask again, and save that exercise too.
 
@@ -925,7 +925,7 @@ If the user asks a question unrelated to the current lesson:
 
 ## Book Format
 
-When the `book/` directory exists, save lesson content incrementally as described in the Lesson Flow. This section defines the file structure and format.
+When the `book` preference is enabled, save lesson content incrementally as described in the Lesson Flow. This section defines the file structure and format.
 
 ### Directory Structure
 
@@ -1008,6 +1008,7 @@ If user requests additional practice, append each subsequent exercise in the sam
 | After quiz            | `log_quiz_result`, `advance_position`                                                                       |
 | After interview       | `log_interview_result`                                                                                      |
 | After capstone        | `log_capstone_result`                                                                                       |
+| Before book save      | `get_preferences` (check `book`)                                                                            |
 | Progress check        | `get_tutorial`, `get_review_queue`                                                                          |
 
 ---

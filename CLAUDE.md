@@ -78,9 +78,11 @@ Two formats based on tutorial type:
 
 | Tool | Purpose |
 |------|---------|
-| `create_tutorial` | Generate new curriculum (with type and difficulty_level) |
+| `create_tutorial` | Generate new curriculum (with type, difficulty_level, preferences) |
 | `get_tutorial` | Full structure + stats (heavy — use for progress screen, certificate) |
 | `get_tutorial_metadata` | Lightweight: name, type, status, difficulty_level, dates (quick checks) |
+| `get_preferences` | Get user preferences (book, language). Lightweight — use for per-lesson checks |
+| `update_preferences` | Update one or more preferences. Merges with existing values |
 | `start_tutorial` | Begin a tutorial |
 | `get_current_position` | Current lesson/chapter/part, is_chapter_start |
 | `advance_position` | Move forward, add lesson to review queue |

@@ -206,6 +206,8 @@ This project demonstrates Claude Code's extensibility:
 | `create_tutorial`      | Generate a new curriculum                |
 | `get_tutorial`         | Get full structure + progress (heavy, use sparingly) |
 | `get_tutorial_metadata`| Lightweight check for status, type, difficulty |
+| `get_preferences`      | Get user preferences (book, language)    |
+| `update_preferences`   | Update one or more preferences           |
 | `start_tutorial`       | Begin a tutorial                         |
 | `get_current_position` | Current lesson/chapter/part              |
 | `advance_position`     | Move to next lesson, add to review queue |

@@ -8,7 +8,7 @@ import {
   ErrorCode,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import database, { Curriculum } from './database.js';
+import database, { Curriculum, Preferences } from './database.js';
 
 const server = new Server(
   {
@@ -49,6 +49,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'string',
               enum: ['beginner', 'intermediate', 'advanced'],
               description: 'The difficulty level chosen by the user. Affects lesson depth and complexity. Defaults to "beginner".',
+            },
+            preferences: {
+              type: 'object',
+              description: 'User preferences. Defaults: { book: false, language: "en" }',
+              properties: {
+                book: { type: 'boolean', description: 'Save lessons to a book/ folder for offline review' },
+                language: { type: 'string', description: 'Language of instruction (ISO 639-1 code). Defaults to "en".' },
+              },
             },
             parts: {
               type: 'array',
@@ -113,6 +121,25 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: 'object',
           properties: {},
+        },
+      },
+      {
+        name: 'get_preferences',
+        description: 'Get user preferences (book, language). Lightweight call — use this instead of get_tutorial when you only need to check a setting.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'update_preferences',
+        description: 'Update one or more user preferences. Merges provided values with existing preferences.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            book: { type: 'boolean', description: 'Enable/disable saving lessons to book/ folder' },
+            language: { type: 'string', description: 'Language of instruction (ISO 639-1 code)' },
+          },
         },
       },
       {
@@ -331,6 +358,64 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               text: JSON.stringify({
                 success: true,
                 ...metadata,
+              }, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'get_preferences': {
+        const preferences = database.getPreferences();
+        if (!preferences) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  success: false,
+                  error: 'No tutorial exists in this project yet. Create one first.',
+                }, null, 2),
+              },
+            ],
+          };
+        }
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                ...preferences,
+              }, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'update_preferences': {
+        const updates = args as Partial<Preferences>;
+        const preferences = database.updatePreferences(updates);
+        if (!preferences) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  success: false,
+                  error: 'No tutorial exists in this project yet. Create one first.',
+                }, null, 2),
+              },
+            ],
+          };
+        }
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                message: 'Preferences updated',
+                ...preferences,
               }, null, 2),
             },
           ],
