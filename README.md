@@ -3,19 +3,19 @@
 _A Claude Code Learning System_
 
 ```
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║               ░█▄░▄█░█░█░█░░▀█▀░█░█░█░█▀█░█▀▀░               ║
-║               ░█░▀░█░█░█░█░░░█░░█░▀▄▀░█▀█░█░░░               ║
-║               ░▀░░░▀░▀▀▀░▀▀▀░▀░░▀░░▀░░▀░▀░▀▀▀░               ║
-║                                                              ║
-║              Learn with AI-guided lessons,                   ║
-║       quizzes, mock interviews, and capstone projects        ║
-║                                                              ║
-║                  ▶ INSERT TOKEN TO START ◀                   ║
-║                       (run /tutorial)                        ║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║                   ░█▄░▄█░█░█░█░░▀█▀░█░█░█░█▀█░█▀▀░                   ║
+║                   ░█░▀░█░█░█░█░░░█░░█░▀▄▀░█▀█░█░░░                   ║
+║                   ░▀░░░▀░▀▀▀░▀▀▀░▀░░▀░░▀░░▀░▀░▀▀▀░                   ║
+║                                                                      ║
+║                    Learn with AI-guided lessons,                     ║
+║           quizzes, mock interviews, and capstone projects            ║
+║                                                                      ║
+║                      ▶ INSERT TOKEN TO START ◀                       ║
+║                           (run /tutorial)                            ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
 ```
 
 Transform Claude Code into a structured learning environment. Pick any topic — Python, JavaScript, French, Chemistry — and get a complete curriculum with progress tracking, spaced repetition, and assessments.
@@ -73,14 +73,14 @@ All capstones are skippable if you'd rather keep learning. Skipped capstones sho
 Your progress persists across sessions via a local SQLite database. Pick up exactly where you left off, see your stats, and track your improvement over time. Complete the tutorial to earn a completion certificate with your quiz averages, interview scores, and capstone results.
 
 ```
-╔══════════════════════════════════════════════════════════════╗
-║  STATS                        │  REVIEW QUEUE                ║
-║  ─────────────────────────────│───────────────────────────── ║
-║  Lessons:     22/48  (46%)    │  4 lessons pending           ║
-║  Quizzes Avg: 88%             │  • list comprehensions       ║
-║  Interviews:  6/12            │  • dictionary methods        ║
-║  Capstones:   1/3             │  • exception handling        ║
-╚══════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════╗
+║  STATS                            │  REVIEW QUEUE                    ║
+║  ─────────────────────────────────│───────────────────────────────── ║
+║  Lessons:     22/48  (46%)        │  4 lessons pending               ║
+║  Quizzes Avg: 88%                 │  • list comprehensions           ║
+║  Interviews:  6/12                │  • dictionary methods            ║
+║  Capstones:   1/3                 │  • exception handling            ║
+╚══════════════════════════════════════════════════════════════════════╝
 ```
 
 ## Installation
