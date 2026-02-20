@@ -79,7 +79,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     description TEXT,
-    type TEXT DEFAULT 'programming' CHECK (type IN ('programming', 'general')),
+    type TEXT DEFAULT 'general' CHECK (type IN ('general', 'programming')),
     difficulty_level TEXT DEFAULT 'beginner' CHECK (difficulty_level IN ('beginner', 'intermediate', 'advanced')),
     completed INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
@@ -351,7 +351,7 @@ export const database = {
       const tutorialResult = insertTutorial.run(
         curriculum.name,
         curriculum.description || null,
-        curriculum.type || 'programming',
+        curriculum.type || 'general',
         curriculum.difficulty_level || 'beginner',
         JSON.stringify(prefs)
       );

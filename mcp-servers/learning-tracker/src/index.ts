@@ -10,6 +10,20 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import database, { Curriculum, Preferences } from './database.js';
 
+// Response helpers
+function jsonResponse(data: Record<string, unknown>) {
+  return {
+    content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }],
+  };
+}
+
+function noTutorialError() {
+  return jsonResponse({
+    success: false,
+    error: 'No tutorial exists in this project yet. Create one first.',
+  });
+}
+
 const server = new Server(
   {
     name: 'learning-tracker',
@@ -42,8 +56,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             type: {
               type: 'string',
-              enum: ['programming', 'general'],
-              description: 'Tutorial type. "programming" includes code-based interviews and capstone projects with automated tests. "general" includes knowledge-based interviews but no capstones. Defaults to "programming".',
+              enum: ['general', 'programming'],
+              description: 'Tutorial type. "programming" uses code-based interviews and test-driven capstones. "general" uses knowledge-based interviews and criteria-based capstones. Defaults to "general".',
             },
             difficulty_level: {
               type: 'string',
@@ -293,218 +307,55 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'create_tutorial': {
         const curriculum = args as unknown as Curriculum;
         const tutorial = database.createTutorial(curriculum);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                message: `Tutorial "${tutorial.name}" created successfully`,
-                tutorial_id: tutorial.id,
-                tutorial,
-              }, null, 2),
-            },
-          ],
-        };
+        return jsonResponse({
+          success: true,
+          message: `Tutorial "${tutorial.name}" created successfully`,
+          tutorial_id: tutorial.id,
+          tutorial,
+        });
       }
 
       case 'get_tutorial': {
         const data = database.getTutorial();
-        if (!data) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  success: true,
-                  tutorial: null,
-                }, null, 2),
-              },
-            ],
-          };
-        }
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                ...data,
-              }, null, 2),
-            },
-          ],
-        };
+        if (!data) return jsonResponse({ success: true, tutorial: null });
+        return jsonResponse({ success: true, ...data });
       }
 
       case 'get_tutorial_metadata': {
         const metadata = database.getTutorialMetadata();
-        if (!metadata) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  success: true,
-                  metadata: null,
-                }, null, 2),
-              },
-            ],
-          };
-        }
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                ...metadata,
-              }, null, 2),
-            },
-          ],
-        };
+        if (!metadata) return jsonResponse({ success: true, metadata: null });
+        return jsonResponse({ success: true, ...metadata });
       }
 
       case 'get_preferences': {
         const preferences = database.getPreferences();
-        if (!preferences) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  success: false,
-                  error: 'No tutorial exists in this project yet. Create one first.',
-                }, null, 2),
-              },
-            ],
-          };
-        }
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                ...preferences,
-              }, null, 2),
-            },
-          ],
-        };
+        if (!preferences) return noTutorialError();
+        return jsonResponse({ success: true, ...preferences });
       }
 
       case 'update_preferences': {
         const updates = args as Partial<Preferences>;
         const preferences = database.updatePreferences(updates);
-        if (!preferences) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  success: false,
-                  error: 'No tutorial exists in this project yet. Create one first.',
-                }, null, 2),
-              },
-            ],
-          };
-        }
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                message: 'Preferences updated',
-                ...preferences,
-              }, null, 2),
-            },
-          ],
-        };
+        if (!preferences) return noTutorialError();
+        return jsonResponse({ success: true, message: 'Preferences updated', ...preferences });
       }
 
       case 'start_tutorial': {
         const progress = database.startTutorial();
-        if (!progress) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  success: false,
-                  error: 'No tutorial exists in this project yet. Create one first.',
-                }, null, 2),
-              },
-            ],
-          };
-        }
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                message: 'Tutorial started',
-                progress,
-              }, null, 2),
-            },
-          ],
-        };
+        if (!progress) return noTutorialError();
+        return jsonResponse({ success: true, message: 'Tutorial started', progress });
       }
 
       case 'get_current_position': {
         const position = database.getCurrentPosition();
-        if (!position) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  success: false,
-                  error: 'No tutorial exists in this project yet. Create one first.',
-                }, null, 2),
-              },
-            ],
-          };
-        }
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                ...position,
-              }, null, 2),
-            },
-          ],
-        };
+        if (!position) return noTutorialError();
+        return jsonResponse({ success: true, ...position });
       }
 
       case 'advance_position': {
         const result = database.advancePosition();
-        if (!result) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  success: false,
-                  error: 'No tutorial exists in this project yet. Create one first.',
-                }, null, 2),
-              },
-            ],
-          };
-        }
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                ...result,
-              }, null, 2),
-            },
-          ],
-        };
+        if (!result) return noTutorialError();
+        return jsonResponse({ success: true, ...result });
       }
 
       case 'log_quiz_result': {
@@ -515,18 +366,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           missed_concept_ids: number[];
         };
         const result = database.logQuizResult(lesson_id, score, total, missed_concept_ids);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                message: `Quiz result logged: ${score}/${total}`,
-                result,
-              }, null, 2),
-            },
-          ],
-        };
+        return jsonResponse({ success: true, message: `Quiz result logged: ${score}/${total}`, result });
       }
 
       case 'log_interview_result': {
@@ -537,18 +377,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           notes?: string;
         };
         const result = database.logInterviewResult(chapter_id, score, total, notes);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                message: `Interview result logged: ${score}/${total}`,
-                result,
-              }, null, 2),
-            },
-          ],
-        };
+        return jsonResponse({ success: true, message: `Interview result logged: ${score}/${total}`, result });
       }
 
       case 'log_capstone_result': {
@@ -558,51 +387,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           notes?: string;
         };
         const result = database.logCapstoneResult(part_id, completed, notes);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                message: `Capstone result logged: ${completed ? 'completed' : 'incomplete'}`,
-                result,
-              }, null, 2),
-            },
-          ],
-        };
+        return jsonResponse({
+          success: true,
+          message: `Capstone result logged: ${completed ? 'completed' : 'incomplete'}`,
+          result,
+        });
       }
 
       case 'get_review_queue': {
         const { limit } = args as { limit?: number };
         const result = database.getReviewQueue(limit);
-        if (!result) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  success: false,
-                  error: 'No tutorial exists in this project yet. Create one first.',
-                }, null, 2),
-              },
-            ],
-          };
-        }
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                count: result.queue.length,
-                total_in_queue: result.total_in_queue,
-                queue_replenished: result.queue_replenished,
-                queue: result.queue,
-                instructions: 'For each lesson in the queue, randomly pick ONE concept and ask a review question about it.',
-              }, null, 2),
-            },
-          ],
-        };
+        if (!result) return noTutorialError();
+        return jsonResponse({
+          success: true,
+          count: result.queue.length,
+          total_in_queue: result.total_in_queue,
+          queue_replenished: result.queue_replenished,
+          queue: result.queue,
+          instructions: 'For each lesson in the queue, randomly pick ONE concept and ask a review question about it.',
+        });
       }
 
       case 'log_review_result': {
@@ -611,61 +414,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           correct: boolean;
         };
         const result = database.logReviewResult(lesson_id, correct);
-        if (!result) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  success: false,
-                  error: 'No tutorial exists in this project yet. Create one first.',
-                }, null, 2),
-              },
-            ],
-          };
-        }
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                message: correct
-                  ? 'Correct! Lesson removed from review queue.'
-                  : 'Incorrect. Lesson moved to end of queue for later review.',
-                ...result,
-              }, null, 2),
-            },
-          ],
-        };
+        if (!result) return noTutorialError();
+        return jsonResponse({
+          success: true,
+          message: correct
+            ? 'Correct! Lesson removed from review queue.'
+            : 'Incorrect. Lesson moved to end of queue for later review.',
+          ...result,
+        });
       }
 
       case 'reset_progress': {
         const success = database.resetProgress();
-        if (!success) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  success: false,
-                  error: 'No tutorial exists in this project yet. Create one first.',
-                }, null, 2),
-              },
-            ],
-          };
-        }
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                message: 'Progress reset. Tutorial is ready to start from the beginning.',
-              }, null, 2),
-            },
-          ],
-        };
+        if (!success) return noTutorialError();
+        return jsonResponse({ success: true, message: 'Progress reset. Tutorial is ready to start from the beginning.' });
       }
 
       default:
@@ -673,17 +435,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            success: false,
-            error: message,
-          }, null, 2),
-        },
-      ],
-    };
+    return jsonResponse({ success: false, error: message });
   }
 });
 
