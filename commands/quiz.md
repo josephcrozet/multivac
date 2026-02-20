@@ -13,7 +13,7 @@ Generate and administer a quiz based on the current learning context.
 
 Before writing any questions, run this command to generate the answer key positions:
 
-```
+```bash
 echo "A B C D A B C D A B C D" | tr ' ' '\n' | shuf | tr '\n' ' '
 ```
 

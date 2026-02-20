@@ -31,12 +31,12 @@ Every tutorial is organized into **3 parts** (Part I → Part II → Part III), 
 Each lesson follows a proven learning flow:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  1. THEORY        Claude explains the concept with examples │
-│  2. HANDS-ON      You write code with guidance              │
-│  3. REVIEW        Socratic dialogue to deepen understanding │
-│  4. QUIZ          12 questions to test retention            │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│  1. THEORY        Claude explains the concept with examples          │
+│  2. HANDS-ON      You write code with guidance                       │
+│  3. REVIEW        Socratic dialogue to deepen understanding          │
+│  4. QUIZ          12 questions to test retention                     │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Spaced Repetition
@@ -225,19 +225,9 @@ This project demonstrates Claude Code's extensibility:
 - [Node.js](https://nodejs.org/) 18+ (for MCP server)
 - Claude Pro subscription (recommended for longer sessions)
 
-## Tutorial Types
+## Any Topic
 
-Multivac supports two tutorial types:
-
-| Feature    | Programming (Python, JS, etc.) | General (French, Chemistry, etc.) |
-|------------|-------------------------------|-----------------------------------|
-| Lessons    | ✓                             | ✓                                 |
-| Quizzes    | ✓                             | ✓                                 |
-| Reviews    | ✓                             | ✓                                 |
-| Interviews | Code-focused                   | Knowledge-focused                 |
-| Capstones  | ✓ (test-driven projects)      | ✓ (criteria-based assignments)   |
-
-The type is automatically detected based on your chosen topic.
+Multivac works with any subject — Python, French, Chemistry, you name it. The system automatically adapts based on your topic: programming tutorials get code-focused interviews and test-driven capstones, while other topics get knowledge-focused interviews and criteria-based capstones. You just pick a topic and start learning.
 
 ### A Note on General Topics
 
