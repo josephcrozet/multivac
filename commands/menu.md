@@ -28,7 +28,7 @@ Use the metadata from Step 1 to check status:
 - `status === 'completed'` → Tutorial is completed
 - `status === 'in_progress'` → Tutorial is in progress
 
-### If Tutorial is Completed
+**If tutorial is completed:**
 
 Use `AskUserQuestion` to present options:
 
@@ -41,7 +41,7 @@ Use `AskUserQuestion` to present options:
 3. **View progress** — "See your final stats, get certificate, and see suggested topics"
 4. **More...** — "Credits, start over, or quit"
 
-#### If "Review" selected
+**If "Review" selected:**
 
 Start a review session using the same mechanics as midgame review:
 
@@ -53,11 +53,11 @@ Start a review session using the same mechanics as midgame review:
    - Otherwise: "Session complete! {N} lessons remaining in your queue."
 5. Return to this menu.
 
-#### If "View curriculum" selected (completed)
+**If "View curriculum" selected (completed):**
 
 Display the Curriculum Tree (see format below). Then return to this menu.
 
-#### If "View progress" selected (completed)
+**If "View progress" selected (completed):**
 
 1. Display the Progress Screen (see format below) — call `get_tutorial` for full stats
 2. Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completion certificate?"
@@ -66,7 +66,7 @@ Display the Curriculum Tree (see format below). Then return to this menu.
 3. Generate and display topic suggestions (see `session.md` for the "Suggest Next Topics" instructions) — use `difficulty_level` from metadata
 4. Return to this menu
 
-### If Tutorial is In Progress
+**If tutorial is in progress:**
 
 First, call `get_current_position` to check if `is_chapter_start` is true.
 
@@ -86,11 +86,11 @@ Then use `AskUserQuestion` to present options:
 3. **View progress** — "See your stats and progress in detail"
 4. **More...** — "Credits, start over, or quit"
 
-#### If "Continue" selected
+**If "Continue" selected:**
 
 Read and follow `~/.claude/prompts/session.md` to resume the lesson flow.
 
-#### If "View curriculum" selected (in progress)
+**If "View curriculum" selected (in progress):**
 
 Display the Curriculum Tree (see format below). Say "Take your time." Then use `AskUserQuestion` with the question "What next?" and these options:
 
@@ -99,7 +99,7 @@ Display the Curriculum Tree (see format below). Say "Take your time." Then use `
 
 If they choose "Continue", resume the lesson flow from the current position. If "Back to menu", return to the main menu.
 
-#### If "View progress" selected (in progress)
+**If "View progress" selected (in progress):**
 
 Display the Progress Screen (see format below) — call `get_tutorial` for full stats. Say "Here's where you stand." Then use `AskUserQuestion` with the question "What next?" and these options:
 
@@ -108,7 +108,7 @@ Display the Progress Screen (see format below) — call `get_tutorial` for full 
 
 If they choose "Continue", resume the lesson flow from the current position. If "Back to menu", return to the main menu.
 
-### If "More..." selected
+**If "More..." selected:**
 
 Use `AskUserQuestion` with the question "More options:" and these options:
 
@@ -117,11 +117,11 @@ Use `AskUserQuestion` with the question "More options:" and these options:
 3. **Start over** — "Clear all progress and restart"
 4. **Quit** — "Return to normal Claude Code"
 
-#### If "Back to menu" selected
+**If "Back to menu" selected:**
 
 Return to the main menu (completed or in-progress, whichever state applies).
 
-#### If "Credits" selected
+**If "Credits" selected:**
 
 Display the credits screen:
 
@@ -143,7 +143,7 @@ Display the credits screen:
 
 Then return to the main menu.
 
-#### If "Start over" selected
+**If "Start over" selected:**
 
 Use `AskUserQuestion` to ask: "How would you like to restart?"
 
@@ -167,7 +167,7 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 - Tell the user: "Tutorial deleted. Run `/clear` to reset the conversation context, then `/tutorial` to set up your new topic."
 - End the command (do not auto-start the tutorial)
 
-#### If "Quit" selected
+**If "Quit" selected:**
 
 Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
@@ -346,14 +346,13 @@ Legend: ✓ completed  ► current  ○ upcoming  ◆ capstone
 - `✓` — Lesson or mock interview completed
 - `►` — Current lesson (with `◄── YOU ARE HERE` marker)
 - `○` — Upcoming lesson or mock interview (not yet started)
-- `◆` — Capstone project (programming tutorials only)
+- `◆` — Capstone project
 
 ### Display Rules
 
 1. Show ALL parts, chapters, and lessons (the full 48-lesson curriculum)
 2. Show `Mock Interview` at the end of each chapter (after the 4 lessons)
-3. For programming tutorials, show `◆ Capstone Project` at the end of each part
-4. For general tutorials, omit capstone projects (they don't have them)
-5. Use tree-drawing characters (`├─`, `│`, `└─`) for clean hierarchy
-6. Mark the current lesson with `►` and append `◄── YOU ARE HERE`
-7. For completed tutorials, all items show `✓` and omit the "YOU ARE HERE" marker
+3. Show `◆ Capstone Project` at the end of each part
+4. Use tree-drawing characters (`├─`, `│`, `└─`) for clean hierarchy
+5. Mark the current lesson with `►` and append `◄── YOU ARE HERE`
+6. For completed tutorials, all items show `✓` and omit the "YOU ARE HERE" marker
