@@ -13,3 +13,6 @@ package-lock.json
 # Runtime data
 *.db
 data/
+
+# Secrets
+.env
