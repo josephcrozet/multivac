@@ -1,6 +1,113 @@
-import Database from 'better-sqlite3';
+import initSqlJs from 'sql.js';
 import { join } from 'path';
-import { mkdirSync, existsSync } from 'fs';
+import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
+
+// ---------------------------------------------------------------------------
+// SQLite adapter — wraps sql.js (WASM) with a better-sqlite3-compatible API
+// ---------------------------------------------------------------------------
+// Using WASM-based SQLite eliminates native module compilation, so the MCP
+// server works on any OS, architecture, and Node.js version without rebuilds.
+// ---------------------------------------------------------------------------
+
+class SqliteAdapter {
+  private db: any;
+  private dbPath: string;
+  private inTransaction = false;
+
+  private constructor(db: any, dbPath: string) {
+    this.db = db;
+    this.dbPath = dbPath;
+  }
+
+  static async open(dbPath: string): Promise<SqliteAdapter> {
+    const SQL = await initSqlJs();
+    if (existsSync(dbPath)) {
+      const buffer = readFileSync(dbPath);
+      return new SqliteAdapter(new SQL.Database(buffer), dbPath);
+    }
+    return new SqliteAdapter(new SQL.Database(), dbPath);
+  }
+
+  private save(): void {
+    if (!this.inTransaction) {
+      writeFileSync(this.dbPath, Buffer.from(this.db.export()));
+    }
+  }
+
+  exec(sql: string): void {
+    this.db.exec(sql);
+    this.save();
+  }
+
+  pragma(pragmaStr: string): any[] {
+    const results = this.db.exec(`PRAGMA ${pragmaStr}`);
+    if (results.length === 0) return [];
+    return results[0].values.map((row: any[]) => {
+      const obj: Record<string, any> = {};
+      results[0].columns.forEach((col: string, i: number) => obj[col] = row[i]);
+      return obj;
+    });
+  }
+
+  prepare(sql: string) {
+    const adapter = this;
+    return {
+      get(...params: any[]): any {
+        const stmt = adapter.db.prepare(sql);
+        try {
+          if (params.length) stmt.bind(params);
+          if (stmt.step()) {
+            return stmt.getAsObject();
+          }
+          return undefined;
+        } finally {
+          stmt.free();
+        }
+      },
+      all(...params: any[]): any[] {
+        const stmt = adapter.db.prepare(sql);
+        try {
+          if (params.length) stmt.bind(params);
+          const results: any[] = [];
+          while (stmt.step()) {
+            results.push(stmt.getAsObject());
+          }
+          return results;
+        } finally {
+          stmt.free();
+        }
+      },
+      run(...params: any[]) {
+        adapter.db.run(sql, params);
+        const lastId = adapter.db.exec('SELECT last_insert_rowid()');
+        const changes = adapter.db.exec('SELECT changes()');
+        adapter.save();
+        return {
+          lastInsertRowid: (lastId[0]?.values[0]?.[0] ?? 0) as number,
+          changes: (changes[0]?.values[0]?.[0] ?? 0) as number,
+        };
+      },
+    };
+  }
+
+  transaction<T>(fn: () => T): () => T {
+    return () => {
+      this.inTransaction = true;
+      this.db.exec('BEGIN TRANSACTION');
+      try {
+        const result = fn();
+        this.db.exec('COMMIT');
+        this.inTransaction = false;
+        this.save();
+        return result;
+      } catch (e) {
+        this.db.exec('ROLLBACK');
+        this.inTransaction = false;
+        throw e;
+      }
+    };
+  }
+}
 
 // Data directory must be set via MULTIVAC_DATA_DIR environment variable
 // This is set by the local .mcp.json in each tutorial project
@@ -18,8 +125,7 @@ if (!existsSync(DATA_DIR)) {
   mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const db = new Database(DB_PATH);
-db.pragma('journal_mode = WAL');
+const db = await SqliteAdapter.open(DB_PATH);
 
 // ---------------------------------------------------------------------------
 // Schema migrations
