@@ -177,8 +177,8 @@ This project demonstrates Claude Code's extensibility:
 │   └── tutorial.md             # /tutorial - start or resume a tutorial
 ├── hooks/
 │   ├── capstone-test-runner.sh # Runs tests on capstone todo completion
-│   ├── compact-hook.sh         # Recovers state after context compaction
-│   └── tutorial-prompt.sh      # Offers to start/continue tutorial on session start
+│   ├── compact-recovery.sh     # Recovers state after context compaction
+│   └── session-greeting.sh     # Offers to start/continue tutorial on session start
 ├── prompts/
 │   └── session.md              # Full tutorial session instructions
 └── mcp-servers/

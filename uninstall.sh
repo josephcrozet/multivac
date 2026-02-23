@@ -17,8 +17,8 @@ echo "  - ~/.claude/commands/quiz.md"
 echo "  - ~/.claude/commands/tutorial.md"
 echo "  - ~/.claude/commands/menu.md"
 echo "  - ~/.claude/hooks/capstone-test-runner.sh"
-echo "  - ~/.claude/hooks/tutorial-prompt.sh"
-echo "  - ~/.claude/hooks/compact-hook.sh"
+echo "  - ~/.claude/hooks/session-greeting.sh"
+echo "  - ~/.claude/hooks/compact-recovery.sh"
 echo "  - ~/.claude/prompts/session.md"
 echo "  - ~/.claude/mcp-servers/learning-tracker/"
 echo "  - ~/.local/bin/multivac"
@@ -66,14 +66,14 @@ if [ -f "$CLAUDE_DIR/hooks/capstone-test-runner.sh" ]; then
     echo "  Removed: hooks/capstone-test-runner.sh"
 fi
 
-if [ -f "$CLAUDE_DIR/hooks/tutorial-prompt.sh" ]; then
-    rm "$CLAUDE_DIR/hooks/tutorial-prompt.sh"
-    echo "  Removed: hooks/tutorial-prompt.sh"
+if [ -f "$CLAUDE_DIR/hooks/session-greeting.sh" ]; then
+    rm "$CLAUDE_DIR/hooks/session-greeting.sh"
+    echo "  Removed: hooks/session-greeting.sh"
 fi
 
-if [ -f "$CLAUDE_DIR/hooks/compact-hook.sh" ]; then
-    rm "$CLAUDE_DIR/hooks/compact-hook.sh"
-    echo "  Removed: hooks/compact-hook.sh"
+if [ -f "$CLAUDE_DIR/hooks/compact-recovery.sh" ]; then
+    rm "$CLAUDE_DIR/hooks/compact-recovery.sh"
+    echo "  Removed: hooks/compact-recovery.sh"
 fi
 
 # Remove prompts

@@ -91,9 +91,9 @@ write_project_config() {
 
     # Get paths to installed components
     local mcp_server_path="$HOME/.claude/mcp-servers/learning-tracker/dist/index.js"
-    local capstone_hook_path="$HOME/.claude/hooks/capstone-test-runner.sh"
-    local tutorial_prompt_hook_path="$HOME/.claude/hooks/tutorial-prompt.sh"
-    local compact_hook_path="$HOME/.claude/hooks/compact-hook.sh"
+    local capstone_test_runner_hook_path="$HOME/.claude/hooks/capstone-test-runner.sh"
+    local session_greeting_hook_path="$HOME/.claude/hooks/session-greeting.sh"
+    local compact_recovery_hook_path="$HOME/.claude/hooks/compact-recovery.sh"
     local data_dir="$project_dir/.multivac"
 
     # Verify MCP server is installed
@@ -128,24 +128,24 @@ EOF
     "SessionStart": [
       {
         "matcher": "startup",
-        "hooks": [{"type": "command", "command": "$tutorial_prompt_hook_path"}]
+        "hooks": [{"type": "command", "command": "$session_greeting_hook_path"}]
       },
       {
         "matcher": "resume",
-        "hooks": [{"type": "command", "command": "$tutorial_prompt_hook_path"}]
+        "hooks": [{"type": "command", "command": "$session_greeting_hook_path"}]
       },
       {
         "matcher": "clear",
-        "hooks": [{"type": "command", "command": "$tutorial_prompt_hook_path"}]
+        "hooks": [{"type": "command", "command": "$session_greeting_hook_path"}]
       },
       {
         "matcher": "compact",
-        "hooks": [{"type": "command", "command": "$compact_hook_path"}]
+        "hooks": [{"type": "command", "command": "$compact_recovery_hook_path"}]
       }
     ],
     "PreToolUse": [{
       "matcher": "TodoWrite",
-      "hooks": [{"type": "command", "command": "$capstone_hook_path"}]
+      "hooks": [{"type": "command", "command": "$capstone_test_runner_hook_path"}]
     }]
   }
 }

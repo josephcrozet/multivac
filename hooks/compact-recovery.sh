@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Compact Hook (SessionStart with matcher: compact)
-# Reminds Claude to re-read instructions and verify state after context compaction
+# Compact Recovery (SessionStart with matcher: compact)
+# Recovers tutorial context after context compaction
 
 cat << EOF
 Context was just compacted. To resume the tutorial correctly:
