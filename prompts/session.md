@@ -996,6 +996,12 @@ If user requests additional practice, append each subsequent exercise in the sam
 - **Create directories as needed:** Use the Write tool to create parent directories
 - **No confirmation needed:** Save silently; don't interrupt the lesson flow with "saved to book" messages
 
+### Reviewing Previous Lessons
+
+If the user asks to revisit a previous lesson and the book preference is enabled, read the saved lesson file from `book/` and present it verbatim to the user — do not summarize or rephrase. The book preserves the exact theory, examples, and exercises as originally taught, which is better for review than regenerating the lesson (which would produce different examples and phrasing).
+
+If the book preference is not enabled (no saved files), re-teach the lesson normally.
+
 ---
 
 ## Quick Reference
