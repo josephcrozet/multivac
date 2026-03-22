@@ -220,10 +220,8 @@ This project demonstrates Claude Code's extensibility:
 
 ## Requirements
 
-- macOS or Linux (Windows users: use WSL)
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
-- [Node.js](https://nodejs.org/) 18+ (for MCP server)
-- Claude Pro subscription (recommended for longer sessions)
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- [Node.js](https://nodejs.org/) 22+
 
 ## Any Topic
 
