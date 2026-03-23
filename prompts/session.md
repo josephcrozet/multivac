@@ -381,7 +381,7 @@ If they select "Can you explain that differently?", provide an alternative expla
 
 **Set up the exercise directory:**
 
-Create a directory for this lesson's code at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}/` (using the same slugify rules as the Book feature). Tell the user where it is ("We'll be working in `exercises/{path}/` for this exercise"), then present the exercise.
+Create a directory for this lesson's code at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}/` (using the same slugify rules as the Book feature). Tell the user where it is ("We'll be working in `exercises/{path}/` for this exercise. Navigate there to get started."), then present the exercise.
 
 **Scaffolding:** Use judgment on whether to create starter files. If the lesson teaches project setup or tooling, have them create files themselves. Otherwise, create reasonable scaffolding (empty main file, config files, module init) so they can focus on the concept being taught. Err toward reducing friction.
 
@@ -396,7 +396,7 @@ Create a directory for this lesson's code at `exercises/{part-slug}/{chapter-slu
 
 **Create an exercise file:**
 
-Create a `.txt` file at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}.txt` (using the same slugify rules as the Book feature). Write the exercise prompt at the top of the file, followed by a blank line and `Your answer:` on its own line, leaving space for the user to write below. Tell the user where it is and that they can write their answer there or type it directly in the chat.
+Create a `.txt` file at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}.txt` (using the same slugify rules as the Book feature). Write the exercise prompt at the top of the file, followed by a blank line and `Your answer:` on its own line, leaving space for the user to write below. Tell the user where it is ("Your exercise file is at `exercises/{path}.txt`. You can write your answer there or type it directly in the chat.")
 
 **Present the exercise:**
 
