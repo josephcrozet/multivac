@@ -18,7 +18,7 @@
     "tutorial",
     "spaced-repetition"
   ],
-  "author": "",
+  "author": "Joseph Crozet",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.28",
