@@ -111,7 +111,7 @@ Per-project configuration (created by `multivac` command, updated by `multivac u
 ## Testing
 
 To test components:
-- **MCP Server**: `cd ~/.claude/mcp-servers/learning-tracker && npm run build && npm start`
+- **MCP Server**: `cd ~/.claude/mcp-servers/learning-tracker && npm install && npm run build && npm start`
 - **Hook**: Echo mock JSON to the hook script
 - **Commands**: Run `/quiz`, `/tutorial`, or `/menu` in Claude Code
 - **Interview Agent**: Use Task tool to spawn with agent instructions
