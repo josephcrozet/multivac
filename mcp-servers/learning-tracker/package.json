@@ -20,6 +20,9 @@
   ],
   "author": "Joseph Crozet",
   "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.28",
     "sql.js": "^1.14"
