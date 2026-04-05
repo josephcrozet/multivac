@@ -8,6 +8,7 @@
     "learning-tracker": "dist/index.js"
   },
   "scripts": {
+    "preinstall": "npx only-allow npm",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc --watch"
