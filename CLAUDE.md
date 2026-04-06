@@ -29,6 +29,10 @@ multivac/
 └── README.md                     # User documentation
 ```
 
+## Tooling
+
+**Package manager: npm.** Do not substitute bun, pnpm, or other package managers.
+
 ## Key Design Decisions
 
 **Project Structure**
