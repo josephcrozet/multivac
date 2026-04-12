@@ -31,6 +31,7 @@
   "devDependencies": {
     "@types/node": "^24.12.2",
     "@types/sql.js": "^1.4.11",
+    "only-allow": "^1.2.2",
     "typescript": "^6.0.2"
   }
 }
