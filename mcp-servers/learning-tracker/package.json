@@ -25,12 +25,12 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.28",
-    "sql.js": "^1.14"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "sql.js": "^1.14.1"
   },
   "devDependencies": {
-    "@types/node": "^24",
-    "@types/sql.js": "^1.4",
-    "typescript": "^6.0"
+    "@types/node": "^24.12.2",
+    "@types/sql.js": "^1.4.11",
+    "typescript": "^6.0.2"
   }
 }
