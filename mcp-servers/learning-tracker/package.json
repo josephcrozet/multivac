@@ -8,10 +8,11 @@
     "learning-tracker": "dist/index.js"
   },
   "scripts": {
-    "preinstall": "npx only-allow npm",
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "preinstall": "npx only-allow npm",
+    "postinstall": "simple-git-hooks"
   },
   "keywords": [
     "mcp",
@@ -32,6 +33,10 @@
     "@types/node": "^24.12.2",
     "@types/sql.js": "^1.4.11",
     "only-allow": "^1.2.2",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "^6.0.2"
+  },
+  "simple-git-hooks": {
+    "pre-push": "cd mcp-servers/learning-tracker && npm run build"
   }
 }
