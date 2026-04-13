@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  FORCE_COLOR: true
+  LEFTHOOK: 0
+
 jobs:
   ci:
     runs-on: ubuntu-latest
