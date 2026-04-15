@@ -338,7 +338,7 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
 
 - If `is_chapter_start` is true from `get_current_position`, display the **Chapter Start Screen** (see ASCII Art section)
 - **PAUSE:** Say "Here's what we'll cover." Then use `AskUserQuestion` with the question "Ready for this chapter?" and these options:
-  - "Continue" (Recommended) — Start the chapter
+  - "Continue" — Start the chapter
   - "Quit" — Return to normal Claude Code
 - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 - Then proceed to review (if applicable)
@@ -368,7 +368,7 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 
 **After theory:** Say "That covers the theory." Then use `AskUserQuestion` with question "Any questions before we practice?" with only these two options:
 
-- "Ready for hands-on practice" (Recommended)
+- "Ready for hands-on practice"
 - "Can you explain that differently?"
 
 If they select "Can you explain that differently?", provide an alternative explanation using different analogies or examples. If they type a custom question, answer it. Then ask again until they're ready to proceed.
@@ -410,7 +410,7 @@ Create a `.txt` file at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}.txt`
 
 **After reviewing their solution:** Say "Nice work on that exercise." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with only these two options:
 
-- "Ready to continue" (Recommended)
+- "Ready to continue"
 - "I'd like more practice"
 
 **Save to book (if enabled):** After each confirmation, call `get_preferences` — if `book` is true, append this exercise to the lesson file. Save both the full exercise prompt (verbatim, including requirements and hints) and the user's working solution (verbatim). Do this silently before continuing.
@@ -441,7 +441,7 @@ If they want more practice, provide another exercise on the same concept (differ
 When all 4 lessons in a chapter are complete:
 
 1. Say "You've completed all lessons in this chapter. Time for a mock interview!" Then use `AskUserQuestion` with the question "Ready for your interview?" and these options:
-   - "Let's go" (Recommended) — Start the interview
+   - "Let's go" — Start the interview
    - "Quit" — Return to normal Claude Code
    - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
