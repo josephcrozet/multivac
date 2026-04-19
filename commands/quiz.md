@@ -43,7 +43,7 @@ After receiving answers, provide feedback on Medium questions, then ask all 4 ha
 
 ### After Each Prompt
 - Show which questions were correct/incorrect
-- Provide brief explanations for wrong answers
+- Provide brief explanations for all answers (correct and incorrect)
 - Show running score
 
 ## Question Format
