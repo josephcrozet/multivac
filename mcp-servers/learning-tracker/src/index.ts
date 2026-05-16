@@ -130,6 +130,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: 'get_chapter',
+        description: 'Get a single chapter with its lessons (name, description, completion status). Lightweight call — use this for the Chapter Start Screen instead of get_tutorial. The chapter_id comes from current_chapter.id returned by get_current_position.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            chapter_id: {
+              type: 'number',
+              description: 'ID of the chapter to fetch',
+            },
+          },
+          required: ['chapter_id'],
+        },
+      },
+      {
         name: 'get_tutorial_metadata',
         description: 'Get lightweight tutorial metadata without the full structure. Returns name, type, status, difficulty_level, and dates. Use this for quick checks like determining if tutorial is completed, what type it is, or what difficulty level was chosen. Returns null if no tutorial exists.',
         inputSchema: {
@@ -318,6 +332,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'get_tutorial': {
         const data = database.getTutorial();
         if (!data) return jsonResponse({ success: true, tutorial: null });
+        return jsonResponse({ success: true, ...data });
+      }
+
+      case 'get_chapter': {
+        const { chapter_id } = args as { chapter_id: number };
+        const data = database.getChapter(chapter_id);
+        if (!data) return jsonResponse({ success: false, error: `Chapter ${chapter_id} not found` });
         return jsonResponse({ success: true, ...data });
       }
 

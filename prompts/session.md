@@ -336,7 +336,7 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
 
 ### 1. Chapter Start (if first lesson of chapter)
 
-- If `is_chapter_start` is true from `get_current_position`, display the **Chapter Start Screen** (see ASCII Art section)
+- If `is_chapter_start` is true from `get_current_position`, call `get_chapter` with the `current_chapter.id` to fetch the chapter's lessons, then display the **Chapter Start Screen** (see ASCII Art section)
 - **PAUSE:** Say "Here's what we'll cover." Then use `AskUserQuestion` with the question "Ready for this chapter?" and these options:
   - "Continue" — Start the chapter
   - "Quit" — Return to normal Claude Code

@@ -206,6 +206,7 @@ This project demonstrates Claude Code's extensibility:
 | `create_tutorial`      | Generate a new curriculum                |
 | `get_tutorial`         | Get full structure + progress (heavy, use sparingly) |
 | `get_tutorial_metadata`| Lightweight check for status, type, difficulty |
+| `get_chapter`          | Get one chapter with its lessons (for Chapter Start Screen) |
 | `get_preferences`      | Get user preferences (book, language)    |
 | `update_preferences`   | Update one or more preferences           |
 | `start_tutorial`       | Begin a tutorial                         |

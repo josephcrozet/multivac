@@ -667,6 +667,31 @@ export const database = {
     return merged;
   },
 
+  getChapter(chapterId: number): {
+    chapter: Chapter;
+    lessons: Lesson[];
+  } | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const chapter = db.prepare(`
+      SELECT c.* FROM chapters c
+      JOIN parts p ON c.part_id = p.id
+      WHERE c.id = ? AND p.tutorial_id = ?
+    `).get(chapterId, tutorialId) as Chapter | undefined;
+
+    if (!chapter) return null;
+
+    const lessons = db.prepare(
+      'SELECT * FROM lessons WHERE chapter_id = ? ORDER BY sort_order'
+    ).all(chapterId) as Lesson[];
+
+    return {
+      chapter: { ...chapter, completed: !!chapter.completed },
+      lessons: lessons.map(l => ({ ...l, completed: !!l.completed })),
+    };
+  },
+
   getCurrentPosition(): {
     tutorial_name: string;
     current_lesson: Lesson | null;

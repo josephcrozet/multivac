@@ -85,6 +85,7 @@ Two formats based on tutorial type:
 | `create_tutorial` | Generate new curriculum (with type, difficulty_level, preferences) |
 | `get_tutorial` | Full structure + stats (heavy — use for progress screen, certificate) |
 | `get_tutorial_metadata` | Lightweight: name, type, status, difficulty_level, dates (quick checks) |
+| `get_chapter` | Get a single chapter with its lessons. Use for Chapter Start Screen instead of get_tutorial |
 | `get_preferences` | Get user preferences (book, language). Lightweight — use for per-lesson checks |
 | `update_preferences` | Update one or more preferences. Merges with existing values |
 | `start_tutorial` | Begin a tutorial |
