@@ -207,6 +207,7 @@ This project demonstrates Claude Code's extensibility:
 | `get_tutorial`         | Get full structure + progress (heavy, use sparingly) |
 | `get_tutorial_metadata`| Lightweight check for status, type, difficulty |
 | `get_chapter`          | Get one chapter with its lessons (for Chapter Start Screen) |
+| `get_part`             | Get one part with chapters → lessons → concepts (for capstone design) |
 | `get_preferences`      | Get user preferences (book, language)    |
 | `update_preferences`   | Update one or more preferences           |
 | `start_tutorial`       | Begin a tutorial                         |

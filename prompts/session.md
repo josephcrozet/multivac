@@ -488,7 +488,7 @@ If they skip: proceed directly to **Display Completion Screen** (step 7). Do not
 
 ### 3. Present the Project
 
-Design a capstone that synthesizes concepts from all 4 chapters in this part. It should be substantial enough to feel like a real accomplishment but achievable in one sitting.
+Call `get_part` with the `current_part.id` to fetch the part's full structure (chapters → lessons → concepts). Use that data to design a capstone that synthesizes concepts from all 4 chapters in this part. It should be substantial enough to feel like a real accomplishment but achievable in one sitting.
 
 For human language tutorials (Spanish, French, Japanese, etc.), the capstone prompt, criteria, and feedback should follow the target language guidelines in Core Principles.
 

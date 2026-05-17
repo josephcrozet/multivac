@@ -667,6 +667,52 @@ export const database = {
     return merged;
   },
 
+  getPart(partId: number): {
+    part: Part;
+    chapters: (Chapter & {
+      lessons: (Lesson & { concepts: Concept[] })[];
+    })[];
+  } | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const part = db.prepare(
+      'SELECT * FROM parts WHERE id = ? AND tutorial_id = ?'
+    ).get(partId, tutorialId) as Part | undefined;
+
+    if (!part) return null;
+
+    const chapters = db.prepare(
+      'SELECT * FROM chapters WHERE part_id = ? ORDER BY sort_order'
+    ).all(partId) as Chapter[];
+
+    const chaptersWithLessons = chapters.map(chapter => {
+      const lessons = db.prepare(
+        'SELECT * FROM lessons WHERE chapter_id = ? ORDER BY sort_order'
+      ).all(chapter.id) as Lesson[];
+
+      return {
+        ...chapter,
+        completed: !!chapter.completed,
+        lessons: lessons.map(lesson => {
+          const concepts = db.prepare(
+            'SELECT * FROM concepts WHERE lesson_id = ?'
+          ).all(lesson.id) as Concept[];
+          return {
+            ...lesson,
+            completed: !!lesson.completed,
+            concepts,
+          };
+        }),
+      };
+    });
+
+    return {
+      part: { ...part, completed: !!part.completed },
+      chapters: chaptersWithLessons,
+    };
+  },
+
   getChapter(chapterId: number): {
     chapter: Chapter;
     lessons: Lesson[];

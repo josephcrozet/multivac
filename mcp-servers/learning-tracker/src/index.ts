@@ -130,6 +130,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: 'get_part',
+        description: 'Get a single part with its full structure (chapters → lessons → concepts). Use this for capstone design (synthesizing concepts from all 4 chapters in this part) instead of get_tutorial. The part_id comes from current_part.id returned by get_current_position.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            part_id: {
+              type: 'number',
+              description: 'ID of the part to fetch',
+            },
+          },
+          required: ['part_id'],
+        },
+      },
+      {
         name: 'get_chapter',
         description: 'Get a single chapter with its lessons (name, description, completion status). Lightweight call — use this for the Chapter Start Screen instead of get_tutorial. The chapter_id comes from current_chapter.id returned by get_current_position.',
         inputSchema: {
@@ -332,6 +346,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'get_tutorial': {
         const data = database.getTutorial();
         if (!data) return jsonResponse({ success: true, tutorial: null });
+        return jsonResponse({ success: true, ...data });
+      }
+
+      case 'get_part': {
+        const { part_id } = args as { part_id: number };
+        const data = database.getPart(part_id);
+        if (!data) return jsonResponse({ success: false, error: `Part ${part_id} not found` });
         return jsonResponse({ success: true, ...data });
       }
 
