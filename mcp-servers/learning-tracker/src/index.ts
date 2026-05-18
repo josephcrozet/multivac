@@ -130,6 +130,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: 'get_stats',
+        description: 'Get aggregate stats for the tutorial: overall counts (lessons, concepts, interviews, capstones) and quiz/interview averages, plus the same breakdown per part. Lightweight — use for any screen that displays scores or progress (Part Complete Screen, Victory Screen, Progress Screen, Certificate) instead of get_tutorial.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
         name: 'get_part',
         description: 'Get a single part with its full structure (chapters → lessons → concepts). Use this for capstone design (synthesizing concepts from all 4 chapters in this part) instead of get_tutorial. The part_id comes from current_part.id returned by get_current_position.',
         inputSchema: {
@@ -346,6 +354,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'get_tutorial': {
         const data = database.getTutorial();
         if (!data) return jsonResponse({ success: true, tutorial: null });
+        return jsonResponse({ success: true, ...data });
+      }
+
+      case 'get_stats': {
+        const data = database.getStats();
+        if (!data) return noTutorialError();
         return jsonResponse({ success: true, ...data });
       }
 

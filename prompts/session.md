@@ -575,6 +575,8 @@ The student should never be permanently blocked by a flawed evaluation.
 
 ### 7. Display Completion Screen
 
+Call `get_stats` to fetch the aggregate numbers needed for the screen (use the current part's slice from the `parts` array for the Part Complete Screen, or the `tutorial` object for the Victory Screen).
+
 - If Part I or II: Display the **Part Complete Screen** (see ASCII Art section), then continue to next part
 - If Part III (final): Display the **Victory Screen** (see ASCII Art section), then proceed to **Tutorial Completion** flow
 

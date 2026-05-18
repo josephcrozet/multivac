@@ -59,7 +59,7 @@ Display the Curriculum Tree (see format below). Then return to this menu.
 
 **If "View progress" selected (completed):**
 
-1. Display the Progress Screen (see format below) — call `get_tutorial` for full stats
+1. Display the Progress Screen (see format below) — call `get_stats` for aggregate numbers and `get_part` (with `current_part.id`) for the current part's chapter breakdown
 2. Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completion certificate?"
    - If yes: Generate the certificate (see `session.md` for template), save to `{topic}-certificate.txt`, confirm save
    - If no: Continue
@@ -101,7 +101,7 @@ If they choose "Continue", resume the lesson flow from the current position. If 
 
 **If "View progress" selected (in progress):**
 
-Display the Progress Screen (see format below) — call `get_tutorial` for full stats. Say "Here's where you stand." Then use `AskUserQuestion` with the question "What next?" and these options:
+Display the Progress Screen (see format below) — call `get_stats` for aggregate numbers and `get_part` (with `current_part.id`) for the current part's chapter breakdown. Say "Here's where you stand." Then use `AskUserQuestion` with the question "What next?" and these options:
 
 - "Continue" (Recommended) — Resume the lesson
 - "Back to menu" — Return to the main menu
@@ -179,9 +179,10 @@ Display tutorial progress in a retro video game-style ASCII art format.
 
 ### Data Collection
 
-1. Call `get_tutorial` to get full stats
-2. Call `get_review_queue` to see pending reviews
-3. Call `get_current_position` to get current location
+1. Call `get_stats` for aggregate numbers (overall + per-part)
+2. Call `get_current_position` to get current location (and current_part.id)
+3. Call `get_part` with `current_part.id` for the chapter breakdown in the current part
+4. Call `get_review_queue` to see pending reviews
 
 ### Screen Template
 

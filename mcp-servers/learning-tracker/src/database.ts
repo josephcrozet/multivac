@@ -713,6 +713,145 @@ export const database = {
     };
   },
 
+  getStats(): {
+    tutorial: {
+      total_lessons: number;
+      completed_lessons: number;
+      total_concepts: number;
+      average_quiz_score: number | null;
+      total_interviews: number;
+      completed_interviews: number;
+      average_interview_score: number | null;
+      capstones_completed: number;
+      total_capstones: number;
+    };
+    parts: Array<{
+      part_id: number;
+      name: string;
+      sort_order: number;
+      completed: boolean;
+      total_lessons: number;
+      completed_lessons: number;
+      average_quiz_score: number | null;
+      total_interviews: number;
+      completed_interviews: number;
+      average_interview_score: number | null;
+      capstone_completed: boolean;
+    }>;
+  } | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const lessonStats = db.prepare(`
+      SELECT COUNT(*) as total,
+        SUM(CASE WHEN l.completed = 1 THEN 1 ELSE 0 END) as completed
+      FROM lessons l
+      JOIN chapters c ON l.chapter_id = c.id
+      JOIN parts p ON c.part_id = p.id
+      WHERE p.tutorial_id = ?
+    `).get(tutorialId) as { total: number; completed: number };
+
+    const conceptStats = db.prepare(`
+      SELECT COUNT(*) as total
+      FROM concepts co
+      JOIN lessons l ON co.lesson_id = l.id
+      JOIN chapters c ON l.chapter_id = c.id
+      JOIN parts p ON c.part_id = p.id
+      WHERE p.tutorial_id = ?
+    `).get(tutorialId) as { total: number };
+
+    const quizAvg = db.prepare(`
+      SELECT AVG(CAST(qr.score AS FLOAT) / qr.total * 100) as avg_score
+      FROM quiz_results qr
+      JOIN lessons l ON qr.lesson_id = l.id
+      JOIN chapters c ON l.chapter_id = c.id
+      JOIN parts p ON c.part_id = p.id
+      WHERE p.tutorial_id = ?
+    `).get(tutorialId) as { avg_score: number | null };
+
+    const interviewStats = db.prepare(`
+      SELECT COUNT(DISTINCT c.id) as total,
+        COUNT(DISTINCT ir.chapter_id) as completed,
+        AVG(CAST(ir.score AS FLOAT) / ir.total * 100) as avg_score
+      FROM chapters c
+      JOIN parts p ON c.part_id = p.id
+      LEFT JOIN interview_results ir ON c.id = ir.chapter_id
+      WHERE p.tutorial_id = ?
+    `).get(tutorialId) as { total: number; completed: number; avg_score: number | null };
+
+    const capstoneStats = db.prepare(`
+      SELECT COUNT(DISTINCT p.id) as total,
+        SUM(CASE WHEN cr.completed = 1 THEN 1 ELSE 0 END) as completed
+      FROM parts p
+      LEFT JOIN capstone_results cr ON cr.part_id = p.id
+      WHERE p.tutorial_id = ?
+    `).get(tutorialId) as { total: number; completed: number | null };
+
+    const parts = db.prepare(
+      'SELECT * FROM parts WHERE tutorial_id = ? ORDER BY sort_order'
+    ).all(tutorialId) as Part[];
+
+    const partStats = parts.map(part => {
+      const lessons = db.prepare(`
+        SELECT COUNT(*) as total,
+          SUM(CASE WHEN l.completed = 1 THEN 1 ELSE 0 END) as completed
+        FROM lessons l
+        JOIN chapters c ON l.chapter_id = c.id
+        WHERE c.part_id = ?
+      `).get(part.id) as { total: number; completed: number };
+
+      const partQuiz = db.prepare(`
+        SELECT AVG(CAST(qr.score AS FLOAT) / qr.total * 100) as avg_score
+        FROM quiz_results qr
+        JOIN lessons l ON qr.lesson_id = l.id
+        JOIN chapters c ON l.chapter_id = c.id
+        WHERE c.part_id = ?
+      `).get(part.id) as { avg_score: number | null };
+
+      const partInterviews = db.prepare(`
+        SELECT COUNT(DISTINCT c.id) as total,
+          COUNT(DISTINCT ir.chapter_id) as completed,
+          AVG(CAST(ir.score AS FLOAT) / ir.total * 100) as avg_score
+        FROM chapters c
+        LEFT JOIN interview_results ir ON c.id = ir.chapter_id
+        WHERE c.part_id = ?
+      `).get(part.id) as { total: number; completed: number; avg_score: number | null };
+
+      const partCapstone = db.prepare(
+        'SELECT * FROM capstone_results WHERE part_id = ? ORDER BY completed_at DESC LIMIT 1'
+      ).get(part.id) as CapstoneResult | undefined;
+
+      return {
+        part_id: part.id,
+        name: part.name,
+        sort_order: part.sort_order,
+        completed: !!part.completed,
+        total_lessons: lessons.total,
+        completed_lessons: lessons.completed,
+        average_quiz_score: partQuiz.avg_score ? Math.round(partQuiz.avg_score * 10) / 10 : null,
+        total_interviews: partInterviews.total,
+        completed_interviews: partInterviews.completed,
+        average_interview_score: partInterviews.avg_score ? Math.round(partInterviews.avg_score * 10) / 10 : null,
+        capstone_completed: partCapstone ? !!partCapstone.completed : false,
+      };
+    });
+
+    return {
+      tutorial: {
+        total_lessons: lessonStats.total,
+        completed_lessons: lessonStats.completed,
+        total_concepts: conceptStats.total,
+        average_quiz_score: quizAvg.avg_score ? Math.round(quizAvg.avg_score * 10) / 10 : null,
+        total_interviews: interviewStats.total,
+        completed_interviews: interviewStats.completed,
+        average_interview_score: interviewStats.avg_score ? Math.round(interviewStats.avg_score * 10) / 10 : null,
+        capstones_completed: capstoneStats.completed ?? 0,
+        total_capstones: capstoneStats.total,
+      },
+      parts: partStats,
+    };
+  },
+
   getChapter(chapterId: number): {
     chapter: Chapter;
     lessons: Lesson[];
