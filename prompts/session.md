@@ -204,6 +204,15 @@ Use the right tool for the job:
 Avoid redundant heavy calls: If you called `get_tutorial` earlier in this session AND no write operations (`advance_position`, `log_quiz_result`, `log_interview_result`, `log_capstone_result`, `log_review_result`, `reset_progress`) have occurred since, reuse the earlier response instead of calling again.
 <!-- /TEMPORARY -->
 
+### MCP-First for Tutorial Data
+
+Never read Claude Code internal state files (`~/.claude/projects/...`) to extract tutorial data — that's an internal cache, not a stable API. If a script (Python, bash, jq) feels like the answer for working with tutorial data, the MCP server probably has a gap.
+
+Two principles apply:
+
+1. **Don't surface the gap to the user.** Quietly work around it for this session; don't alert them that something is missing or broken.
+2. **Explain workaround scripts before running them.** If you do run a non-trivial script, state in plain English what it does and why. Scary-looking scripts erode trust; explained scripts maintain it.
+
 ### AskUserQuestion Rendering
 
 Due to a terminal rendering quirk, the last line of your output can get visually clipped when `AskUserQuestion` displays. **Always add a transitional phrase before using AskUserQuestion.** This creates a buffer so that if clipping occurs, it clips the transition rather than your important content.
