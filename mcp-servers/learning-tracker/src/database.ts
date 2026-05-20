@@ -306,6 +306,60 @@ function parsePreferences(raw: string | null): Preferences {
   }
 }
 
+const ROMAN_NUMERALS = ['I', 'II', 'III'];
+
+interface CurriculumTreeChapter {
+  sort_order: number;
+  name: string;
+  lessons: { id: number; sort_order: number; name: string; completed: boolean }[];
+  has_interview: boolean;
+}
+
+interface CurriculumTreePart {
+  name: string;
+  chapters: CurriculumTreeChapter[];
+  capstone_completed: boolean;
+}
+
+function formatCurriculumTree(
+  tutorialName: string,
+  parts: CurriculumTreePart[],
+  currentLessonId: number | null,
+): string {
+  const lines: string[] = [];
+  const header = `${tutorialName} - Full Curriculum`;
+  lines.push(header);
+  lines.push('═'.repeat(header.length));
+  lines.push('');
+
+  parts.forEach((part, partIdx) => {
+    lines.push(`PART ${ROMAN_NUMERALS[partIdx]}: ${part.name}`);
+
+    part.chapters.forEach((chapter) => {
+      lines.push(`├─ Chapter ${chapter.sort_order}: ${chapter.name}`);
+
+      chapter.lessons.forEach((lesson) => {
+        const isCurrent = !lesson.completed && lesson.id === currentLessonId;
+        const marker = lesson.completed ? '✓' : isCurrent ? '►' : '○';
+        const suffix = isCurrent ? '  ◄── YOU ARE HERE' : '';
+        lines.push(`│  ├─ ${marker} Lesson ${lesson.sort_order}: ${lesson.name}${suffix}`);
+      });
+
+      const interviewMarker = chapter.has_interview ? '✓' : '○';
+      lines.push(`│  └─ ${interviewMarker} Mock Interview`);
+    });
+
+    const capstoneMarker = part.capstone_completed ? '✓' : '◆';
+    lines.push(`└─ ${capstoneMarker} Capstone Project`);
+    lines.push('');
+  });
+
+  lines.push('──────────────────────────');
+  lines.push('Legend: ✓ completed  ► current  ○ upcoming  ◆ capstone');
+
+  return lines.join('\n');
+}
+
 export interface Tutorial {
   id: number;
   name: string;
@@ -711,6 +765,61 @@ export const database = {
       part: { ...part, completed: !!part.completed },
       chapters: chaptersWithLessons,
     };
+  },
+
+  getCurriculumTree(): string | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const tutorial = db.prepare('SELECT name FROM tutorials WHERE id = ?')
+      .get(tutorialId) as { name: string } | undefined;
+    if (!tutorial) return null;
+
+    const progress = db.prepare('SELECT current_lesson_id FROM progress WHERE tutorial_id = ?')
+      .get(tutorialId) as { current_lesson_id: number | null } | undefined;
+    const currentLessonId = progress?.current_lesson_id ?? null;
+
+    const parts = db.prepare(
+      'SELECT * FROM parts WHERE tutorial_id = ? ORDER BY sort_order'
+    ).all(tutorialId) as Part[];
+
+    const treeParts: CurriculumTreePart[] = parts.map(part => {
+      const chapters = db.prepare(
+        'SELECT * FROM chapters WHERE part_id = ? ORDER BY sort_order'
+      ).all(part.id) as Chapter[];
+      const capstoneResult = db.prepare(
+        'SELECT * FROM capstone_results WHERE part_id = ? ORDER BY completed_at DESC LIMIT 1'
+      ).get(part.id) as CapstoneResult | undefined;
+
+      const treeChapters: CurriculumTreeChapter[] = chapters.map(chapter => {
+        const lessons = db.prepare(
+          'SELECT * FROM lessons WHERE chapter_id = ? ORDER BY sort_order'
+        ).all(chapter.id) as Lesson[];
+        const interviewResult = db.prepare(
+          'SELECT * FROM interview_results WHERE chapter_id = ? ORDER BY completed_at DESC LIMIT 1'
+        ).get(chapter.id) as InterviewResult | undefined;
+
+        return {
+          sort_order: chapter.sort_order,
+          name: chapter.name,
+          lessons: lessons.map(l => ({
+            id: l.id,
+            sort_order: l.sort_order,
+            name: l.name,
+            completed: !!l.completed,
+          })),
+          has_interview: !!interviewResult,
+        };
+      });
+
+      return {
+        name: part.name,
+        chapters: treeChapters,
+        capstone_completed: capstoneResult ? !!capstoneResult.completed : false,
+      };
+    });
+
+    return formatCurriculumTree(tutorial.name, treeParts, currentLessonId);
   },
 
   getStats(): {

@@ -130,6 +130,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: 'get_curriculum_tree',
+        description: 'Get the full curriculum as a pre-formatted ASCII tree, annotated with live progress (✓ completed, ► current, ○ upcoming, ◆ capstone). Use this for any "show me the curriculum" view (e.g., the /menu Curriculum Tree, "View curriculum" at tutorial start) instead of get_tutorial. The response is a ready-to-display string — present it verbatim, do not reformat.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
         name: 'get_stats',
         description: 'Get aggregate stats for the tutorial: overall counts (lessons, concepts, interviews, capstones) and quiz/interview averages, plus the same breakdown per part. Lightweight — use for any screen that displays scores or progress (Part Complete Screen, Victory Screen, Progress Screen, Certificate) instead of get_tutorial.',
         inputSchema: {
@@ -355,6 +363,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const data = database.getTutorial();
         if (!data) return jsonResponse({ success: true, tutorial: null });
         return jsonResponse({ success: true, ...data });
+      }
+
+      case 'get_curriculum_tree': {
+        const tree = database.getCurriculumTree();
+        if (tree === null) return noTutorialError();
+        return jsonResponse({ success: true, tree });
       }
 
       case 'get_stats': {

@@ -89,6 +89,7 @@ Two formats based on tutorial type:
 | `get_chapter` | Get a single chapter with its lessons. Use for Chapter Start Screen instead of get_tutorial |
 | `get_part` | Get a single part with chapters → lessons → concepts. Use for capstone design instead of get_tutorial |
 | `get_stats` | Aggregate stats (overall + per-part). Use for Part Complete, Victory, Progress, Certificate screens |
+| `get_curriculum_tree` | Pre-formatted ASCII curriculum tree with live progress markers. Use for any "show curriculum" view instead of get_tutorial |
 | `get_preferences` | Get user preferences (book, language). Lightweight — use for per-lesson checks |
 | `update_preferences` | Update one or more preferences. Merges with existing values |
 | `start_tutorial` | Begin a tutorial |

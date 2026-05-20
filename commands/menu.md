@@ -298,14 +298,13 @@ Display the full curriculum as a tree diagram showing all parts, chapters, and l
 
 ### Data Collection
 
-Call `get_tutorial` to get the full curriculum structure including:
-- Parts (with completion status)
-- Chapters (with completion status)
-- Lessons (with completion status)
+Call `get_curriculum_tree` from the learning-tracker MCP server. It returns a pre-formatted ASCII tree (`{ tree: "..." }`) already annotated with live progress markers.
 
-Also call `get_current_position` to identify the current lesson.
+### Display
 
-### Tree Structure
+Output the `tree` field verbatim. Do not reformat, restructure, or reorder.
+
+Example shape:
 
 ```
 {TOPIC} - Full Curriculum
@@ -319,41 +318,13 @@ PART I: {part_name}
 │  ├─ ○ Lesson 4: {lesson_name}
 │  └─ ○ Mock Interview
 ├─ Chapter 2: {chapter_name}
-│  ├─ ○ Lesson 1: {lesson_name}
-│  ├─ ○ Lesson 2: {lesson_name}
-│  ├─ ○ Lesson 3: {lesson_name}
-│  ├─ ○ Lesson 4: {lesson_name}
-│  └─ ○ Mock Interview
-├─ Chapter 3: {chapter_name}
 │  └─ ...
-├─ Chapter 4: {chapter_name}
-│  └─ ...
+...
 └─ ◆ Capstone Project
 
-PART II: {part_name}
-├─ Chapter 1: {chapter_name}
-│  └─ ...
-...
-
-PART III: {part_name}
-...
+PART II: ...
+PART III: ...
 
 ──────────────────────────
 Legend: ✓ completed  ► current  ○ upcoming  ◆ capstone
 ```
-
-### Progress Indicators
-
-- `✓` — Lesson or mock interview completed
-- `►` — Current lesson (with `◄── YOU ARE HERE` marker)
-- `○` — Upcoming lesson or mock interview (not yet started)
-- `◆` — Capstone project
-
-### Display Rules
-
-1. Show ALL parts, chapters, and lessons (the full 48-lesson curriculum)
-2. Show `Mock Interview` at the end of each chapter (after the 4 lessons)
-3. Show `◆ Capstone Project` at the end of each part
-4. Use tree-drawing characters (`├─`, `│`, `└─`) for clean hierarchy
-5. Mark the current lesson with `►` and append `◄── YOU ARE HERE`
-6. For completed tutorials, all items show `✓` and omit the "YOU ARE HERE" marker
