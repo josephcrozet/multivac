@@ -545,7 +545,18 @@ export const database = {
       return { ...row, preferences: parsePreferences(row.preferences) } as Tutorial;
     });
 
-    return transaction();
+    const tutorial = transaction();
+
+    try {
+      const tree = this.getCurriculumTree();
+      if (tree) {
+        writeFileSync(join(DATA_DIR, 'curriculum.md'), tree);
+      }
+    } catch (err) {
+      console.error('Failed to write curriculum.md:', err);
+    }
+
+    return tutorial;
   },
 
   getTutorial(): {

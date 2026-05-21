@@ -116,6 +116,7 @@ Per-project configuration (created by `multivac` command, updated by `multivac u
 - `.multivac/` — Local data directory containing:
   - `learning.db` — Tutorial progress and curriculum (SQLite)
   - `current-info.md` — Cached version/API verification (created during curriculum setup)
+  - `curriculum.md` — Snapshot of the curriculum tree, written once at tutorial creation
 
 ## Testing
 

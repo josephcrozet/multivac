@@ -193,7 +193,8 @@ This project demonstrates Claude Code's extensibility:
 │   ├── .claude/settings.json   # Hook config
 │   ├── .multivac/
 │   │   ├── learning.db         # Tutorial progress (SQLite)
-│   │   └── current-info.md     # Verified version/API info cache
+│   │   ├── current-info.md     # Verified version/API info cache
+│   │   └── curriculum.md       # Curriculum tree snapshot
 │   └── CLAUDE.md               # Tutorial mode marker
 └── javascript/
     └── ...
