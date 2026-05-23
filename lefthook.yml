@@ -2,3 +2,5 @@ pre-push:
   jobs:
     - name: build
       run: cd mcp-servers/learning-tracker && npm run build
+    - name: test
+      run: cd mcp-servers/learning-tracker && npm test
