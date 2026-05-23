@@ -26,3 +26,6 @@ jobs:
       - name: Build
         working-directory: mcp-servers/learning-tracker
         run: npm run build
+      - name: Test
+        working-directory: mcp-servers/learning-tracker
+        run: npm test
