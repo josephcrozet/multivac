@@ -120,7 +120,19 @@ Per-project configuration (created by `multivac` command, updated by `multivac u
 
 ## Testing
 
-To test components:
+### Automated tests
+
+The MCP server has a `node:test` suite at `mcp-servers/learning-tracker/tests/`, run via `tsx` so TypeScript sources execute directly without a separate compile step.
+
+- `npm test` — run the suite once
+- `npm run test:watch` — re-run on file changes during development
+
+Tests gate `git push` via lefthook's pre-push hook and gate merges via GitHub Actions CI.
+
+When adding a new test file, follow the existing pattern: one top-level `test()` that owns the lifecycle, with `await t.test()` subtests for sequential assertions. This avoids `node:test`'s default top-level concurrency, which would race against shared MCP server state.
+
+### Manual verification
+
 - **MCP Server**: `cd ~/.claude/mcp-servers/learning-tracker && npm install && npm run build && npm start`
 - **Hook**: Echo mock JSON to the hook script
 - **Commands**: Run `/quiz`, `/tutorial`, or `/menu` in Claude Code
