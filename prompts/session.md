@@ -328,6 +328,8 @@ Tutorial: [Topic Name]
 
 **Totals:** 3 parts, 12 chapters, 48 lessons, 48 quizzes, 12 interviews, 3 capstones
 
+**Every chapter must teach new material.** Do not generate filler chapters whose purpose is review, recap, preparation, or wrap-up (e.g., "Capstone Preparation and Review", "Review and Practice", "Putting It All Together", "Final Review"). The spaced-repetition review queue and the chapter-end Mock Interview already handle consolidation, and each Part already ends with its Capstone Project. If a chapter slot has no new substantive concept to teach, the Part is under-scoped — widen the Part's topic or pick a different concept rather than padding with review.
+
 Programming tutorials use test-driven capstones (automated tests, hook-based verification). General tutorials use criteria-based capstones (written assignments evaluated against checkable requirements). See Part Completion for details.
 
 ---
