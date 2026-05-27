@@ -7,41 +7,17 @@ Generate and administer a quiz based on the current learning context.
 - **Total questions:** 12 multiple choice questions
 - **Difficulty progression:** 4 easy → 4 medium → 4 hard
 - **Delivery:** 3 prompts of 4 questions each (grouped by difficulty)
-- **Answer placement:** Each question's options are shuffled externally (see Randomizing Answer Positions below)
+- **Answer placement:** Options ordered by text, not by correctness (see Answer Order below)
 
-## Randomizing Answer Positions
+## Answer Order
 
-Left to its own devices, a model clusters the correct answer in predictable positions, which lets a test-taker pattern-match instead of reasoning. To prevent this, the correct answer's *position* is randomized by an external shuffle — not by you.
+Left to its own devices, a model places the correct answer in a predictable slot — often the same position every time — which lets a test-taker pattern-match instead of reasoning. To prevent this, order each question's options by their **text, not by which one is correct**: numbers ascending, everything else alphabetical. Because the order comes from the options themselves, the correct answer falls in a different place from question to question and its position carries no signal — no shuffling or answer key needed.
 
-There is no answer key to track. Correctness lives only in the option's text, which you authored and which you compare against when grading. The shuffle's input and output are just the answer options the user is about to see anyway, so it stays harmless even if the command and its output are visible.
+The ordering needn't be exact (don't fuss over case or punctuation); it only has to be independent of correctness. Present the options in that order directly in `AskUserQuestion`.
 
-**Do not write, print, restate, or otherwise emit which option is correct at any point before the feedback step** — not in your visible reply, not as a "note," not in commentary. You already know the correct answer because you wrote it; there is nothing to record. Reveal correctness only in the feedback after the user has answered.
+Correctness lives only in the option's *text*, which you authored. When the user answers, grade by matching their selection against the correct text — position is irrelevant.
 
-**The shuffle's *input* is visible too — not just its output.** When you approve the command, the user sees the heredoc lines in the order you wrote them. If the correct answer always sits in the same slot (e.g., first), that fixed position is a learnable tell that survives the shuffle and lets a user game every question. You cannot hide the input and you must not randomize it yourself, so order the options by their text, not by which one is correct — roughly **alphabetical** is fine, and needn't be exact. What matters is only that the order carries no signal about the answer.
-
-**For each batch of 4 questions, before calling `AskUserQuestion`:**
-
-1. Write each question's 4 options, then list them in the heredoc in roughly **alphabetical order**.
-2. Shuffle each question's options with the command below. Pass them as a quoted heredoc — one option per line, questions separated by a blank line, in question order:
-
-```bash
-awk -v seed="$RANDOM" 'BEGIN{RS="";ORS="\n\n";srand(seed)} {n=split($0,a,"\n"); for(i=n;i>1;i--){j=int(rand()*i)+1;t=a[i];a[i]=a[j];a[j]=t} o=a[1];for(i=2;i<=n;i++)o=o"\n"a[i];print o}' <<'EOF'
-question 1 option
-question 1 option
-question 1 option
-question 1 option
-
-question 2 option
-question 2 option
-question 2 option
-question 2 option
-EOF
-```
-
-3. Pass each question's returned (reordered) options into `AskUserQuestion` **verbatim** — do not reorder them again or move the correct answer.
-4. When grading, match the option the user selected against the correct answer *text*. Position is irrelevant.
-
-Use the quoted `<<'EOF'` heredoc exactly as shown — it keeps option text containing apostrophes, `$`, or backticks intact and avoids shell-quoting issues. `awk` is preinstalled on macOS, Linux, and Git Bash, so this runs in any session with no language runtime or project-specific setup.
+**Do not write, print, restate, or otherwise emit which option is correct before the feedback step** — not in your visible reply, not as a "note," not in commentary. You already know the correct answer because you wrote it; there is nothing to record. Reveal correctness only in the feedback after the user has answered.
 
 ## Determining Quiz Content
 
@@ -73,7 +49,7 @@ After receiving answers, provide feedback on Medium questions, then ask all 4 ha
 Each question in the `questions` array should have:
 - `header`: Short label like "Q1 Easy" or "Q5 Medium"
 - `question`: The full question text
-- `options`: 4 answer choices with RANDOMIZED order
+- `options`: 4 answer choices ordered by text, not by correctness (see Answer Order)
 - `multiSelect`: false
 
 ## After All Questions
