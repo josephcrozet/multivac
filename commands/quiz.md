@@ -19,6 +19,16 @@ Correctness lives only in the option's *text*, which you authored. When the user
 
 **Do not write, print, restate, or otherwise emit which option is correct before the feedback step** — not in your visible reply, not as a "note," not in commentary. You already know the correct answer because you wrote it; there is nothing to record. Reveal correctness only in the feedback after the user has answered.
 
+## Writing the Options
+
+A multiple-choice item is only as good as its distractors. The most common surface tell is that the correct answer is the longest, the most hedged, or the most fully-fleshed-out option — letting the user pick it without engaging with the content.
+
+**Commit to each distractor**: same level of detail and confidence as the correct answer. No softening, qualifying, or hedging that signals "this one's wrong" — that telegraphing is the long-answer tell in reverse.
+
+Good distractors force the user to engage with the material. They should be options a learner could plausibly consider — real adjacent concepts, plausibly-formed terms, common misconceptions.
+
+Length parity is a soft target: slight variation is fine. What matters is no consistent pattern of the correct answer being the longest.
+
 ## Determining Quiz Content
 
 Base the quiz on the current context:
