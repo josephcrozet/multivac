@@ -29,6 +29,8 @@ Good distractors force the user to engage with the material. They should be opti
 
 Length parity is a soft target: slight variation is fine. What matters is no consistent pattern of the correct answer being the longest.
 
+For numeric or ordered values (numbers, dates, versions), the parallel rule applies: no consistent pattern of the correct value sitting in the middle of the sorted list.
+
 ## Determining Quiz Content
 
 Base the quiz on the current context:
