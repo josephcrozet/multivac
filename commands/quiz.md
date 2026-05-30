@@ -31,7 +31,7 @@ Length parity is a soft target: slight variation is fine. What matters is no con
 
 For numeric or ordered values (numbers, dates, versions), the parallel rule applies: no consistent pattern of the correct value sitting in the middle of the sorted list.
 
-`AskUserQuestion` requires a `description` for every option. Write each as a parallel paraphrase of the option's content — same tone, same confidence — without naming what the option refers to or whether it's correct.
+`AskUserQuestion` requires a `description` for every option, but the labels are the answers — the user should be able to identify the correct one from the labels alone. Write each description as a parallel paraphrase of the option's content — same tone, same confidence — without naming what the option refers to or whether it's correct.
 
 ## Determining Quiz Content
 
