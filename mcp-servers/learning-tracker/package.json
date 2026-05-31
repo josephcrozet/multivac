@@ -34,9 +34,9 @@
   "devDependencies": {
     "@types/node": "^24.12.4",
     "@types/sql.js": "^1.4.11",
-    "lefthook": "^2.1.8",
+    "lefthook": "^2.1.9",
     "only-allow": "^1.2.2",
-    "tsx": "^4.22.3",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
 }
