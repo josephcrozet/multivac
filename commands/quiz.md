@@ -19,6 +19,10 @@ Correctness lives only in the option's *text*, which you authored. When the user
 
 **Do not write, print, restate, or otherwise emit which option is correct before the feedback step** — not in your visible reply, not as a "note," not in commentary. You already know the correct answer because you wrote it; there is nothing to record. Reveal correctness only in the feedback after the user has answered.
 
+## Writing the Question
+
+A well-formed question has exactly one defensible answer when read literally against the four options. The question's text is all the user has — anything you don't say, you can't rely on. After authoring, re-read the question as a stranger and confirm only one option survives.
+
 ## Writing the Options
 
 A multiple-choice item is only as good as its distractors. The most common surface tell is that the correct answer is the longest, the most hedged, or the most fully-fleshed-out option — letting the user pick it without engaging with the content.
