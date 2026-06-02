@@ -2,6 +2,14 @@
   "name": "learning-tracker",
   "version": "1.0.0",
   "description": "MCP server for tracking tutorial progress and spaced repetition learning",
+  "keywords": [
+    "mcp",
+    "learning",
+    "tutorial",
+    "spaced-repetition"
+  ],
+  "license": "MIT",
+  "author": "Joseph Crozet",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -16,17 +24,6 @@
     "preinstall": "npx only-allow npm",
     "postinstall": "lefthook install"
   },
-  "keywords": [
-    "mcp",
-    "learning",
-    "tutorial",
-    "spaced-repetition"
-  ],
-  "author": "Joseph Crozet",
-  "license": "MIT",
-  "engines": {
-    "node": ">=24.0.0"
-  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "sql.js": "^1.14.1"
@@ -38,5 +35,8 @@
     "only-allow": "^1.2.2",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }
