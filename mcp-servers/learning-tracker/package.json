@@ -16,13 +16,13 @@
     "learning-tracker": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "build:watch": "tsc --watch",
-    "test": "node --import tsx --test tests/*.test.ts",
-    "test:watch": "node --import tsx --test --watch tests/*.test.ts",
     "preinstall": "npx only-allow npm",
-    "postinstall": "lefthook install"
+    "postinstall": "lefthook install",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:watch": "node --import tsx --test --watch tests/*.test.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
