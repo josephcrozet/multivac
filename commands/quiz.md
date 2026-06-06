@@ -35,7 +35,11 @@ Length parity is a soft target: slight variation is fine. What matters is no con
 
 For numeric or ordered values (numbers, dates, versions), the parallel rule applies: no consistent pattern of the correct value sitting in the middle of the sorted list.
 
-`AskUserQuestion` requires a `description` for every option, but the labels are the answers — the user should be able to identify the correct one from the labels alone. Write each description as a parallel paraphrase of the option's content — same tone, same confidence — without naming what the option refers to or whether it's correct.
+`AskUserQuestion` allows a `description` for every option, but the labels are the answers — the user should be able to identify the correct one from the labels alone. When you use descriptions, write each as a unique, parallel paraphrase of *that option's specific* content — same tone, same confidence — never restating the question's wording or revealing whether the option is correct.
+
+Use descriptions on every option or on none. Asymmetric presence (only on the correct, or missing only from the correct) telegraphs the answer through distribution alone. When honest descriptions would be forced, unhelpful, or near-tautological, omit them for all options rather than write awkward ones.
+
+A distractor description can be true or false. Write a confident one that makes the wrong answer seem plausible as a candidate — that's the work of misdirection. Avoid the inverses: a true description that tags an option as not-the-answer is just an elimination cue, and a false description that claims the correct answer's defining identity just creates confusion.
 
 ## Determining Quiz Content
 
