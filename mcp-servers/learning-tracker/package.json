@@ -33,7 +33,7 @@
     "sql.js": "^1.14.1"
   },
   "devDependencies": {
-    "@types/node": "^24.12.4",
+    "@types/node": "^24.13.1",
     "@types/sql.js": "^1.4.11",
     "lefthook": "^2.1.9",
     "only-allow": "^1.2.2",
