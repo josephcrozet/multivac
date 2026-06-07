@@ -4,9 +4,13 @@
   "description": "MCP server for tracking tutorial progress and spaced repetition learning",
   "keywords": [
     "mcp",
-    "learning",
+    "claude-code",
     "tutorial",
-    "spaced-repetition"
+    "curriculum",
+    "spaced-repetition",
+    "quiz",
+    "mock-interview",
+    "capstone"
   ],
   "license": "MIT",
   "author": "Joseph Crozet",
