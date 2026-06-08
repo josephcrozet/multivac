@@ -210,7 +210,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_current_position',
-        description: 'Get the current position in the tutorial (current lesson, chapter, and part). Also indicates if this is the start of a new chapter (for triggering reviews).',
+        description: 'Get the current position in the tutorial (current lesson, chapter, and part) plus the tutorial difficulty_level (beginner/intermediate/advanced) so lessons are taught at the right level after compaction or clearing. Also indicates if this is the start of a new chapter (for triggering reviews).',
         inputSchema: {
           type: 'object',
           properties: {},

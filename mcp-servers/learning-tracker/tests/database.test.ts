@@ -120,6 +120,12 @@ test('curriculum tree lifecycle', async (t) => {
     assert.ok(line.includes('YOU ARE HERE'));
   });
 
+  await t.test('getCurrentPosition exposes difficulty_level for level-calibrated teaching after recovery', () => {
+    const pos = database.getCurrentPosition()!;
+    assert.equal(pos.difficulty_level, 'beginner');
+    assert.equal(pos.current_lesson!.name, 'Lesson 1.1.1');
+  });
+
   await t.test('after startTutorial, other lessons remain ○ without YOU ARE HERE', () => {
     const tree = database.getCurriculumTree()!;
     const line = tree.split('\n').find((l) => l.includes('Lesson 1.1.2'))!;
