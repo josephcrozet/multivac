@@ -373,6 +373,7 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 
 ### 3. Theory Introduction
 
+- Pitch the depth, examples, and pacing to the tutorial's `difficulty_level` (from `get_current_position`) — beginner, intermediate, or advanced. This keeps lessons calibrated after a compaction or `/clear`, when the level is no longer in conversation context.
 - Explain the concept clearly with examples
 - Use analogies and visual descriptions when helpful
 - You MAY write examples here to illustrate concepts (code, worked problems, example sentences, etc.)

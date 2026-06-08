@@ -93,7 +93,7 @@ Two formats based on tutorial type:
 | `get_preferences` | Get user preferences (book, language). Lightweight — use for per-lesson checks |
 | `update_preferences` | Update one or more preferences. Merges with existing values |
 | `start_tutorial` | Begin a tutorial |
-| `get_current_position` | Current lesson/chapter/part, is_chapter_start |
+| `get_current_position` | Current lesson/chapter/part, difficulty_level, is_chapter_start |
 | `advance_position` | Move forward, add lesson to review queue |
 | `log_quiz_result` | Record quiz scores |
 | `log_interview_result` | Record interview performance |
