@@ -278,13 +278,13 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 
 **If no tutorial exists (call failed or returned null):**
 
-- Read the topic from CLAUDE.md (look for `<!-- topic: X -->` or `**Topic:** X`)
+- Read the topic from CLAUDE.md (look for `<!-- multivac-topic: X -->` or `**Topic:** X`)
 - Say "Let's set up your tutorial." Then present all setup questions in a **single** `AskUserQuestion` call with these three questions:
   - **Question 1 — Topic:** "What topic would you like to learn?" with the CLAUDE.md topic marked "(Recommended)", plus 3 related topics that would complement or build on it (e.g., a framework for a language, a subfield for a science). For generic project names like "tutorial", use: Python, JavaScript, Web Development, Data Analysis.
   - **Question 2 — Difficulty:** "What's your experience level?" with options: "Beginner" (new to this topic), "Intermediate" (knows the basics), "Advanced" (looking to master it)
   - **Question 3 — Book:** "Save lessons to a book for offline review?" with options: "Yes, build my book" (each lesson saved to a `book/` folder), "No thanks" (just interactive lessons)
 - Process the answers:
-  - If the user selected a different topic than what's in CLAUDE.md, update the file: replace `<!-- topic: X -->` and `**Topic:** X` with the new topic
+  - If the user selected a different topic than what's in CLAUDE.md, update the file: replace `<!-- multivac-topic: X -->` and `**Topic:** X` with the new topic
   - Map difficulty: Beginner → `difficulty_level: "beginner"`, Intermediate → `difficulty_level: "intermediate"`, Advanced → `difficulty_level: "advanced"`
   - If they chose to build a book, create the `book/` directory.
 - Determine the tutorial type:

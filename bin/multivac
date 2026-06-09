@@ -66,10 +66,10 @@ is_multivac_project() {
 get_topic_name() {
     local dir="$1"
     if [[ -f "$dir/CLAUDE.md" ]]; then
-        # Try <!-- topic: X -->
-        local topic=$(sed -n 's/.*<!-- topic: \(.*\) -->.*/\1/p' "$dir/CLAUDE.md" 2>/dev/null | head -1)
+        # Try <!-- multivac-topic: X -->
+        local topic=$(sed -n 's/.*<!-- multivac-topic: \(.*\) -->.*/\1/p' "$dir/CLAUDE.md" 2>/dev/null | head -1)
         if [[ -z "$topic" ]]; then
-            # Try **Topic:** X
+            # Fall back to **Topic:** X
             topic=$(sed -n 's/.*\*\*Topic:\*\* \(.*\)/\1/p' "$dir/CLAUDE.md" 2>/dev/null | head -1)
         fi
         echo "$topic"
@@ -157,7 +157,7 @@ EOF
 <!-- multivac-tutorial -->
 <!-- multivac-version: $MULTIVAC_VERSION -->
 <!-- multivac-root: $project_dir -->
-<!-- topic: $topic_display -->
+<!-- multivac-topic: $topic_display -->
 ## Tutorial Mode
 
 This is a Multivac tutorial project. You are an expert tutor guiding the user through a structured curriculum.
