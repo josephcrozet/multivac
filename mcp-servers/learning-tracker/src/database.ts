@@ -999,6 +999,7 @@ export const database = {
 
   getCurrentPosition(): {
     tutorial_name: string;
+    type: 'programming' | 'general';
     difficulty_level: 'beginner' | 'intermediate' | 'advanced';
     current_lesson: Lesson | null;
     current_chapter: Chapter | null;
@@ -1025,13 +1026,14 @@ export const database = {
         LIMIT 1
       `).get(tutorialId) as (Lesson & { part_id: number; chapter_order: number; part_order: number }) | undefined;
 
-      if (!firstLesson) return { tutorial_name: tutorial.name, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false };
+      if (!firstLesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false };
 
       const chapter = db.prepare('SELECT * FROM chapters WHERE id = ?').get(firstLesson.chapter_id) as Chapter;
       const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(firstLesson.part_id) as Part;
 
       return {
         tutorial_name: tutorial.name,
+        type: tutorial.type,
         difficulty_level: tutorial.difficulty_level,
         current_lesson: firstLesson,
         current_chapter: chapter,
@@ -1042,13 +1044,14 @@ export const database = {
     }
 
     const lesson = db.prepare('SELECT * FROM lessons WHERE id = ?').get(progress.current_lesson_id) as Lesson | undefined;
-    if (!lesson) return { tutorial_name: tutorial.name, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false };
+    if (!lesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false };
 
     const chapter = db.prepare('SELECT * FROM chapters WHERE id = ?').get(lesson.chapter_id) as Chapter;
     const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(chapter.part_id) as Part;
 
     return {
       tutorial_name: tutorial.name,
+      type: tutorial.type,
       difficulty_level: tutorial.difficulty_level,
       current_lesson: lesson,
       current_chapter: chapter,
