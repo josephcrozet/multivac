@@ -120,8 +120,9 @@ test('curriculum tree lifecycle', async (t) => {
     assert.ok(line.includes('YOU ARE HERE'));
   });
 
-  await t.test('getCurrentPosition exposes difficulty_level for level-calibrated teaching after recovery', () => {
+  await t.test('getCurrentPosition exposes type and difficulty_level for mode/level-calibrated teaching after recovery', () => {
     const pos = database.getCurrentPosition()!;
+    assert.equal(pos.type, 'programming');
     assert.equal(pos.difficulty_level, 'beginner');
     assert.equal(pos.current_lesson!.name, 'Lesson 1.1.1');
   });

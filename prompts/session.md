@@ -273,8 +273,8 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 
 **If a tutorial exists (call succeeded):**
 
-- You now have the current position (part, chapter, lesson, `is_chapter_start`)
-- Resume from that point — proceed to Lesson Flow
+- You now have the current position (part, chapter, lesson, `is_chapter_start`) plus the tutorial's `type` and `difficulty_level`
+- Resume from that point — proceed to Lesson Flow. Use `type` (programming vs general) to pick the right exercise/interview/capstone mode and `difficulty_level` to calibrate depth, without re-deriving either from the topic — this keeps the right mode and level after a compaction or `/clear`
 
 **If no tutorial exists (call failed or returned null):**
 
