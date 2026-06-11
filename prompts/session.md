@@ -501,7 +501,9 @@ If they skip: proceed directly to **Display Completion Screen** (step 7). Do not
 
 ### 3. Present the Project
 
-Call `get_part` with the `current_part.id` to fetch the part's full structure (chapters → lessons → concepts). Use that data to design a capstone that synthesizes concepts from all 4 chapters in this part. It should be substantial enough to feel like a real accomplishment but achievable in one sitting.
+Call `get_current_position` to ground the tutorial's `type` and `difficulty_level` — capstones run at a part boundary, where the session has often restarted, so read these fresh rather than relying on earlier context. Then call `get_part` with the `current_part.id` to fetch the part's full structure (chapters → lessons → concepts). Use that data to design a capstone that synthesizes concepts from all 4 chapters in this part. It should be substantial enough to feel like a real accomplishment but achievable in one sitting.
+
+`type` selects the capstone format (see the subsections below). `difficulty_level` sets the ambition bar — the same concepts yield very different projects across levels, so calibrate scope, expected robustness, and how much you scaffold versus leave to the learner. A Beginner capstone is narrow and guided; an Advanced one demands independent design, edge-case handling, and rigor. This is the single biggest factor in whether the capstone fits the learner.
 
 For human language tutorials (Spanish, French, Japanese, etc.), the capstone prompt, criteria, and feedback should follow the target language guidelines in Core Principles.
 
