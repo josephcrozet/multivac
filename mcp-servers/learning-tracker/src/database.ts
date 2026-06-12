@@ -1111,11 +1111,32 @@ export const database = {
     };
   },
 
+  // Mark the current lesson's content as complete and queue it for review.
+  // Does NOT move the pointer: boundary work (interview/capstone) and the
+  // pointer advance are separate, controller-driven steps, so the pointer stays
+  // on this lesson until that work is logged.
+  completeLesson(): { lesson: Lesson | null } | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const currentPos = this.getCurrentPosition();
+    if (!currentPos || !currentPos.current_lesson) {
+      return { lesson: null };
+    }
+
+    const lesson = currentPos.current_lesson;
+    db.prepare('UPDATE lessons SET completed = 1 WHERE id = ?').run(lesson.id);
+    this.addToReviewQueue(tutorialId, lesson.id);
+
+    return { lesson };
+  },
+
+  // Move the pointer to the next lesson, or mark the tutorial completed when
+  // there is no next lesson. Marks nothing else complete — lesson completion is
+  // recorded by completeLesson, chapter/part completion is derived from the logs.
   advancePosition(): {
     previous_lesson: Lesson | null;
     new_lesson: Lesson | null;
-    chapter_completed: boolean;
-    part_completed: boolean;
     tutorial_completed: boolean;
   } | null {
     const tutorialId = getTutorialId();
@@ -1123,15 +1144,12 @@ export const database = {
 
     const currentPos = this.getCurrentPosition();
     if (!currentPos || !currentPos.current_lesson) {
-      return { previous_lesson: null, new_lesson: null, chapter_completed: false, part_completed: false, tutorial_completed: false };
+      return { previous_lesson: null, new_lesson: null, tutorial_completed: false };
     }
 
     const previousLesson = currentPos.current_lesson;
 
-    // Add completed lesson to review queue
-    this.addToReviewQueue(tutorialId, previousLesson.id);
-
-    // Find next lesson
+    // Find the next lesson in curriculum order.
     const nextLesson = db.prepare(`
       SELECT l.*, c.part_id, c.sort_order as chapter_order, p.sort_order as part_order
       FROM lessons l
@@ -1152,11 +1170,6 @@ export const database = {
       currentPos.position!.part
     ) as (Lesson & { part_id: number; chapter_order: number; part_order: number }) | undefined;
 
-    const chapterCompleted = !nextLesson || nextLesson.chapter_id !== previousLesson.chapter_id;
-    const partCompleted = !nextLesson || nextLesson.part_id !== currentPos.current_part!.id;
-    const tutorialCompleted = !nextLesson;
-
-    // Update progress
     if (nextLesson) {
       db.prepare(`
         UPDATE progress SET current_lesson_id = ?, status = 'in_progress', updated_at = datetime('now')
@@ -1173,18 +1186,10 @@ export const database = {
       `).run(tutorialId);
     }
 
-    // Mark previous lesson as completed
-    db.prepare('UPDATE lessons SET completed = 1 WHERE id = ?').run(previousLesson.id);
-
-    // Chapter/part completion is derived on read (isChapterComplete/isPartComplete),
-    // not stored — nothing to write here.
-
     return {
       previous_lesson: previousLesson,
       new_lesson: nextLesson || null,
-      chapter_completed: chapterCompleted,
-      part_completed: partCompleted,
-      tutorial_completed: tutorialCompleted
+      tutorial_completed: !nextLesson
     };
   },
 

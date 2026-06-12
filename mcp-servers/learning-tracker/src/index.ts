@@ -217,8 +217,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: 'complete_lesson',
+        description: "Mark the current lesson's content as complete and add it to the review queue. Does NOT move the pointer — call this when the lesson (theory, exercise, quiz) is done. Any boundary work (mock interview at a chapter end, capstone at a part end) happens next, and only then is advance_position called to move on.",
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
         name: 'advance_position',
-        description: 'Move to the next lesson in the tutorial. Marks the current lesson as completed, updates chapter/part completion status, and adds the lesson to the review queue.',
+        description: 'Move the pointer to the next lesson (or mark the tutorial completed if there is none). Does not mark anything complete — the current lesson must already be completed via complete_lesson, and any chapter/part boundary work logged, before advancing.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -420,6 +428,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const position = database.getCurrentPosition();
         if (!position) return noTutorialError();
         return jsonResponse({ success: true, ...position });
+      }
+
+      case 'complete_lesson': {
+        const result = database.completeLesson();
+        if (!result) return noTutorialError();
+        return jsonResponse({ success: true, ...result });
       }
 
       case 'advance_position': {
