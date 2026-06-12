@@ -210,7 +210,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_current_position',
-        description: 'Get the current position in the tutorial (current lesson, chapter, and part) plus the tutorial type (programming/general) and difficulty_level (beginner/intermediate/advanced), so lessons are taught in the right mode and at the right level after compaction or clearing. Also indicates if this is the start of a new chapter (for triggering reviews).',
+        description: 'Get the current position in the tutorial (current lesson, chapter, and part) plus the tutorial type (programming/general) and difficulty_level (beginner/intermediate/advanced), so lessons are taught in the right mode and at the right level after compaction or clearing. Also returns boundary facts for the controller to route on: is_chapter_start (trigger reviews), is_chapter_end / is_part_end (whether this lesson ends its chapter/part), and interview_logged / capstone_logged (whether the boundary work for the current chapter/part is already done).',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'complete_lesson',
+        description: "Mark the current lesson's content as complete and add it to the review queue. Does NOT move the pointer — call this when the lesson (theory, exercise, quiz) is done. Any boundary work (mock interview at a chapter end, capstone at a part end) happens next, and only then is advance_position called to move on.",
         inputSchema: {
           type: 'object',
           properties: {},
@@ -218,7 +226,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'advance_position',
-        description: 'Move to the next lesson in the tutorial. Marks the current lesson as completed, updates chapter/part completion status, and adds the lesson to the review queue.',
+        description: 'Move the pointer to the next lesson (or mark the tutorial completed if there is none). Does not mark anything complete — the current lesson must already be completed via complete_lesson, and any chapter/part boundary work logged, before advancing.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -420,6 +428,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const position = database.getCurrentPosition();
         if (!position) return noTutorialError();
         return jsonResponse({ success: true, ...position });
+      }
+
+      case 'complete_lesson': {
+        const result = database.completeLesson();
+        if (!result) return noTutorialError();
+        return jsonResponse({ success: true, ...result });
       }
 
       case 'advance_position': {
