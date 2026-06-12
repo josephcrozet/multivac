@@ -483,6 +483,42 @@ function getTutorialId(): number | null {
   return tutorial?.id ?? null;
 }
 
+// Boundary-work leaf facts: whether a chapter's interview / a part's capstone has been logged.
+function interviewLogged(chapterId: number): boolean {
+  return !!db.prepare('SELECT 1 FROM interview_results WHERE chapter_id = ? LIMIT 1').get(chapterId);
+}
+function capstoneLogged(partId: number): boolean {
+  return !!db.prepare('SELECT 1 FROM capstone_results WHERE part_id = ? AND completed = 1 LIMIT 1').get(partId);
+}
+
+// Structural boundary facts: is this the last lesson of its chapter / last chapter of its part.
+function isLastLessonInChapter(chapterId: number, lessonSortOrder: number): boolean {
+  const max = db.prepare('SELECT MAX(sort_order) as m FROM lessons WHERE chapter_id = ?').get(chapterId) as { m: number | null };
+  return max.m !== null && lessonSortOrder === max.m;
+}
+function isLastChapterInPart(partId: number, chapterSortOrder: number): boolean {
+  const max = db.prepare('SELECT MAX(sort_order) as m FROM chapters WHERE part_id = ?').get(partId) as { m: number | null };
+  return max.m !== null && chapterSortOrder === max.m;
+}
+
+// Chapter/part completion is derived, never stored: a chapter or part is an
+// aggregate of leaf facts (lesson completion + the interview/capstone logs), so
+// computing it on read keeps a single source of truth and can't drift.
+
+// A chapter is complete when all its lessons are complete AND its mock interview is logged.
+function isChapterComplete(chapterId: number): boolean {
+  const lessons = db.prepare('SELECT completed FROM lessons WHERE chapter_id = ?').all(chapterId) as { completed: number }[];
+  if (lessons.length === 0 || !lessons.every(l => !!l.completed)) return false;
+  return interviewLogged(chapterId);
+}
+
+// A part is complete when all its chapters are complete AND its capstone is logged complete.
+function isPartComplete(partId: number): boolean {
+  const chapters = db.prepare('SELECT id FROM chapters WHERE part_id = ?').all(partId) as { id: number }[];
+  if (chapters.length === 0 || !chapters.every(c => isChapterComplete(c.id))) return false;
+  return capstoneLogged(partId);
+}
+
 // Database operations
 export const database = {
   // Tutorial operations
@@ -597,14 +633,14 @@ export const database = {
 
         return {
           ...part,
-          completed: !!part.completed,
+          completed: isPartComplete(part.id),
           chapters: chapters.map(chapter => {
             const lessons = db.prepare('SELECT * FROM lessons WHERE chapter_id = ? ORDER BY sort_order').all(chapter.id) as Lesson[];
             const interviewResult = db.prepare('SELECT * FROM interview_results WHERE chapter_id = ? ORDER BY completed_at DESC LIMIT 1').get(chapter.id) as InterviewResult | undefined;
 
             return {
               ...chapter,
-              completed: !!chapter.completed,
+              completed: isChapterComplete(chapter.id),
               lessons: lessons.map(lesson => {
                 const concepts = db.prepare('SELECT * FROM concepts WHERE lesson_id = ?').all(lesson.id) as Concept[];
                 const quizResult = db.prepare('SELECT * FROM quiz_results WHERE lesson_id = ? ORDER BY completed_at DESC LIMIT 1').get(lesson.id) as QuizResult | undefined;
@@ -758,7 +794,7 @@ export const database = {
 
       return {
         ...chapter,
-        completed: !!chapter.completed,
+        completed: isChapterComplete(chapter.id),
         lessons: lessons.map(lesson => {
           const concepts = db.prepare(
             'SELECT * FROM concepts WHERE lesson_id = ?'
@@ -773,7 +809,7 @@ export const database = {
     });
 
     return {
-      part: { ...part, completed: !!part.completed },
+      part: { ...part, completed: isPartComplete(part.id) },
       chapters: chaptersWithLessons,
     };
   },
@@ -945,7 +981,7 @@ export const database = {
         part_id: part.id,
         name: part.name,
         sort_order: part.sort_order,
-        completed: !!part.completed,
+        completed: isPartComplete(part.id),
         total_lessons: lessons.total,
         completed_lessons: lessons.completed,
         average_quiz_score: partQuiz.avg_score ? Math.round(partQuiz.avg_score * 10) / 10 : null,
@@ -992,7 +1028,7 @@ export const database = {
     ).all(chapterId) as Lesson[];
 
     return {
-      chapter: { ...chapter, completed: !!chapter.completed },
+      chapter: { ...chapter, completed: isChapterComplete(chapter.id) },
       lessons: lessons.map(l => ({ ...l, completed: !!l.completed })),
     };
   },
@@ -1006,6 +1042,10 @@ export const database = {
     current_part: Part | null;
     position: { part: number; chapter: number; lesson: number } | null;
     is_chapter_start: boolean;
+    is_chapter_end: boolean;
+    is_part_end: boolean;
+    interview_logged: boolean;
+    capstone_logged: boolean;
   } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
@@ -1026,11 +1066,12 @@ export const database = {
         LIMIT 1
       `).get(tutorialId) as (Lesson & { part_id: number; chapter_order: number; part_order: number }) | undefined;
 
-      if (!firstLesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false };
+      if (!firstLesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false, is_chapter_end: false, is_part_end: false, interview_logged: false, capstone_logged: false };
 
       const chapter = db.prepare('SELECT * FROM chapters WHERE id = ?').get(firstLesson.chapter_id) as Chapter;
       const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(firstLesson.part_id) as Part;
 
+      const isChapterEnd = isLastLessonInChapter(firstLesson.chapter_id, firstLesson.sort_order);
       return {
         tutorial_name: tutorial.name,
         type: tutorial.type,
@@ -1039,16 +1080,21 @@ export const database = {
         current_chapter: chapter,
         current_part: part,
         position: { part: firstLesson.part_order, chapter: firstLesson.chapter_order, lesson: firstLesson.sort_order },
-        is_chapter_start: firstLesson.sort_order === 1
+        is_chapter_start: firstLesson.sort_order === 1,
+        is_chapter_end: isChapterEnd,
+        is_part_end: isChapterEnd && isLastChapterInPart(part.id, chapter.sort_order),
+        interview_logged: interviewLogged(chapter.id),
+        capstone_logged: capstoneLogged(part.id)
       };
     }
 
     const lesson = db.prepare('SELECT * FROM lessons WHERE id = ?').get(progress.current_lesson_id) as Lesson | undefined;
-    if (!lesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false };
+    if (!lesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false, is_chapter_end: false, is_part_end: false, interview_logged: false, capstone_logged: false };
 
     const chapter = db.prepare('SELECT * FROM chapters WHERE id = ?').get(lesson.chapter_id) as Chapter;
     const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(chapter.part_id) as Part;
 
+    const isChapterEnd = isLastLessonInChapter(lesson.chapter_id, lesson.sort_order);
     return {
       tutorial_name: tutorial.name,
       type: tutorial.type,
@@ -1057,7 +1103,11 @@ export const database = {
       current_chapter: chapter,
       current_part: part,
       position: { part: part.sort_order, chapter: chapter.sort_order, lesson: lesson.sort_order },
-      is_chapter_start: lesson.sort_order === 1
+      is_chapter_start: lesson.sort_order === 1,
+      is_chapter_end: isChapterEnd,
+      is_part_end: isChapterEnd && isLastChapterInPart(part.id, chapter.sort_order),
+      interview_logged: interviewLogged(chapter.id),
+      capstone_logged: capstoneLogged(part.id)
     };
   },
 
@@ -1126,15 +1176,8 @@ export const database = {
     // Mark previous lesson as completed
     db.prepare('UPDATE lessons SET completed = 1 WHERE id = ?').run(previousLesson.id);
 
-    // Check and update chapter completion
-    if (chapterCompleted && currentPos.current_chapter) {
-      db.prepare('UPDATE chapters SET completed = 1 WHERE id = ?').run(currentPos.current_chapter.id);
-    }
-
-    // Check and update part completion
-    if (partCompleted && currentPos.current_part) {
-      db.prepare('UPDATE parts SET completed = 1 WHERE id = ?').run(currentPos.current_part.id);
-    }
+    // Chapter/part completion is derived on read (isChapterComplete/isPartComplete),
+    // not stored — nothing to write here.
 
     return {
       previous_lesson: previousLesson,

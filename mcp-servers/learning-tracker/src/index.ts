@@ -210,7 +210,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_current_position',
-        description: 'Get the current position in the tutorial (current lesson, chapter, and part) plus the tutorial type (programming/general) and difficulty_level (beginner/intermediate/advanced), so lessons are taught in the right mode and at the right level after compaction or clearing. Also indicates if this is the start of a new chapter (for triggering reviews).',
+        description: 'Get the current position in the tutorial (current lesson, chapter, and part) plus the tutorial type (programming/general) and difficulty_level (beginner/intermediate/advanced), so lessons are taught in the right mode and at the right level after compaction or clearing. Also returns boundary facts for the controller to route on: is_chapter_start (trigger reviews), is_chapter_end / is_part_end (whether this lesson ends its chapter/part), and interview_logged / capstone_logged (whether the boundary work for the current chapter/part is already done).',
         inputSchema: {
           type: 'object',
           properties: {},

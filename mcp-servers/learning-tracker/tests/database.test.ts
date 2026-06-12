@@ -156,4 +156,53 @@ test('curriculum tree lifecycle', async (t) => {
     const fileContent = readFileSync(join(tmpDir, 'curriculum.md'), 'utf-8');
     assert.notEqual(fileContent, database.getCurriculumTree());
   });
+
+  // --- Boundary facts + derived chapter/part completion ---
+
+  let ch11Id = 0;
+  let part1Id = 0;
+
+  await t.test('boundary facts: a mid-chapter lesson is neither chapter-end nor part-end', () => {
+    const pos = database.getCurrentPosition()!; // at Lesson 1.1.2 from the lifecycle above
+    assert.equal(pos.current_lesson!.name, 'Lesson 1.1.2');
+    assert.equal(pos.is_chapter_end, false);
+    assert.equal(pos.is_part_end, false);
+    assert.equal(pos.interview_logged, false);
+    assert.equal(pos.capstone_logged, false);
+    ch11Id = pos.current_chapter!.id;
+    part1Id = pos.current_part!.id;
+  });
+
+  await t.test('boundary facts: last lesson of a non-final chapter is chapter-end, not part-end', () => {
+    let g = 0;
+    while (database.getCurrentPosition()!.current_lesson!.name !== 'Lesson 1.1.4' && g++ < 100) database.advancePosition();
+    const pos = database.getCurrentPosition()!;
+    assert.equal(pos.is_chapter_end, true);
+    assert.equal(pos.is_part_end, false);
+  });
+
+  await t.test('chapter completion derives from lessons + interview log, not a stored flag', () => {
+    database.advancePosition(); // complete Lesson 1.1.4 -> chapter 1.1 lessons all done, pointer to 1.2.1
+    assert.equal(database.getChapter(ch11Id)!.chapter.completed, false); // no interview yet
+    database.logInterviewResult(ch11Id, 32, 40, 'ok');
+    assert.equal(database.getChapter(ch11Id)!.chapter.completed, true);
+  });
+
+  await t.test('part-end is detected at the final lesson of the final chapter of a part', () => {
+    let g = 0;
+    while (database.getCurrentPosition()!.current_lesson!.name !== 'Lesson 1.4.4' && g++ < 100) database.advancePosition();
+    const pos = database.getCurrentPosition()!;
+    assert.equal(pos.is_chapter_end, true);
+    assert.equal(pos.is_part_end, true);
+  });
+
+  await t.test('part completion derives from all chapters complete + capstone log', () => {
+    database.advancePosition(); // complete Lesson 1.4.4, pointer leaves part 1
+    for (const ch of database.getPart(part1Id)!.chapters) {
+      database.logInterviewResult(ch.id, 32, 40, 'ok'); // every chapter in part 1 interviewed
+    }
+    assert.equal(database.getPart(part1Id)!.part.completed, false); // capstone still missing
+    database.logCapstoneResult(part1Id, true, 'done');
+    assert.equal(database.getPart(part1Id)!.part.completed, true);
+  });
 });
