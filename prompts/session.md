@@ -202,7 +202,7 @@ Use the right tool for the job:
 - `get_tutorial` — only for progress screens, certificates, curriculum display (heavy, ~13k tokens)
 
 <!-- TEMPORARY: Remove this block when v0.2 adds get_tutorial_stats -->
-Avoid redundant heavy calls: If you called `get_tutorial` earlier in this session AND no write operations (`advance_position`, `log_quiz_result`, `log_interview_result`, `log_capstone_result`, `log_review_result`, `reset_progress`) have occurred since, reuse the earlier response instead of calling again.
+Avoid redundant heavy calls: If you called `get_tutorial` earlier in this session AND no write operations (`complete_lesson`, `advance_position`, `log_quiz_result`, `log_interview_result`, `log_capstone_result`, `log_review_result`, `reset_progress`) have occurred since, reuse the earlier response instead of calling again.
 <!-- /TEMPORARY -->
 
 ### MCP-First for Tutorial Data
@@ -273,8 +273,9 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 
 **If a tutorial exists (call succeeded):**
 
-- You now have the current position (part, chapter, lesson, `is_chapter_start`) plus the tutorial's `type` and `difficulty_level`
-- Resume from that point — proceed to Lesson Flow. Use `type` (programming vs general) to pick the right exercise/interview/capstone mode and `difficulty_level` to calibrate depth, without re-deriving either from the topic — this keeps the right mode and level after a compaction or `/clear`
+- You now have the current position (part, chapter, lesson, `is_chapter_start`), the boundary facts (`is_chapter_end`, `is_part_end`, `interview_logged`, `capstone_logged`), and the tutorial's `type` and `difficulty_level`
+- **Resume via Lesson Boundary Routing** (see Lesson Flow step 7): if the current lesson is **not** completed, teach it; if it **is** completed, route to any pending Mock Interview or Capstone before advancing. This is what keeps a restart at a chapter/part boundary from skipping the interview/capstone
+- Use `type` (programming vs general) to pick the right exercise/interview/capstone mode and `difficulty_level` to calibrate depth, without re-deriving either from the topic — this keeps the right mode and level after a compaction or `/clear`
 
 **If no tutorial exists (call failed or returned null):**
 
@@ -445,13 +446,24 @@ If they want more practice, provide another exercise on the same concept (differ
   - `score`: Number correct
   - `total`: 12
   - `missed_concept_ids`: IDs of concepts answered incorrectly
-- Call `advance_position` to move to the next lesson (this also adds the lesson to the review queue)
+- Call `complete_lesson` to mark this lesson's content done and queue it for review. **Don't move on yet** — follow Lesson Boundary Routing below.
+
+### 7. Lesson Boundary Routing
+
+After `complete_lesson` — and also whenever you resume onto an already-completed lesson (after a session restart or `/clear`) — call `get_current_position` and route on its boundary facts. Apply these in order, re-reading `get_current_position` after each step:
+
+1. **Current lesson not completed** → teach it (start the Lesson Flow from step 1). *(This is the resume entry point; it won't match right after `complete_lesson`.)*
+2. **`is_chapter_end` is true and `interview_logged` is false** → run the **Mock Interview** for the current chapter (below), then `log_interview_result`.
+3. **`is_part_end` is true and `capstone_logged` is false** → run the **Capstone Project** for the current part (below), then `log_capstone_result`.
+4. **Otherwise** (no boundary work left) → call `advance_position` to move to the next lesson, then continue the Lesson Flow (handle chapter start if `is_chapter_start`).
+
+Order matters: at a part end **both** `is_chapter_end` and `is_part_end` are true, so the interview (step 2) runs before the capstone (step 3), and the pointer does not advance (step 4) until both are logged. Every gate is read from logged state (`interview_logged` / `capstone_logged`), so an interrupted or skipped step is simply re-offered on the next pass — the pointer never moves past unfinished boundary work, so nothing is lost or silently skipped.
 
 ---
 
 ## Chapter Completion: Mock Interview
 
-When all 4 lessons in a chapter are complete:
+Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons are all complete and its interview isn't logged. The pointer is still on the chapter's final lesson, so `get_current_position`'s current chapter and part are the right ones to use here.
 
 1. Say "You've completed all lessons in this chapter. Time for a mock interview!" Then use `AskUserQuestion` with the question "Ready for your interview?" and these options:
    - "Let's go" — Start the interview
@@ -481,7 +493,7 @@ When all 4 lessons in a chapter are complete:
 
 ## Part Completion: Capstone Project
 
-When all 4 chapters in a part are complete:
+Reached from **Lesson Boundary Routing** (step 3): the current part's chapters are all complete (every chapter interviewed) and its capstone isn't logged. The interview for the final chapter has just run, and the pointer is still on the part's final lesson, so `get_current_position`'s current part is the one to capstone.
 
 ### 1. Announce
 
@@ -1028,9 +1040,11 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | Session start         | `get_current_position` (lightweight), then `create_tutorial` + `start_tutorial` if no tutorial exists       |
 | Chapter start         | `get_current_position` (check `is_chapter_start`), `get_review_queue`                                       |
 | After review question | `log_review_result`                                                                                         |
-| After quiz            | `log_quiz_result`, `advance_position`                                                                       |
+| After quiz            | `log_quiz_result`, `complete_lesson`, then Lesson Boundary Routing                                          |
+| Lesson boundary       | `get_current_position` (route on `is_chapter_end`/`is_part_end`/`interview_logged`/`capstone_logged`)        |
 | After interview       | `log_interview_result`                                                                                      |
 | After capstone        | `log_capstone_result`                                                                                       |
+| Move to next lesson   | `advance_position` (only once boundary work is logged)                                                       |
 | Before book save      | `get_preferences` (check `book`)                                                                            |
 | Progress check        | `get_tutorial`, `get_review_queue`                                                                          |
 
