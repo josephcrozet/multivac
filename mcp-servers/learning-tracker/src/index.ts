@@ -123,7 +123,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_tutorial',
-        description: 'Get complete tutorial details including structure, progress, and statistics. Returns { tutorial: null } if no tutorial exists yet. Use this when you need full stats (progress screen, certificate). For quick checks (status, type, difficulty), use get_tutorial_metadata instead.',
+        description: 'Get the complete tutorial payload: full nested structure (every part/chapter/lesson/concept) plus progress and stats (~13k tokens). Returns { tutorial: null } if no tutorial exists yet. NOT used in the normal lesson flow — prefer the lightweight tools: get_stats (progress/certificate numbers), get_curriculum_tree (curriculum view), get_part (one part), get_tutorial_metadata (status/type/difficulty). Reach for get_tutorial only when you need the entire payload at once: full export or debugging.',
         inputSchema: {
           type: 'object',
           properties: {},

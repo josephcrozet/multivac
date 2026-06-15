@@ -85,7 +85,7 @@ Two formats based on tutorial type:
 | Tool | Purpose |
 |------|---------|
 | `create_tutorial` | Generate new curriculum (with type, difficulty_level, preferences) |
-| `get_tutorial` | Full structure + stats (heavy — use for progress screen, certificate) |
+| `get_tutorial` | Full nested structure + stats (~13k tokens). NOT used in normal flow — prefer get_stats/get_curriculum_tree/get_part/get_tutorial_metadata; full-export/debugging escape hatch |
 | `get_tutorial_metadata` | Lightweight: name, type, status, difficulty_level, dates (quick checks) |
 | `get_chapter` | Get a single chapter with its lessons. Use for Chapter Start Screen instead of get_tutorial |
 | `get_part` | Get a single part with chapters → lessons → concepts. Use for capstone design instead of get_tutorial |
