@@ -198,12 +198,10 @@ Long conversations accumulate context that gets re-sent with each message, accel
 
 Use the right tool for the job:
 - `get_current_position` — for navigation and resuming (lightweight)
-- `get_tutorial_metadata` — for existence/status/type checks (lightweight)
-- `get_tutorial` — only for progress screens, certificates, curriculum display (heavy, ~13k tokens)
-
-<!-- TEMPORARY: Remove this block when v0.2 adds get_tutorial_stats -->
-Avoid redundant heavy calls: If you called `get_tutorial` earlier in this session AND no write operations (`complete_lesson`, `advance_position`, `log_quiz_result`, `log_interview_result`, `log_capstone_result`, `log_review_result`, `reset_progress`) have occurred since, reuse the earlier response instead of calling again.
-<!-- /TEMPORARY -->
+- `get_tutorial_metadata` — for existence/status/type/difficulty checks (lightweight)
+- `get_stats` — aggregate progress numbers for progress screens and certificates (lightweight)
+- `get_curriculum_tree` — the annotated ASCII curriculum tree for any "show curriculum" view (lightweight)
+- `get_tutorial` — the full nested structure (~13k tokens). **Not used in the normal flow** — prefer the lightweight tools above. Reach for it only when you genuinely need the entire payload at once (full export or debugging), or the user explicitly asks for it.
 
 ### MCP-First for Tutorial Data
 
@@ -645,12 +643,12 @@ Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completi
 
 **If yes:**
 
-- Call `get_tutorial` to get metadata and stats:
-  - `tutorial.name` and `tutorial.difficulty_level` for the certificate header
-  - Lessons completed (should be 48/48)
-  - Average quiz score across all quizzes
-  - Average interview score (convert to 5-star scale)
-  - Capstones completed (★ for completed, ☆ for skipped)
+- Call `get_tutorial_metadata` for the header and `get_stats` for the numbers:
+  - `name` and `difficulty_level` (from metadata) for the certificate header
+  - Lessons completed — `tutorial.completed_lessons` / `tutorial.total_lessons` (should be 48/48)
+  - Average quiz score — `tutorial.average_quiz_score`
+  - Average interview score — `tutorial.average_interview_score` (convert to 5-star scale)
+  - Capstones completed — `tutorial.capstones_completed` (★ for completed, ☆ for skipped)
 - Generate the certificate (see Certificate Template in ASCII Art section)
 - Save to `{difficulty}-{topic}-certificate.txt` in the project directory (e.g., `beginner-python-certificate.txt`)
 - Confirm: "Certificate saved to {filename}!"
@@ -659,7 +657,7 @@ Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completi
 
 ### 4. Suggest Next Topics
 
-Get `name` and `difficulty_level`: use the `get_tutorial` response from step 3 if available, otherwise call `get_tutorial_metadata`. Generate 4 personalized topic suggestions.
+Get `name` and `difficulty_level` from `get_tutorial_metadata` (reuse the response from step 3 if you already called it). Generate 4 personalized topic suggestions.
 
 **If they completed Beginner or Intermediate:**
 
@@ -919,12 +917,12 @@ Use ★ for completed capstones, ☆ for skipped. Examples: `★ ★ ★` (all c
 Throughout the session:
 
 - Use `get_current_position` to know where the user is
-- Use `get_tutorial` to review overall progress when asked
+- Use `get_stats` to review overall progress when asked
 - Celebrate milestones (completed chapters, parts, etc.)
 
 When the user asks about progress or runs `/progress`:
 
-- Call `get_tutorial` and `get_review_queue`
+- Call `get_stats` and `get_review_queue`
 - Display the progress in ASCII art format (see /progress command)
 
 ---
@@ -1046,7 +1044,7 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | After capstone        | `log_capstone_result`                                                                                       |
 | Move to next lesson   | `advance_position` (only once boundary work is logged)                                                       |
 | Before book save      | `get_preferences` (check `book`)                                                                            |
-| Progress check        | `get_tutorial`, `get_review_queue`                                                                          |
+| Progress check        | `get_stats`, `get_review_queue`                                                                             |
 
 ---
 
