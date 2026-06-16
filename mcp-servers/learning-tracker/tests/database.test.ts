@@ -150,6 +150,16 @@ test('curriculum tree lifecycle', async (t) => {
     assert.ok(line.includes('►'));
   });
 
+  await t.test('advancePosition refuses to move off an incomplete lesson', () => {
+    // current is Lesson 1.1.2, freshly arrived and not yet completed
+    assert.equal(database.getCurrentPosition()!.current_lesson!.name, 'Lesson 1.1.2');
+    const result = database.advancePosition()!;
+    assert.equal(result.advanced, false);
+    assert.match(result.reason ?? '', /complete_lesson/);
+    // pointer did not move
+    assert.equal(database.getCurrentPosition()!.current_lesson!.name, 'Lesson 1.1.2');
+  });
+
   await t.test('curriculum.md is write-once: byte-identical to initial snapshot', () => {
     const fileContent = readFileSync(join(tmpDir, 'curriculum.md'), 'utf-8');
     assert.equal(fileContent, initialFileContent);
