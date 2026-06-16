@@ -507,7 +507,7 @@ Say "Here's what's ahead." Then use `AskUserQuestion` with the question "Ready f
 
 **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
-If they skip: proceed directly to **Display Completion Screen** (step 7). Do not call `log_capstone_result`. The capstone will show as incomplete on progress screens and certificates.
+If they skip: call `log_capstone_result` with `completed: false` to record the skip, then proceed directly to **Display Completion Screen** (step 7). Recording the skip *resolves* the capstone — it marks `capstone_resolved` so the boundary routing won't re-offer it and `advance_position` will move on — while leaving it uncompleted (it shows as skipped, ☆, on progress screens and certificates; the part itself still counts as complete from its lessons and interviews).
 
 ### 3. Present the Project
 
