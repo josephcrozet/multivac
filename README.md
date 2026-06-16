@@ -216,10 +216,10 @@ This project demonstrates Claude Code's extensibility:
 | `start_tutorial`       | Begin a tutorial                         |
 | `get_current_position` | Current lesson/chapter/part + type + difficulty + boundary facts |
 | `complete_lesson`      | Mark current lesson done + queue for review (pointer stays put) |
-| `advance_position`     | Move the pointer to the next lesson |
+| `advance_position`     | Move the pointer to the next lesson      |
 | `log_quiz_result`      | Record quiz scores                       |
 | `log_interview_result` | Record interview performance             |
-| `log_capstone_result`  | Record capstone completion               |
+| `log_capstone_result`  | Record capstone result (done/skipped)    |
 | `get_review_queue`     | Get lessons pending review               |
 | `log_review_result`    | Mark review correct/incorrect            |
 | `reset_progress`       | Reset progress while keeping curriculum  |

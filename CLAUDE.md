@@ -96,7 +96,7 @@ Two formats based on tutorial type:
 | `start_tutorial` | Begin a tutorial |
 | `get_current_position` | Current lesson/chapter/part, type, difficulty_level, and boundary facts (is_chapter_start/is_chapter_end/is_part_end/interview_resolved/capstone_resolved) |
 | `complete_lesson` | Mark current lesson's content done + add to review queue; does NOT move the pointer |
-| `advance_position` | Move the pointer to the next lesson (only after boundary work is logged) |
+| `advance_position` | Move the pointer to the next lesson — guarded: refuses unless the lesson is completed and any chapter/part boundary work is resolved |
 | `log_quiz_result` | Record quiz scores |
 | `log_interview_result` | Record interview performance |
 | `log_capstone_result` | Record capstone completion |
