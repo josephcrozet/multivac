@@ -210,7 +210,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_current_position',
-        description: 'Get the current position in the tutorial (current lesson, chapter, and part) plus the tutorial type (programming/general) and difficulty_level (beginner/intermediate/advanced), so lessons are taught in the right mode and at the right level after compaction or clearing. Also returns boundary facts for the controller to route on: is_chapter_start (trigger reviews), is_chapter_end / is_part_end (whether this lesson ends its chapter/part), and interview_logged / capstone_logged (whether the boundary work for the current chapter/part is already done).',
+        description: 'Get the current position in the tutorial (current lesson, chapter, and part) plus the tutorial type (programming/general) and difficulty_level (beginner/intermediate/advanced), so lessons are taught in the right mode and at the right level after compaction or clearing. Also returns boundary facts for the controller to route on: is_chapter_start (trigger reviews), is_chapter_end / is_part_end (whether this lesson ends its chapter/part), and interview_resolved / capstone_resolved (whether the chapter interview / part capstone has been recorded — done, or for the skippable capstone, skipped).',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -226,7 +226,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'advance_position',
-        description: 'Move the pointer to the next lesson (or mark the tutorial completed if there is none). Does not mark anything complete — the current lesson must already be completed via complete_lesson, and any chapter/part boundary work logged, before advancing. Guarded: if the current lesson is not completed, it does NOT advance and returns advanced=false with a reason — call complete_lesson first.',
+        description: 'Move the pointer to the next lesson (or mark the tutorial completed if there is none). Does not mark anything complete — the current lesson must already be completed via complete_lesson, and any chapter/part boundary work logged, before advancing. Guarded: refuses (advanced=false, with a reason) if the current lesson is not completed, or — at a chapter/part end — if the interview/capstone is not yet resolved. Resolve the pending work first (complete_lesson, then run/skip the interview or capstone).',
         inputSchema: {
           type: 'object',
           properties: {},

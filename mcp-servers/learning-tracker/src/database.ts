@@ -483,12 +483,15 @@ function getTutorialId(): number | null {
   return tutorial?.id ?? null;
 }
 
-// Boundary-work leaf facts: whether a chapter's interview / a part's capstone has been logged.
-function interviewLogged(chapterId: number): boolean {
+// Boundary-work leaf facts: a chapter's interview / a part's capstone is "resolved" when a
+// result row exists — the work was done, or (capstone only, since it's skippable) explicitly
+// skipped. The gate/guard and routing key off "resolved". For a resolved capstone, the row's
+// `completed` flag distinguishes done from skipped, used only for the ★/☆ display elsewhere.
+function interviewResolved(chapterId: number): boolean {
   return !!db.prepare('SELECT 1 FROM interview_results WHERE chapter_id = ? LIMIT 1').get(chapterId);
 }
-function capstoneLogged(partId: number): boolean {
-  return !!db.prepare('SELECT 1 FROM capstone_results WHERE part_id = ? AND completed = 1 LIMIT 1').get(partId);
+function capstoneResolved(partId: number): boolean {
+  return !!db.prepare('SELECT 1 FROM capstone_results WHERE part_id = ? LIMIT 1').get(partId);
 }
 
 // Structural boundary facts: is this the last lesson of its chapter / last chapter of its part.
@@ -505,18 +508,19 @@ function isLastChapterInPart(partId: number, chapterSortOrder: number): boolean 
 // aggregate of leaf facts (lesson completion + the interview/capstone logs), so
 // computing it on read keeps a single source of truth and can't drift.
 
-// A chapter is complete when all its lessons are complete AND its mock interview is logged.
+// A chapter is complete when all its lessons are complete AND its mock interview is done.
 function isChapterComplete(chapterId: number): boolean {
   const lessons = db.prepare('SELECT completed FROM lessons WHERE chapter_id = ?').all(chapterId) as { completed: number }[];
   if (lessons.length === 0 || !lessons.every(l => !!l.completed)) return false;
-  return interviewLogged(chapterId);
+  return interviewResolved(chapterId);
 }
 
-// A part is complete when all its chapters are complete AND its capstone is logged complete.
+// A part is complete when all its chapters are complete (16 lessons + 4 interviews).
+// The capstone is an optional, skippable bonus tracked separately as ★/☆ — it does NOT
+// gate part completion (you can skip it, finish the tutorial, and still earn a certificate).
 function isPartComplete(partId: number): boolean {
   const chapters = db.prepare('SELECT id FROM chapters WHERE part_id = ?').all(partId) as { id: number }[];
-  if (chapters.length === 0 || !chapters.every(c => isChapterComplete(c.id))) return false;
-  return capstoneLogged(partId);
+  return chapters.length > 0 && chapters.every(c => isChapterComplete(c.id));
 }
 
 // Database operations
@@ -1044,8 +1048,8 @@ export const database = {
     is_chapter_start: boolean;
     is_chapter_end: boolean;
     is_part_end: boolean;
-    interview_logged: boolean;
-    capstone_logged: boolean;
+    interview_resolved: boolean;
+    capstone_resolved: boolean;
   } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
@@ -1066,7 +1070,7 @@ export const database = {
         LIMIT 1
       `).get(tutorialId) as (Lesson & { part_id: number; chapter_order: number; part_order: number }) | undefined;
 
-      if (!firstLesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false, is_chapter_end: false, is_part_end: false, interview_logged: false, capstone_logged: false };
+      if (!firstLesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false, is_chapter_end: false, is_part_end: false, interview_resolved: false, capstone_resolved: false };
 
       const chapter = db.prepare('SELECT * FROM chapters WHERE id = ?').get(firstLesson.chapter_id) as Chapter;
       const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(firstLesson.part_id) as Part;
@@ -1083,13 +1087,13 @@ export const database = {
         is_chapter_start: firstLesson.sort_order === 1,
         is_chapter_end: isChapterEnd,
         is_part_end: isChapterEnd && isLastChapterInPart(part.id, chapter.sort_order),
-        interview_logged: interviewLogged(chapter.id),
-        capstone_logged: capstoneLogged(part.id)
+        interview_resolved: interviewResolved(chapter.id),
+        capstone_resolved: capstoneResolved(part.id)
       };
     }
 
     const lesson = db.prepare('SELECT * FROM lessons WHERE id = ?').get(progress.current_lesson_id) as Lesson | undefined;
-    if (!lesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false, is_chapter_end: false, is_part_end: false, interview_logged: false, capstone_logged: false };
+    if (!lesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false, is_chapter_end: false, is_part_end: false, interview_resolved: false, capstone_resolved: false };
 
     const chapter = db.prepare('SELECT * FROM chapters WHERE id = ?').get(lesson.chapter_id) as Chapter;
     const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(chapter.part_id) as Part;
@@ -1106,8 +1110,8 @@ export const database = {
       is_chapter_start: lesson.sort_order === 1,
       is_chapter_end: isChapterEnd,
       is_part_end: isChapterEnd && isLastChapterInPart(part.id, chapter.sort_order),
-      interview_logged: interviewLogged(chapter.id),
-      capstone_logged: capstoneLogged(part.id)
+      interview_resolved: interviewResolved(chapter.id),
+      capstone_resolved: capstoneResolved(part.id)
     };
   },
 
@@ -1135,11 +1139,13 @@ export const database = {
   // there is no next lesson. Marks nothing else complete — lesson completion is
   // recorded by completeLesson, chapter/part completion is derived from the logs.
   //
-  // Guard: refuses to advance off a lesson whose content isn't completed yet
-  // (call completeLesson first). There is no legitimate advance-without-complete
-  // in the flow, and advancing past an incomplete lesson would strand it behind
-  // the forward-only pointer — a permanent "hole" that keeps its chapter/part
-  // from ever deriving complete. `advanced: false` signals the no-op.
+  // Guard: refuses to advance off a position with unfinished work — an incomplete
+  // lesson, an unresolved chapter interview (at a chapter end), or an unresolved
+  // part capstone (at a part end). None of these has a legitimate advance-past in
+  // the flow, and advancing would strand the work behind the forward-only pointer:
+  // a permanent "hole" (skipped lesson/interview never re-offered, or a never-run
+  // capstone). `advanced: false` signals the no-op. ("Resolved" allows a skipped
+  // capstone through — skip records a result row, so the gate is satisfied.)
   advancePosition(): {
     advanced: boolean;
     reason?: string;
@@ -1157,14 +1163,22 @@ export const database = {
 
     const previousLesson = currentPos.current_lesson;
 
+    const refuse = (reason: string) => ({
+      advanced: false as const,
+      reason,
+      previous_lesson: previousLesson,
+      new_lesson: null,
+      tutorial_completed: false
+    });
+
     if (!previousLesson.completed) {
-      return {
-        advanced: false,
-        reason: 'current lesson is not completed — call complete_lesson before advancing',
-        previous_lesson: previousLesson,
-        new_lesson: null,
-        tutorial_completed: false
-      };
+      return refuse('current lesson is not completed — call complete_lesson before advancing');
+    }
+    if (currentPos.is_chapter_end && !currentPos.interview_resolved) {
+      return refuse('chapter interview not resolved — run the mock interview before advancing');
+    }
+    if (currentPos.is_part_end && !currentPos.capstone_resolved) {
+      return refuse('part capstone not resolved — run or skip the capstone before advancing');
     }
 
     // Find the next lesson in curriculum order.
