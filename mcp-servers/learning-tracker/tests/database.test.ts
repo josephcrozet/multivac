@@ -186,8 +186,8 @@ test('curriculum tree lifecycle', async (t) => {
     assert.equal(pos.current_lesson!.name, 'Lesson 1.1.2');
     assert.equal(pos.is_chapter_end, false);
     assert.equal(pos.is_part_end, false);
-    assert.equal(pos.interview_logged, false);
-    assert.equal(pos.capstone_logged, false);
+    assert.equal(pos.interview_resolved, false);
+    assert.equal(pos.capstone_resolved, false);
     ch11Id = pos.current_chapter!.id;
     part1Id = pos.current_part!.id;
   });
@@ -215,13 +215,19 @@ test('curriculum tree lifecycle', async (t) => {
     assert.equal(pos.is_part_end, true);
   });
 
-  await t.test('part completion derives from all chapters complete + capstone log', () => {
+  await t.test('part completion = all chapters complete; the capstone is not required', () => {
     completeAndAdvance(); // complete Lesson 1.4.4, pointer leaves part 1
     for (const ch of database.getPart(part1Id)!.chapters) {
       database.logInterviewResult(ch.id, 32, 40, 'ok'); // every chapter in part 1 interviewed
     }
-    assert.equal(database.getPart(part1Id)!.part.completed, false); // capstone still missing
-    database.logCapstoneResult(part1Id, true, 'done');
+    // 16 lessons + 4 interviews done, no capstone → the part is complete
     assert.equal(database.getPart(part1Id)!.part.completed, true);
+  });
+
+  await t.test('a skipped capstone keeps the part complete but unstarred', () => {
+    database.logCapstoneResult(part1Id, false, 'skipped'); // skip = resolved, not completed
+    assert.equal(database.getPart(part1Id)!.part.completed, true); // still complete
+    const partStat = database.getStats()!.parts.find((p) => p.part_id === part1Id)!;
+    assert.equal(partStat.capstone_completed, false); // ☆, not ★
   });
 });
