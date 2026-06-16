@@ -1134,7 +1134,15 @@ export const database = {
   // Move the pointer to the next lesson, or mark the tutorial completed when
   // there is no next lesson. Marks nothing else complete — lesson completion is
   // recorded by completeLesson, chapter/part completion is derived from the logs.
+  //
+  // Guard: refuses to advance off a lesson whose content isn't completed yet
+  // (call completeLesson first). There is no legitimate advance-without-complete
+  // in the flow, and advancing past an incomplete lesson would strand it behind
+  // the forward-only pointer — a permanent "hole" that keeps its chapter/part
+  // from ever deriving complete. `advanced: false` signals the no-op.
   advancePosition(): {
+    advanced: boolean;
+    reason?: string;
     previous_lesson: Lesson | null;
     new_lesson: Lesson | null;
     tutorial_completed: boolean;
@@ -1144,10 +1152,20 @@ export const database = {
 
     const currentPos = this.getCurrentPosition();
     if (!currentPos || !currentPos.current_lesson) {
-      return { previous_lesson: null, new_lesson: null, tutorial_completed: false };
+      return { advanced: false, reason: 'no current lesson', previous_lesson: null, new_lesson: null, tutorial_completed: false };
     }
 
     const previousLesson = currentPos.current_lesson;
+
+    if (!previousLesson.completed) {
+      return {
+        advanced: false,
+        reason: 'current lesson is not completed — call complete_lesson before advancing',
+        previous_lesson: previousLesson,
+        new_lesson: null,
+        tutorial_completed: false
+      };
+    }
 
     // Find the next lesson in curriculum order.
     const nextLesson = db.prepare(`
@@ -1187,6 +1205,7 @@ export const database = {
     }
 
     return {
+      advanced: true,
       previous_lesson: previousLesson,
       new_lesson: nextLesson || null,
       tutorial_completed: !nextLesson
