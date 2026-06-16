@@ -1139,11 +1139,13 @@ export const database = {
   // there is no next lesson. Marks nothing else complete — lesson completion is
   // recorded by completeLesson, chapter/part completion is derived from the logs.
   //
-  // Guard: refuses to advance off a lesson whose content isn't completed yet
-  // (call completeLesson first). There is no legitimate advance-without-complete
-  // in the flow, and advancing past an incomplete lesson would strand it behind
-  // the forward-only pointer — a permanent "hole" that keeps its chapter/part
-  // from ever deriving complete. `advanced: false` signals the no-op.
+  // Guard: refuses to advance off a position with unfinished work — an incomplete
+  // lesson, an unresolved chapter interview (at a chapter end), or an unresolved
+  // part capstone (at a part end). None of these has a legitimate advance-past in
+  // the flow, and advancing would strand the work behind the forward-only pointer:
+  // a permanent "hole" (skipped lesson/interview never re-offered, or a never-run
+  // capstone). `advanced: false` signals the no-op. ("Resolved" allows a skipped
+  // capstone through — skip records a result row, so the gate is satisfied.)
   advancePosition(): {
     advanced: boolean;
     reason?: string;
@@ -1161,14 +1163,22 @@ export const database = {
 
     const previousLesson = currentPos.current_lesson;
 
+    const refuse = (reason: string) => ({
+      advanced: false as const,
+      reason,
+      previous_lesson: previousLesson,
+      new_lesson: null,
+      tutorial_completed: false
+    });
+
     if (!previousLesson.completed) {
-      return {
-        advanced: false,
-        reason: 'current lesson is not completed — call complete_lesson before advancing',
-        previous_lesson: previousLesson,
-        new_lesson: null,
-        tutorial_completed: false
-      };
+      return refuse('current lesson is not completed — call complete_lesson before advancing');
+    }
+    if (currentPos.is_chapter_end && !currentPos.interview_resolved) {
+      return refuse('chapter interview not resolved — run the mock interview before advancing');
+    }
+    if (currentPos.is_part_end && !currentPos.capstone_resolved) {
+      return refuse('part capstone not resolved — run or skip the capstone before advancing');
     }
 
     // Find the next lesson in curriculum order.

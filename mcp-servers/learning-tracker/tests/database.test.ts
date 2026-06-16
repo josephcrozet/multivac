@@ -170,15 +170,21 @@ test('curriculum tree lifecycle', async (t) => {
     assert.notEqual(fileContent, database.getCurriculumTree());
   });
 
-  // --- Boundary facts + derived chapter/part completion ---
+  // --- Boundary facts, the advance guard, and derived completion ---
 
-  // Finish a lesson the way the controller does: complete its content, then advance.
-  const completeAndAdvance = () => {
+  // Navigate forward the way the controller does: complete the lesson, resolve any
+  // boundary work the guard requires (interview at a chapter end, capstone at a part
+  // end), then advance. Used to walk to a target lesson.
+  const driveForward = () => {
+    const pos = database.getCurrentPosition()!;
     database.completeLesson();
-    database.advancePosition();
+    if (pos.is_part_end && !pos.capstone_resolved) database.logCapstoneResult(pos.current_part!.id, true, 'done');
+    if (pos.is_chapter_end && !pos.interview_resolved) database.logInterviewResult(pos.current_chapter!.id, 32, 40, 'ok');
+    assert.equal(database.advancePosition()!.advanced, true);
   };
 
   let ch11Id = 0;
+  let ch14Id = 0;
   let part1Id = 0;
 
   await t.test('boundary facts: a mid-chapter lesson is neither chapter-end nor part-end', () => {
@@ -194,39 +200,49 @@ test('curriculum tree lifecycle', async (t) => {
 
   await t.test('boundary facts: last lesson of a non-final chapter is chapter-end, not part-end', () => {
     let g = 0;
-    while (database.getCurrentPosition()!.current_lesson!.name !== 'Lesson 1.1.4' && g++ < 100) completeAndAdvance();
+    while (database.getCurrentPosition()!.current_lesson!.name !== 'Lesson 1.1.4' && g++ < 100) driveForward();
     const pos = database.getCurrentPosition()!;
     assert.equal(pos.is_chapter_end, true);
     assert.equal(pos.is_part_end, false);
   });
 
-  await t.test('chapter completion derives from lessons + interview log, not a stored flag', () => {
-    completeAndAdvance(); // complete Lesson 1.1.4 -> chapter 1.1 lessons all done, pointer to 1.2.1
-    assert.equal(database.getChapter(ch11Id)!.chapter.completed, false); // no interview yet
+  await t.test('guard refuses to advance off a chapter end until the interview is resolved', () => {
+    database.completeLesson(); // Lesson 1.1.4 content done
+    const refused = database.advancePosition()!;
+    assert.equal(refused.advanced, false);
+    assert.match(refused.reason ?? '', /interview/);
+    assert.equal(database.getChapter(ch11Id)!.chapter.completed, false); // chapter not complete w/o interview
     database.logInterviewResult(ch11Id, 32, 40, 'ok');
     assert.equal(database.getChapter(ch11Id)!.chapter.completed, true);
+    assert.equal(database.advancePosition()!.advanced, true); // now it advances
+    assert.equal(database.getCurrentPosition()!.current_lesson!.name, 'Lesson 1.2.1');
   });
 
   await t.test('part-end is detected at the final lesson of the final chapter of a part', () => {
     let g = 0;
-    while (database.getCurrentPosition()!.current_lesson!.name !== 'Lesson 1.4.4' && g++ < 100) completeAndAdvance();
+    while (database.getCurrentPosition()!.current_lesson!.name !== 'Lesson 1.4.4' && g++ < 100) driveForward();
     const pos = database.getCurrentPosition()!;
     assert.equal(pos.is_chapter_end, true);
     assert.equal(pos.is_part_end, true);
+    ch14Id = pos.current_chapter!.id;
   });
 
-  await t.test('part completion = all chapters complete; the capstone is not required', () => {
-    completeAndAdvance(); // complete Lesson 1.4.4, pointer leaves part 1
-    for (const ch of database.getPart(part1Id)!.chapters) {
-      database.logInterviewResult(ch.id, 32, 40, 'ok'); // every chapter in part 1 interviewed
-    }
-    // 16 lessons + 4 interviews done, no capstone → the part is complete
+  await t.test('guard refuses a part end until interview AND capstone are resolved, in order', () => {
+    database.completeLesson(); // Lesson 1.4.4 content done
+    let r = database.advancePosition()!;
+    assert.equal(r.advanced, false);
+    assert.match(r.reason ?? '', /interview/); // interview gate first
+    database.logInterviewResult(ch14Id, 32, 40, 'ok');
+    r = database.advancePosition()!;
+    assert.equal(r.advanced, false);
+    assert.match(r.reason ?? '', /capstone/); // then capstone gate
+    database.logCapstoneResult(part1Id, false, 'skipped'); // a SKIP resolves the gate
+    assert.equal(database.advancePosition()!.advanced, true); // now it advances
+  });
+
+  await t.test('part completion = all chapters complete; a skipped capstone still counts (just unstarred)', () => {
+    // part 1: 16 lessons done, all 4 interviews logged, capstone skipped (resolved, not completed)
     assert.equal(database.getPart(part1Id)!.part.completed, true);
-  });
-
-  await t.test('a skipped capstone keeps the part complete but unstarred', () => {
-    database.logCapstoneResult(part1Id, false, 'skipped'); // skip = resolved, not completed
-    assert.equal(database.getPart(part1Id)!.part.completed, true); // still complete
     const partStat = database.getStats()!.parts.find((p) => p.part_id === part1Id)!;
     assert.equal(partStat.capstone_completed, false); // ☆, not ★
   });

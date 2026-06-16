@@ -226,7 +226,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'advance_position',
-        description: 'Move the pointer to the next lesson (or mark the tutorial completed if there is none). Does not mark anything complete — the current lesson must already be completed via complete_lesson, and any chapter/part boundary work logged, before advancing. Guarded: if the current lesson is not completed, it does NOT advance and returns advanced=false with a reason — call complete_lesson first.',
+        description: 'Move the pointer to the next lesson (or mark the tutorial completed if there is none). Does not mark anything complete — the current lesson must already be completed via complete_lesson, and any chapter/part boundary work logged, before advancing. Guarded: refuses (advanced=false, with a reason) if the current lesson is not completed, or — at a chapter/part end — if the interview/capstone is not yet resolved. Resolve the pending work first (complete_lesson, then run/skip the interview or capstone).',
         inputSchema: {
           type: 'object',
           properties: {},
