@@ -66,7 +66,7 @@ Each part ends with a capstone project that synthesizes everything you learned i
 
 **General tutorials:** Complete a substantial written assignment (essay, problem set, composition, analysis) with specific criteria per milestone. Each milestone is checked against its requirements, then reviewed for quality and style.
 
-All capstones are skippable if you'd rather keep learning. Skipped capstones show as ☆ on your completion certificate.
+All capstones are skippable if you'd rather keep learning. Skipped capstones show as ☆ on your completion certificate. Your capstone progress is saved as you go, so you can step away mid-project and resume the same project right where you left off.
 
 ### Progress Tracking
 

@@ -491,7 +491,9 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
 
 ## Part Completion: Capstone Project
 
-Reached from **Lesson Boundary Routing** (step 3): the current part's chapters are all complete (every chapter interviewed) and its capstone isn't logged. The interview for the final chapter has just run, and the pointer is still on the part's final lesson, so `get_current_position`'s current part is the one to capstone.
+Reached from **Lesson Boundary Routing** (step 3): the current part's chapters are all complete (every chapter interviewed) and its capstone isn't resolved. The interview for the final chapter has just run, and the pointer is still on the part's final lesson, so `get_current_position`'s current part is the one to capstone.
+
+**Resuming?** This section is also re-entered on a restart mid-capstone — the gate stays open until the capstone is resolved. If `CAPSTONE.md` already exists in the capstone directory, the capstone is already underway: skip the announce and skip-offer below and go straight to **step 3**, which re-grounds from `CAPSTONE.md` and continues from the next milestone. Run steps 1–2 only for a brand-new capstone.
 
 ### 1. Announce
 
@@ -511,11 +513,18 @@ If they skip: call `log_capstone_result` with `completed: false` to record the s
 
 ### 3. Present the Project
 
-Call `get_current_position` to ground the tutorial's `type` and `difficulty_level` — capstones run at a part boundary, where the session has often restarted, so read these fresh rather than relying on earlier context. Then call `get_part` with the `current_part.id` to fetch the part's full structure (chapters → lessons → concepts). Use that data to design a capstone that synthesizes concepts from all 4 chapters in this part. It should be substantial enough to feel like a real accomplishment but achievable in one sitting.
+**First, check for an existing capstone.** Look for `CAPSTONE.md` in the capstone directory (`exercises/{part-slug}/capstone/`) — the agent's durable record of the project, written so a capstone survives a restart or compaction mid-build.
+
+- **If `CAPSTONE.md` exists**, this capstone is already underway. Read it to re-ground on the *same* project — do **not** design a new one (that would strand the learner's in-progress work against a different spec). Read their work so far (the code files, or `capstone.txt`), re-create the milestone todo list from the checklist in `CAPSTONE.md` via `TodoWrite`, and resume from the first unchecked milestone. Skip the rest of this step.
+- **If it doesn't exist**, design the capstone now (below) and write `CAPSTONE.md` before the learner starts.
+
+**Designing a new capstone.** Call `get_current_position` to ground the tutorial's `type` and `difficulty_level` — capstones run at a part boundary, where the session has often restarted, so read these fresh rather than relying on earlier context. Then call `get_part` with the `current_part.id` to fetch the part's full structure (chapters → lessons → concepts). Use that data to design a capstone that synthesizes concepts from all 4 chapters in this part. It should be substantial enough to feel like a real accomplishment but achievable in one sitting.
 
 `type` selects the capstone format (see the subsections below). `difficulty_level` sets the ambition bar — the same concepts yield very different projects across levels, so calibrate scope, expected robustness, and how much you scaffold versus leave to the learner. A Beginner capstone is narrow and guided; an Advanced one demands independent design, edge-case handling, and rigor. This is the single biggest factor in whether the capstone fits the learner.
 
 For human language tutorials (Spanish, French, Japanese, etc.), the capstone prompt, criteria, and feedback should follow the target language guidelines in Core Principles.
+
+**Write `CAPSTONE.md`** in the capstone directory (both tutorial types) once the project is designed — it is the agent's source of truth for resuming after a restart. Include: the project title and description (the same prompt you give the learner), the ordered milestones with each one's acceptance criteria (tests for programming, checkable criteria for general), and a progress checklist (`- [ ]` per milestone). The project and milestone definitions are **write-once** — on resume you read them and never regenerate them; only the checklist changes as milestones pass. `CAPSTONE.md` is the agent's file; the learner works in their deliverable (below).
 
 #### Programming Tutorials
 
@@ -528,7 +537,7 @@ For human language tutorials (Spanish, French, Japanese, etc.), the capstone pro
 
 - Present a substantial written assignment with specific, checkable criteria per milestone
 - Create the capstone directory at `exercises/{part-slug}/capstone/`
-- Create `capstone.txt` inside it with the assignment prompt
+- Create `capstone.txt` inside it — the learner's permanent work surface: the assignment prompt (the same one in `CAPSTONE.md`) followed by space to write their response. This is *their* file; once created, only the learner edits it — the agent reads it to evaluate, never overwrites it (unlike the agent-owned `CAPSTONE.md`)
 - Criteria should be concrete and verifiable:
   - **Languages:** "Must use [grammatical structure] at least N times"
   - **Math:** "Show work for each step" / "Correct final answer"
@@ -547,7 +556,7 @@ Review their plan for completeness. Help them create a todo list with milestones
 
 ### 5. Work Through Milestones
 
-The user works through milestones sequentially. Each milestone follows: present criteria → work → signal completion → evaluate → review.
+The user works through milestones sequentially. Each milestone follows: present criteria → work → signal completion → evaluate → review. **When a milestone passes, check it off (`- [x]`) in `CAPSTONE.md`** so progress survives a restart and a resume picks up at the right milestone.
 
 **Guide, don't do.** This is especially important during capstones. Present clear requirements and provide feedback, but let the student produce the work. Don't write their code, essays, or solutions. Don't provide skeletal structures that reduce the capstone to fill-in-the-blank. Feedback should improve their work, not rewrite it.
 
@@ -597,6 +606,7 @@ The student should never be permanently blocked by a flawed evaluation.
   - `completed`: true
   - `notes`: Summary of the project
 - **Programming only:** Delete the `.capstone` file from the tutorial root directory. It should only exist during an active capstone.
+- Leave `CAPSTONE.md` and the deliverable (code files / `capstone.txt`) in place — they're the permanent record of what the learner built. (Only `.capstone`, the transient test-runner config, is removed.)
 
 ### 7. Display Completion Screen
 
