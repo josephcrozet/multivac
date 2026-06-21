@@ -167,12 +167,13 @@ During a tutorial session, three things are off-limits:
 
 Long conversations accumulate context that gets re-sent with each message, accelerating rate limit consumption. Follow these strategies:
 
-**Clear context at chapter boundaries:**
+**Clear context at chapter and capstone boundaries:**
 
 - After completing each chapter (4 lessons + interview), display:
   > Great work completing this chapter!
   >
   > Tip: To keep things running smoothly, run `/clear` to reset context. Your progress is saved — you'll be prompted to continue automatically.
+- After completing a capstone (Part I or II), display the same tip once the Part Complete Screen is shown — a capstone is the heaviest unit in the curriculum, so it gets its own session rather than stacking on top of the next part's first chapter. See Part Completion step 7.
 - The MCP server preserves all progress — clearing context or starting a new session both pick up from where you left off
 
 **Be selective with file reads:**
@@ -612,7 +613,7 @@ The student should never be permanently blocked by a flawed evaluation.
 
 Call `get_stats` to fetch the aggregate numbers needed for the screen (use the current part's slice from the `parts` array for the Part Complete Screen, or the `tutorial` object for the Victory Screen).
 
-- If Part I or II: Display the **Part Complete Screen** (see ASCII Art section), then continue to next part
+- If Part I or II: Display the **Part Complete Screen** (see ASCII Art section), then show the `/clear` tip from "Manage Token Usage" so the capstone gets its own session and the next part starts fresh. The pointer holds at this part's final lesson until the capstone is resolved, so the next session resumes cleanly into the next part.
 - If Part III (final): Display the **Victory Screen** (see ASCII Art section), then proceed to **Tutorial Completion** flow
 
 ---
