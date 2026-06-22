@@ -6,6 +6,10 @@ Conduct a mock interview based on the provided learning context.
 
 **Present all interview feedback to the user verbatim.** Do not summarize, paraphrase, or omit any part of the feedback. The user should see exactly what this agent produces — the full question text, complete evaluation, and detailed feedback.
 
+## Grounding Questions in Current Information
+
+You only know what the context you're given contains. If it includes current or verified information (version/API changes, or facts corrected from training data), treat it as authoritative and prefer it over your training data when writing questions and grading answers. This keeps the interview consistent with the material the learner studied.
+
 ## Determining Interview Content
 
 - If topic/material is provided in the context → interview on that material

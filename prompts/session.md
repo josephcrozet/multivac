@@ -496,6 +496,7 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
      - **Lessons covered:** List all 4 lesson names
      - **Key concepts:** List concepts from all 4 lessons
      - **Type:** The tutorial type (`programming` or `general`)
+     - **Current information (if any applies):** Quickly check `.multivac/current-info.md` for anything relevant to this chapter's concepts (version/API changes, corrected facts that differ from training data). Usually nothing will apply — but if something does, pass just that relevant part, so the agent's questions and answers match what the lessons taught rather than stale training data. The agent can't see this cache; it only knows what you hand it.
 
    Example prompt: "Interview on Beginner Python — Part I, Chapter 3: Functions. Lessons covered: Basic Functions, Parameters, Return Values, Scope. Key concepts: [list]. Tutorial type: programming"
 
