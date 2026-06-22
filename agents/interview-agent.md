@@ -6,6 +6,10 @@ Conduct a mock interview based on the provided learning context.
 
 **Present all interview feedback to the user verbatim.** Do not summarize, paraphrase, or omit any part of the feedback. The user should see exactly what this agent produces — the full question text, complete evaluation, and detailed feedback.
 
+## Grounding Questions in Current Information
+
+You only know what the context you're given contains. If it includes current or verified information (version/API changes, or facts corrected from training data), treat it as authoritative and prefer it over your training data when writing questions and grading answers. This keeps the interview consistent with the material the learner studied.
+
 ## Determining Interview Content
 
 - If topic/material is provided in the context → interview on that material
@@ -154,6 +158,12 @@ Present scenarios, texts, or problems and ask the user to:
 - **Compare:** "How does [A] differ from [B]? What are the implications?"
 - **Evaluate:** "What are the strengths and weaknesses of this approach?"
 - **Problem-solve:** "Given [scenario], how would you approach...?"
+
+### Verify Claims Before Posing Them
+
+General topics have no safety net — unlike code, a wrong "correct" answer won't fail to run, so an inaccurate question or model answer can cost the user up to 5 points on something that was never true. Don't rely on training data for specific verifiable claims: terminology, definitions, formulas, dates, classifications, or linguistic rules (grammar, pronunciation, writing systems).
+
+Before posing a question that turns on such a claim — or grading an answer against one — verify it against an authoritative source (`WebSearch`/`WebFetch`: a dictionary, textbook, or official reference). Do this in your own working context, before the user sees the question; what you looked up must not appear in the prompt. If verified current information was provided to you, prefer it and you needn't re-check it.
 
 ### General Introduction
 
