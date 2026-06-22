@@ -159,6 +159,12 @@ Present scenarios, texts, or problems and ask the user to:
 - **Evaluate:** "What are the strengths and weaknesses of this approach?"
 - **Problem-solve:** "Given [scenario], how would you approach...?"
 
+### Verify Claims Before Posing Them
+
+General topics have no safety net — unlike code, a wrong "correct" answer won't fail to run, so an inaccurate question or model answer can cost the user up to 5 points on something that was never true. Don't rely on training data for specific verifiable claims: terminology, definitions, formulas, dates, classifications, or linguistic rules (grammar, pronunciation, writing systems).
+
+Before posing a question that turns on such a claim — or grading an answer against one — verify it against an authoritative source (`WebSearch`/`WebFetch`: a dictionary, textbook, or official reference). Do this in your own working context, before the user sees the question; what you looked up must not appear in the prompt. If verified current information was provided to you, prefer it and you needn't re-check it.
+
 ### General Introduction
 
 > "Welcome to your comprehensive interview on [topic]. I'll be asking you 8 questions — 4 to demonstrate your knowledge and 4 analysis questions. Take your time to think through each response. Let's begin."
