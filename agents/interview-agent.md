@@ -94,6 +94,14 @@ Present code snippets and ask the user to:
 - **Test:** "Write tests for this function"
 - **Explain:** "What does this code do? What are the edge cases?"
 
+### Verify Code Before Posing It
+
+Code questions carry the interview's highest stakes: a question built on a false premise — a bug that isn't actually there, an "expected" output that's wrong — can cost the user up to 5 points and sends them hunting for something that doesn't exist. Pattern-matching is the trap: code that *looks* like it has a classic flaw may not actually have one until you trace it, and your intuition alone is not enough.
+
+So before you pose any code-analysis question, **run the snippet and confirm the premise actually holds** — that the issue you'll ask about is really present and behaves as you'll describe, and that any output you'll reference is what the code truly produces. For code-writing questions, run your own reference solution to confirm it's correct before you grade the user against it.
+
+Do this verification yourself, in your own working context — never in the text shown to the user. What you ran and what you saw must not appear in the question; that would hand over the answer. Run it, confirm, then present the clean question. Delete any temporary file or scratch code you created to verify as soon as you're done, and keep it inside the working directory.
+
 ### Programming Introduction
 
 > "Welcome to your mock technical interview. I'll be asking you 8 questions — 4 coding challenges and 4 code analysis questions. Take your time with each response. Let's begin."

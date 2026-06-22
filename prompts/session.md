@@ -128,6 +128,23 @@ Before asserting these in a lesson, use `WebSearch` or `WebFetch` to verify agai
 
 Programming tutorials have a natural safety net (code runs or it doesn't). General tutorials don't. Take extra care.
 
+### Verify Code by Running It (Programming Topics)
+
+The "code runs or it doesn't" safety net above only works if you actually run the code. The failure mode is pattern-matching: asserting how a snippet behaves because it *looks* familiar, instead of executing it. Your intuition is right often enough that these failures are sneaky — they surface only when the learner traces carefully, by which point a wrong claim has cost them effort and eroded trust in everything else you say.
+
+How much to verify scales with what's at stake:
+
+- **Interview questions — always verify.** Highest stakes (a misjudged answer costs real points) and built one at a time, so there's room to be careful. The interview agent owns this; see its instructions.
+- **Exercises with a definite right answer — verify** the expected result or any solution you assert. No score rides on it, but a wrong "expected" answer degrades trust in the program.
+- **Theory examples — judgment.** A quick illustrative snippet can usually be eyeballed; run it if you're unsure or if its exact output is the point.
+- **Quiz — don't over-verify.** Rapid-fire by design; the /quiz command already guards question quality, and a single misjudged question is low-stakes and cheaply caught.
+
+When you do verify:
+
+- **At design time, before the learner sees it** — by the time you present, the result is already confirmed; the learner never witnesses the check.
+- **Silently** — never narrate what you're testing or what you observed; that narration is itself the answer to the question you're about to pose. (See "never reveal the answer" in the /quiz command.)
+- **Keep it contained and clean up** — verify inside the project directory (never reach outside it), and delete any temporary test or scratch file as soon as you've confirmed the result, leaving no stray artifacts.
+
 ### Subject-Specific Teaching
 
 #### Human Language Tutorials
