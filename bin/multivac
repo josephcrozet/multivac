@@ -202,6 +202,8 @@ upgrade_project() {
     echo "  Updated .claude/settings.json"
     echo "  Updated CLAUDE.md"
 
+    mkdir -p "$project_dir/.multivac/tmp"
+
     echo ""
     echo "Upgrade complete!"
 }
@@ -529,7 +531,8 @@ fi
 
 # Create project structure
 echo "Creating tutorial project at $PROJECT_DIR..."
-mkdir -p "$PROJECT_DIR/.multivac"
+# .multivac/tmp: hidden scratch dir for verification (see session.md / CLAUDE.md)
+mkdir -p "$PROJECT_DIR/.multivac/tmp"
 
 # Convert base topic to title case for display (e.g., "data-science" -> "Data Science")
 # Use BASE_TOPIC so numbered suffixes like "python-2" still display as "Python"

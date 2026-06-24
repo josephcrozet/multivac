@@ -194,7 +194,8 @@ This project demonstrates Claude Code's extensibility:
 │   ├── .multivac/
 │   │   ├── learning.db         # Tutorial progress (SQLite)
 │   │   ├── current-info.md     # Verified version/API info cache
-│   │   └── curriculum.md       # Curriculum tree snapshot
+│   │   ├── curriculum.md       # Curriculum tree snapshot
+│   │   └── tmp/                # Hidden scratch for verification (throwaway)
 │   └── CLAUDE.md               # Tutorial mode marker
 └── javascript/
     └── ...
