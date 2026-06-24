@@ -119,6 +119,7 @@ Per-project configuration (created by `multivac` command, updated by `multivac u
   - `learning.db` — Tutorial progress and curriculum (SQLite)
   - `current-info.md` — Cached version/API verification (created during curriculum setup)
   - `curriculum.md` — Snapshot of the curriculum tree, written once at tutorial creation
+  - `tmp/` — Hidden scratch dir for verification (e.g. code run to confirm an answer); contents are throwaway and cleaned up after use, kept here so they never clutter the learner's `exercises/` tree or project root
 
 ## Testing
 

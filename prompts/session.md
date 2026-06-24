@@ -143,7 +143,7 @@ When you do verify:
 
 - **At design time, before the learner sees it** — by the time you present, the result is already confirmed; the learner never witnesses the check.
 - **Silently** — never narrate what you're testing or what you observed; that narration is itself the answer to the question you're about to pose. (See "never reveal the answer" in the /quiz command.)
-- **Keep it contained and clean up** — verify inside the project directory (never reach outside it), and delete any temporary test or scratch file as soon as you've confirmed the result, leaving no stray artifacts.
+- **Keep it contained and clean up** — put any throwaway test or scratch file in `.multivac/tmp/`, the hidden scratch directory created with the project; never in the learner's `exercises/` tree or the project root, where it would clutter their workspace. Delete it as soon as you've confirmed the result. Keeping all verification scratch in one known hidden location means a stray artifact stays invisible to the learner and is easy to sweep later.
 
 ### Subject-Specific Teaching
 
@@ -497,6 +497,7 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
      - **Key concepts:** List concepts from all 4 lessons
      - **Type:** The tutorial type (`programming` or `general`)
      - **Current information (if any applies):** Quickly check `.multivac/current-info.md` for anything relevant to this chapter's concepts (version/API changes, corrected facts that differ from training data). Usually nothing will apply — but if something does, pass just that relevant part, so the agent's questions and answers match what the lessons taught rather than stale training data. The agent can't see this cache; it only knows what you hand it.
+     - **Scratch directory:** `.multivac/tmp/` — tell the agent to put any verification scratch files there (and delete them when done). The agent stays generic about the path; you supply this Multivac-specific one so its scratch lands in the known hidden location rather than the learner's workspace.
 
    Example prompt: "Interview on Beginner Python — Part I, Chapter 3: Functions. Lessons covered: Basic Functions, Parameters, Return Values, Scope. Key concepts: [list]. Tutorial type: programming"
 
