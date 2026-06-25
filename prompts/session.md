@@ -486,26 +486,28 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
    - "Quit" — Return to normal Claude Code
    - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
-2. Spawn the interview agent using the Task tool:
-   - Read `~/.claude/agents/interview-agent.md` for the interview format
-   - Provide explicit context in the prompt:
-     - **Topic:** The tutorial name (e.g., "Python", "French")
-     - **Difficulty:** The difficulty level (e.g., "Beginner", "Intermediate", "Advanced")
-     - **Part:** Current part (e.g., "Part I", "Part II")
-     - **Chapter:** Current chapter name
-     - **Lessons covered:** List all 4 lesson names
-     - **Key concepts:** List concepts from all 4 lessons
-     - **Type:** The tutorial type (`programming` or `general`)
-     - **Current information (if any applies):** Quickly check `.multivac/current-info.md` for anything relevant to this chapter's concepts (version/API changes, corrected facts that differ from training data). Usually nothing will apply — but if something does, pass just that relevant part, so the agent's questions and answers match what the lessons taught rather than stale training data. The agent can't see this cache; it only knows what you hand it.
-     - **Scratch directory:** `.multivac/tmp/` — tell the agent to put any verification scratch files there (and delete them when done). The agent stays generic about the path; you supply this Multivac-specific one so its scratch lands in the known hidden location rather than the learner's workspace.
+2. Run the mock interview as its **Orchestrator**. Read `~/.claude/agents/interview-agent.md` and follow the **Orchestrator** section: it spawns an **Authoring Worker** subagent (via the Task tool) that returns a verified question set, then it conducts the interview one question at a time and grades each answer. You only orchestrate — the worker authors and verifies the questions; you never write them yourself.
 
-   Example prompt: "Interview on Beginner Python — Part I, Chapter 3: Functions. Lessons covered: Basic Functions, Parameters, Return Values, Scope. Key concepts: [list]. Tutorial type: programming"
+   Hand the Orchestrator this context (it passes the relevant parts to the worker):
+   - **Topic:** The tutorial name (e.g., "Python", "French")
+   - **Difficulty:** The difficulty level (e.g., "Beginner", "Intermediate", "Advanced")
+   - **Part:** Current part (e.g., "Part I", "Part II")
+   - **Chapter:** Current chapter name
+   - **Lessons covered:** List all 4 lesson names
+   - **Key concepts:** List concepts from all 4 lessons
+   - **Type:** The tutorial type (`programming` or `general`)
+   - **Current information (if any applies):** Quickly check `.multivac/current-info.md` for anything relevant to this chapter's concepts (version/API changes, corrected facts that differ from training data). Usually nothing will apply — but if something does, pass just that relevant part, so the questions and answers match what the lessons taught rather than stale training data. The worker can't see this cache; it only knows what you hand it.
+   - **Scratch directory:** `.multivac/tmp/` — the hidden location for the worker's verification scratch. The agent stays generic about the path; you supply this Multivac-specific one so its scratch lands in the known hidden location, never the learner's workspace.
+
+   Example context: "Interview on Beginner Python — Part I, Chapter 3: Functions. Lessons covered: Basic Functions, Parameters, Return Values, Scope. Key concepts: [list]. Tutorial type: programming. Scratch dir: .multivac/tmp/"
 
 3. After the interview, call `log_interview_result` with:
    - `chapter_id`: Current chapter's ID
    - `score`: Points earned (out of 40)
    - `total`: 40
    - `notes`: Summary of performance
+
+4. Sweep the scratch directory: clear out `.multivac/tmp/`. The worker deletes its own scratch, so this is just the chapter-end backstop — it keeps any stray verification artifacts from this chapter's lessons or interview from accumulating.
 
 ---
 
@@ -627,6 +629,7 @@ The student should never be permanently blocked by a flawed evaluation.
   - `notes`: Summary of the project
 - **Programming only:** Delete the `.capstone` file from the tutorial root directory. It should only exist during an active capstone.
 - Leave `CAPSTONE.md` and the deliverable (code files / `capstone.txt`) in place — they're the permanent record of what the learner built. (Only `.capstone`, the transient test-runner config, is removed.)
+- Sweep the scratch directory: clear out `.multivac/tmp/` so any verification artifacts left from the capstone don't accumulate (the part-end backstop, mirroring the chapter-end sweep after interviews).
 
 ### 7. Display Completion Screen
 

@@ -62,6 +62,8 @@ multivac/
 
 ## Interview Agent Details
 
+**Architecture (two roles, one file).** `interview-agent.md` defines two roles, split by role not by context. The **Orchestrator** is always the main agent talking to the user: it conducts the interview and grades. The **Authoring Worker** is a subagent (spawned via Task) that does one thing — generate the 8 questions, verify them (run code / check sources), and return a structured set (question text + model answer + scoring guidance) — then exits. The orchestrator presents each question **verbatim** (the worker verified it as written; rewording risks reintroducing the error verification removed) and grades against the returned rubric. This makes the worker's verification a true information barrier: its scratch work stays in its own context and never leaks into the conversation. The split is identical in a tutorial or standalone — session.md only triggers it and supplies tutorial context; the agent file carries no Multivac coupling.
+
 Two formats based on tutorial type:
 
 **Programming format:**
