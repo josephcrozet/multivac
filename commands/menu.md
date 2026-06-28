@@ -61,7 +61,7 @@ Display the Curriculum Tree (see format below). Then return to this menu.
 
 1. Display the Progress Screen (see format below) — call `get_stats` for aggregate numbers and `get_part` (with `current_part.id`) for the current part's chapter breakdown
 2. Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completion certificate?"
-   - If yes: Generate the certificate (see `session.md` for template), save to `{topic}-certificate.txt`, confirm save
+   - If yes: Generate and save the certificate following `session.md`'s "Offer Completion Certificate" step (same template and same `{difficulty}-{topic}-certificate.txt` filename), confirm save
    - If no: Continue
 3. Generate and display topic suggestions (see `session.md` for the "Suggest Next Topics" instructions) — use `difficulty_level` from metadata
 4. Return to this menu
