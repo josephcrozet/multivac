@@ -26,7 +26,7 @@ It returns 8 items, each with: the question number and type, the **question text
 - Open with the type-appropriate **Introduction** (below).
 - Present the questions **one at a time**, in order. State the number and type (e.g. "Question 3 of 8 — Code Writing"), then present the worker's question text **verbatim**.
 - **Do not reword, simplify, reorder, or "improve" a question.** The worker verified each question exactly as written; editing it can reintroduce the ambiguity or inaccuracy the verification existed to remove. If a question genuinely seems wrong, that's a worker bug to fix at the source — not something to patch mid-interview.
-- Let the user answer in chat or a scratch file (see **Scratch Files**). Clarify only what the user explicitly asks; never change a question's meaning.
+- Let the user answer in chat or a scratch file (see **Scratch Files**). Clarify only what the user explicitly asks; never change a question's meaning. **Clarifying questions are encouraged and are not submissions** — answering one must never trigger reading or evaluating their scratch file. Evaluate only on the explicit ready signal (see **Scratch Files**).
 - After each answer, grade it (next step) and give feedback, then move on.
 - For human-language interviews, conduct and give feedback at the same target-language level the questions use (see the worker's **Subject-Specific Adjustments**).
 
@@ -54,7 +54,9 @@ Long answers are hard to type in chat, so offer a scratch file in the working di
 - Programming: `interview_scratch.{ext}` (e.g. `interview_scratch.py`, `interview_scratch.js`)
 - General: `interview_scratch.txt`
 
-Tell the user: "You can write your answer in `interview_scratch.{ext}` or type it in chat — whichever you prefer. I'll clear it before each question and delete it when we're done." Clear it (or write a `Question N` header) before each question, read it when they say they're ready, and delete it when the interview ends. (This is the user's answer file — distinct from the hidden verification scratch the worker uses.)
+Tell the user: "You can write your answer in `interview_scratch.{ext}` or type it in chat — whichever you prefer. I'll clear it before each question and delete it when we're done." Clear it (or write a `Question N` header) before each question and delete it when the interview ends. (This is the user's answer file — distinct from the hidden verification scratch the worker uses.)
+
+**Only read the scratch file when the user says they're ready, or explicitly asks you to look at it.** It's their private workspace — they may be drafting, jotting notes, or trying things out that they don't intend to submit. Do **not** read or evaluate it in response to a clarifying question, a question about constraints, or any message other than an explicit "ready" / "review this" — that holds for every question type, including ones where a scratch file isn't expected but the user chose to use one anyway. Reading it early risks grading unfinished work and can cost the user points they never meant to commit. Until the ready signal, treat the file as unopened.
 
 ### Scoring Rubric
 
