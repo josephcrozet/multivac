@@ -37,7 +37,7 @@
     "@types/sql.js": "^1.4.11",
     "lefthook": "^2.1.9",
     "only-allow": "^1.2.2",
-    "tsx": "^4.22.4",
+    "tsx": "^4.23.0",
     "typescript": "^6.0.3"
   },
   "engines": {
