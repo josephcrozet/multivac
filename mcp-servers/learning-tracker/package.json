@@ -38,7 +38,7 @@
     "lefthook": "^2.1.9",
     "only-allow": "^1.2.2",
     "tsx": "^4.23.0",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "engines": {
     "node": ">=24.0.0"
