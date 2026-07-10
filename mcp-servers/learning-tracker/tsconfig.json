@@ -1,17 +1,28 @@
 {
-  "compilerOptions": {
-    "target": "ES2024",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "isolatedModules": true,
-    "types": ["node"],
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "sourceMap": true
-  },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist"],
+  "compilerOptions": {
+    // Type Checking
+    "strict": true,
+
+    // Modules
+    "module": "NodeNext",
+    "rootDir": "./src",
+    "types": ["node"],
+
+    // Emit
+    "outDir": "./dist",
+    "sourceMap": true,
+
+    // Interop Constraints
+    "erasableSyntaxOnly": true,
+    "isolatedModules": true,
+
+    // Language and Environment
+    "lib": ["ES2024"],
+    "target": "ES2024",
+
+    // Completeness
+    "skipLibCheck": true
+  }
 }
