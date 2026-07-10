@@ -8,7 +8,7 @@ import {
   ErrorCode,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import database, { Curriculum, Preferences } from './database.js';
+import database, { type Curriculum, type Preferences } from './database.js';
 
 // Response helpers
 function jsonResponse(data: Record<string, unknown>) {
