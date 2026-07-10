@@ -17,6 +17,7 @@
     // Interop Constraints
     "erasableSyntaxOnly": true,
     "isolatedModules": true,
+    "verbatimModuleSyntax": true,
 
     // Language and Environment
     "lib": ["ES2024"],
