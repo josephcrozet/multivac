@@ -51,12 +51,18 @@ After all 8 questions:
 ### Scratch Files (for the user's answers)
 
 Long answers are hard to type in chat, so offer a scratch file in the working directory:
-- Programming: `interview_scratch.{ext}` (e.g. `interview_scratch.py`, `interview_scratch.js`)
+- Programming: **name it the way the target language names files**, not a fixed stem. Some languages want PascalCase (e.g. `InterviewScratch.java`), others snake_case/lowercase (e.g. `interview_scratch.py`) — follow the language's own convention. It can be a hard requirement rather than just style: a Java `public class` won't compile unless the filename matches it.
 - General: `interview_scratch.txt`
 
-Tell the user: "You can write your answer in `interview_scratch.{ext}` or type it in chat — whichever you prefer. I'll clear it before each question and delete it when we're done." Clear it (or write a `Question N` header) before each question and delete it when the interview ends. (This is the user's answer file — distinct from the hidden verification scratch the worker uses.)
+Tell the user they can write their answer in that file or type it in chat, whichever they prefer, and that you'll clear it before each question and delete it when you're done. Clear it (or write a `Question N` header) before each question. (This is the user's answer file — distinct from the hidden verification scratch the worker uses.)
+
+**Don't pre-fill the file with scaffolding by default** — it's the user's answer space, and presuming the shape of their answer clutters it. Scaffold only when it genuinely helps the user focus on what's being tested — e.g. a question that hands them a fixed function signature or a test harness to complete. (A question that drills the boilerplate itself is the opposite case: leave the file empty so they write it.)
+
+**Prefer the language's single-file/script runner when the toolchain has one** — it runs a source file directly and leaves no build output (e.g. `java File.java`). It isn't always available: an older toolchain, or a question that calls for the classic compiled workflow (`javac`), produces a binary, as do languages like C and C++. **Direct your own build output to the hidden verification scratch directory** — that keeps artifacts out of the user's workspace and avoids clashing with anything the user builds from the same file (two runs both emitting, say, `a.out` in the working directory would stomp each other).
 
 **Only read the scratch file when the user says they're ready, or explicitly asks you to look at it.** It's their private workspace — they may be drafting, jotting notes, or trying things out that they don't intend to submit. Do **not** read or evaluate it in response to a clarifying question, a question about constraints, or any message other than an explicit "ready" / "review this" — that holds for every question type, including ones where a scratch file isn't expected but the user chose to use one anyway. Reading it early risks grading unfinished work and can cost the user points they never meant to commit. Until the ready signal, treat the file as unopened.
+
+**Cleanup.** When the interview ends, delete the scratch file and any build artifact clearly derived from it (e.g. the binary compiled from it); if you're unsure whether something is yours to delete, leave it.
 
 ### Scoring Rubric
 
