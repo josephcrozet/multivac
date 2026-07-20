@@ -1,6 +1,6 @@
 {
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
+  "exclude": ["dist"],
   "compilerOptions": {
     // Type Checking
     "strict": true,
