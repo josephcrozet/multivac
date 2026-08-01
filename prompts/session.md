@@ -449,7 +449,7 @@ If they want more practice, provide another exercise on the same concept (differ
 
 ### 5. Socratic Review
 
-- Ask probing questions to deepen understanding
+- Ask a few probing questions to deepen understanding. **Present them together, all at once** — this is an ungraded, open invitation to reflect and discuss, not a tracked assessment, so don't gate them one at a time the way the review queue and interview do. The number can vary by lesson.
 - "Why do you think this works?"
 - "What would happen if...?"
 - "How does this relate to...?"
