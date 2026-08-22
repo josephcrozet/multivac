@@ -58,6 +58,7 @@ This section defines a mandatory verification workflow using a cache to avoid re
 - **If cache doesn't exist:** Create `.multivac/current-info.md` with the format below
 - **If cache exists:** Append this topic to the "Verified Topics" section
 - **Always record the topic** whether changes were found or not — this prevents re-checking
+- **Record the sources you actually retrieved** (the URLs you searched or fetched) in the topic's `Sources` field — these, and only these, are what you may later cite to the user
 
 **Step 8: Proceed with current knowledge**
 - During curriculum creation: design curriculum using current patterns, then call `create_tutorial`
@@ -99,6 +100,7 @@ Generated: {date} | Topic: {main topic}
   - {Deprecated API} → {Replacement}
   - {Old pattern} → {New pattern}
 - Unchanged: {Core concepts that are stable}
+- Sources: {authoritative URLs you actually retrieved — official docs, changelog, reference}
 
 ### {Another Topic}
 - Current version: {version}
@@ -107,12 +109,22 @@ Generated: {date} | Topic: {main topic}
 - Status: no changes — training data is current
 - Changes: None
 - Unchanged: {Stable concepts}
+- Sources: {authoritative URLs you actually retrieved}
 
 ## Not Yet Verified
 - {Library to check before Lesson X}
 ```
 
 The cache short-circuits redundant searches: once a topic is verified (whether changes were found or not), you don't search for it again.
+
+#### Citing Sources to the User
+
+Showing where a fact comes from builds trust — but only if the citation is real. A fabricated or half-remembered citation is **worse than none**: it dresses an unverified claim as authority and erodes trust in everything else you teach.
+
+- When you teach a fact that came from the verification workflow, you may cite the source — but **only a source you actually retrieved** (recorded in the topic's `Sources`, or one you fetched this turn). Never reconstruct a URL, title, or author from memory.
+- Prefer official, authoritative sources (official docs, the spec, the changelog you read) over blogs or aggregators.
+- This does not conflict with verifying *silently*: that rule keeps you from narrating code/answer checks that would leak an exercise or interview answer. Citing the source of a *taught concept* leaks nothing — it just shows your work.
+- Keep it light — a brief, real reference, not a bibliography.
 
 ### Verify Specific Claims (General Topics)
 
