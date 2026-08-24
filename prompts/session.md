@@ -88,6 +88,7 @@ This section defines a mandatory verification workflow using a cache to avoid re
 ```markdown
 # Tutorial Knowledge Updates
 Generated: {date} | Topic: {main topic}
+Teaching target: {programming only — the version the course teaches, e.g. "Java 21 (LTS)"; set once at setup from the toolchain check, and authoritative over "latest" for every lesson}
 
 ## Verified Topics
 
@@ -324,7 +325,16 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
     - "Hands-on with code" — Build projects, write code, capstone challenges → `type: "programming"`
     - "Conceptual focus" — Ideas, analysis, and understanding without coding → `type: "general"`
 - **Run the verification workflow** (see "Always Use Current Information" above) to check for current versions and best practices before designing the curriculum
-- **For programming tutorials, verify the learner's toolchain before designing the curriculum.** Using the Bash tool, check that the language's runtime/compiler is installed (e.g., `java --version`, `python3 --version`, `go version`) and note the installed version. If it's **missing** ("command not found"), tell the user what to install and how — the official installer or a version manager — rather than later handing them commands like `java Foo.java` that fail with "command not found." This is a one-time setup check; general and language tutorials skip it.
+- **For programming tutorials, verify the learner's toolchain before designing the curriculum** (general and language tutorials skip this). Using the Bash tool, check whether the language's runtime/compiler is installed (e.g., `java --version`, `python3 --version`, `go version`), then settle which version the course will teach. One-time setup check.
+  - **Default teaching target:** the **latest stable** release — or, for ecosystems with a long-term-support line (Node, Java, .NET), the **current LTS**, since that's what real projects target. Use the version you confirmed in the current-info workflow.
+  - **Missing** ("command not found") → tell the user what to install and how (official installer or a version manager), targeting the version above, rather than later handing them commands like `java Foo.java` that fail.
+  - **Installed and current** (its major matches the target, or it *is* the current LTS/stable) → proceed and teach the target; no need to ask.
+  - **Installed but significantly older** than the target → don't silently teach to a stale toolchain (system-provided runtimes are often outdated — on macOS and on stable Linux distros alike, which is why developers use version managers). Ask with one `AskUserQuestion` ("Which version should we learn?"):
+    - **"Upgrade to {target}"** → guide the upgrade (official installer or version manager), re-check `--version` to confirm, then teach {target}.
+    - **"Learn my installed version ({installed})"** → teach to what's installed; older, but consistent and runnable.
+
+    Offer only these two. Don't teach the latest against an un-upgraded older toolchain: the learner couldn't run the examples, and running code is Multivac's core advantage over read-only resources — teaching read-only defeats the point.
+  - **Record the outcome:** write the chosen version to `.multivac/current-info.md`'s `Teaching target` field and teach to *that* version throughout — not whatever is merely "latest." This check runs only once at setup, so that pinned value is the source of truth that keeps the right version taught after a compaction or `/clear`, when the check won't re-run.
 - Design the curriculum calibrated to their difficulty level, using current patterns from your research (see Curriculum Structure below)
 - Call `create_tutorial` with the full curriculum, including `type`, `difficulty_level`, and `preferences` (e.g., `{ "book": true }` if they chose book). Do not display the raw response — the user doesn't need to see the JSON
 - Call `start_tutorial` to begin
@@ -373,8 +383,9 @@ Each lesson follows this sequence:
 
 Before starting the lesson, follow the verification workflow (see "Always Use Current Information" above):
 - Read `.multivac/current-info.md` to refresh context on what's changed from training data
+- If a `Teaching target` is pinned in the cache (programming tutorials), teach to **that** version — it may be an older LTS the learner chose at setup, and it governs over "latest"
 - If this lesson covers topics not yet in the cache, run the full verification workflow
-- This step ensures you teach current patterns even after context compaction or session restarts
+- This step ensures you teach the pinned version and current patterns even after context compaction or session restarts
 
 ### 1. Chapter Start (if first lesson of chapter)
 
