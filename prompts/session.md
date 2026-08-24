@@ -324,6 +324,7 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
     - "Hands-on with code" — Build projects, write code, capstone challenges → `type: "programming"`
     - "Conceptual focus" — Ideas, analysis, and understanding without coding → `type: "general"`
 - **Run the verification workflow** (see "Always Use Current Information" above) to check for current versions and best practices before designing the curriculum
+- **For programming tutorials, verify the learner's toolchain before designing the curriculum.** Using the Bash tool, check that the language's runtime/compiler is installed (e.g., `java --version`, `python3 --version`, `go version`) and note the installed version. If it's **missing** ("command not found"), tell the user what to install and how — the official installer or a version manager — rather than later handing them commands like `java Foo.java` that fail with "command not found." This is a one-time setup check; general and language tutorials skip it.
 - Design the curriculum calibrated to their difficulty level, using current patterns from your research (see Curriculum Structure below)
 - Call `create_tutorial` with the full curriculum, including `type`, `difficulty_level`, and `preferences` (e.g., `{ "book": true }` if they chose book). Do not display the raw response — the user doesn't need to see the JSON
 - Call `start_tutorial` to begin
