@@ -371,6 +371,8 @@ Tutorial: [Topic Name]
 
 **Every chapter must teach new material.** Do not generate filler chapters whose purpose is review, recap, preparation, or wrap-up (e.g., "Capstone Preparation and Review", "Review and Practice", "Putting It All Together", "Final Review"). The spaced-repetition review queue and the chapter-end Mock Interview already handle consolidation, and each Part already ends with its Capstone Project. If a chapter slot has no new substantive concept to teach, the Part is under-scoped — widen the Part's topic or pick a different concept rather than padding with review.
 
+**Each lesson teaches 3–5 concepts.** Concepts are the unit the quiz, review queue, and capstone all draw on, so lessons need comparable density: the review queue samples one concept per lesson, so a nine-concept lesson gives each of its concepts a fraction of the coverage a two-concept lesson gives. If a lesson has fewer than three distinct concepts to teach, the chapter is under-scoped — widen the chapter's topic or choose a different lesson rather than padding. If it needs more than five, the material is really two lessons; redistribute it across the chapter's four slots. Size concepts as peers of one another, not a headline plus footnotes.
+
 Programming tutorials use test-driven capstones (automated tests, hook-based verification). General tutorials use criteria-based capstones (written assignments evaluated against checkable requirements). See Part Completion for details.
 
 ---
