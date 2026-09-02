@@ -174,6 +174,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: 'get_lesson',
+        description: "Get a single lesson with its concepts. The narrowest getter — use it at the start of each lesson to ground teaching in the concepts the quiz and review queue draw on, instead of fetching a whole chapter or part. The lesson_id comes from current_lesson.id returned by get_current_position.",
+        inputSchema: {
+          type: 'object',
+          properties: {
+            lesson_id: {
+              type: 'number',
+              description: 'ID of the lesson to fetch',
+            },
+          },
+          required: ['lesson_id'],
+        },
+      },
+      {
         name: 'get_tutorial_metadata',
         description: 'Get lightweight tutorial metadata without the full structure. Returns name, type, status, difficulty_level, and dates. Use this for quick checks like determining if tutorial is completed, what type it is, or what difficulty level was chosen. Returns null if no tutorial exists.',
         inputSchema: {
@@ -396,6 +410,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const { chapter_id } = args as { chapter_id: number };
         const data = database.getChapter(chapter_id);
         if (!data) return jsonResponse({ success: false, error: `Chapter ${chapter_id} not found` });
+        return jsonResponse({ success: true, ...data });
+      }
+
+      case 'get_lesson': {
+        const { lesson_id } = args as { lesson_id: number };
+        const data = database.getLesson(lesson_id);
+        if (!data) return jsonResponse({ success: false, error: `Lesson ${lesson_id} not found` });
         return jsonResponse({ success: true, ...data });
       }
 
