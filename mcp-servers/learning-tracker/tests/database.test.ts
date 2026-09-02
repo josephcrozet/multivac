@@ -17,7 +17,9 @@ function makeFullCurriculum(): Curriculum {
         name: `Chapter ${pn}.${cn}`,
         lessons: [1, 2, 3, 4].map((ln) => ({
           name: `Lesson ${pn}.${cn}.${ln}`,
-          concepts: [{ name: `Concept ${pn}.${cn}.${ln}.1` }],
+          // Three concepts, each named for the lesson that owns it, so a fetch that
+          // returns only the first — or joins to the wrong lesson — is visible.
+          concepts: [1, 2, 3].map((kn) => ({ name: `Concept ${pn}.${cn}.${ln}.${kn}` })),
         })),
       })),
     })),
@@ -245,5 +247,60 @@ test('curriculum tree lifecycle', async (t) => {
     assert.equal(database.getPart(part1Id)!.part.completed, true);
     const partStat = database.getStats()!.parts.find((p) => p.part_id === part1Id)!;
     assert.equal(partStat.capstone_completed, false); // ☆, not ★
+  });
+
+  // --- Concept fetches ---
+  //
+  // Every per-lesson concept read runs the same `SELECT * FROM concepts WHERE
+  // lesson_id = ?`. These assert on the full set and on the names, so a fetch that
+  // returns one row, or reads a sibling lesson's rows, fails rather than passing
+  // by coincidence.
+
+  await t.test('getLesson returns the lesson with all of its concepts', () => {
+    const lesson111 = database.getPart(part1Id)!.chapters[0].lessons[0];
+    const fetched = database.getLesson(lesson111.id)!;
+    assert.equal(fetched.lesson.name, 'Lesson 1.1.1');
+    assert.deepEqual(
+      fetched.lesson.concepts.map((c) => c.name),
+      ['Concept 1.1.1.1', 'Concept 1.1.1.2', 'Concept 1.1.1.3']
+    );
+  });
+
+  await t.test('getLesson scopes concepts to that lesson, not its siblings', () => {
+    const lessons = database.getPart(part1Id)!.chapters[0].lessons;
+    const first = database.getLesson(lessons[0].id)!.lesson.concepts.map((c) => c.name);
+    const second = database.getLesson(lessons[1].id)!.lesson.concepts.map((c) => c.name);
+    assert.deepEqual(second, ['Concept 1.1.2.1', 'Concept 1.1.2.2', 'Concept 1.1.2.3']);
+    assert.equal(first.some((name) => second.includes(name)), false);
+  });
+
+  await t.test('getLesson returns null for a lesson id that does not exist', () => {
+    assert.equal(database.getLesson(999999), null);
+  });
+
+  await t.test('getReviewQueue returns every concept of a queued lesson', () => {
+    // Part I is finished, so its 16 lessons are queued for review.
+    const { queue } = database.getReviewQueue(4)!;
+    assert.equal(queue.length, 4);
+    for (const item of queue) {
+      const suffix = item.lesson.name.replace('Lesson ', '');
+      assert.deepEqual(
+        item.concepts.map((c) => c.name),
+        [1, 2, 3].map((kn) => `Concept ${suffix}.${kn}`)
+      );
+    }
+  });
+
+  await t.test('getPart nests each lesson under its own concepts', () => {
+    const { chapters } = database.getPart(part1Id)!;
+    const lessons = chapters.flatMap((c) => c.lessons);
+    assert.equal(lessons.length, 16);
+    for (const lesson of lessons) {
+      const suffix = lesson.name.replace('Lesson ', '');
+      assert.deepEqual(
+        lesson.concepts.map((c) => c.name),
+        [1, 2, 3].map((kn) => `Concept ${suffix}.${kn}`)
+      );
+    }
   });
 });
