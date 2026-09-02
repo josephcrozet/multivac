@@ -1037,6 +1037,30 @@ export const database = {
     };
   },
 
+  getLesson(lessonId: number): {
+    lesson: Lesson & { concepts: Concept[] };
+  } | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const lesson = db.prepare(`
+      SELECT l.* FROM lessons l
+      JOIN chapters c ON l.chapter_id = c.id
+      JOIN parts p ON c.part_id = p.id
+      WHERE l.id = ? AND p.tutorial_id = ?
+    `).get(lessonId, tutorialId) as Lesson | undefined;
+
+    if (!lesson) return null;
+
+    const concepts = db.prepare(
+      'SELECT * FROM concepts WHERE lesson_id = ?'
+    ).all(lessonId) as Concept[];
+
+    return {
+      lesson: { ...lesson, completed: !!lesson.completed, concepts },
+    };
+  },
+
   getCurrentPosition(): {
     tutorial_name: string;
     type: 'programming' | 'general';
