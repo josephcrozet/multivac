@@ -28,6 +28,11 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "test:watch": "node --import tsx --test --watch tests/*.test.ts"
   },
+  "allowScripts": {
+    "esbuild": false,
+    "fsevents": false,
+    "lefthook": false
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
     "sql.js": "^1.14.2"
@@ -42,9 +47,5 @@
   },
   "engines": {
     "node": ">=24.0.0"
-  },
-  "allowScripts": {
-    "lefthook": true,
-    "esbuild": true
   }
 }
