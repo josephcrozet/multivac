@@ -33,6 +33,8 @@ multivac/
 
 **Package manager: npm.** Do not substitute bun, pnpm, or other package managers.
 
+**Dependency install scripts: denied by default.** npm withholds a dependency's install/postinstall scripts until `allowScripts` in the server's `package.json` records a decision. Every current entry is `false` — a clean install was tested without them, and nothing needs them (the git hooks come from this package's own `postinstall`, esbuild's binary from an optional dependency). When npm flags a new dependency, check whether anything actually breaks without its script before approving. Don't approve one just to silence the warning.
+
 ## Key Design Decisions
 
 **Project Structure**
