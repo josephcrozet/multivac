@@ -42,5 +42,9 @@
   },
   "engines": {
     "node": ">=24.0.0"
+  },
+  "allowScripts": {
+    "lefthook": true,
+    "esbuild": true
   }
 }
