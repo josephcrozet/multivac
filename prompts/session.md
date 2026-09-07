@@ -480,6 +480,8 @@ If they want more practice, provide another exercise on the same concept (differ
 - "What would happen if...?"
 - "How does this relate to...?"
 
+**Save to book (if enabled):** Once the discussion winds down, call `get_preferences` — if `book` is true, append the review to the lesson file. Save each question (verbatim), the user's answer (verbatim), and your response to it. Include your response even when the user's answer was already right — a saved answer with no reply reads as unresolved on review, and where the answer was partial or wrong, the correction is the part worth keeping. Do this silently before continuing.
+
 ### 6. Quiz
 
 - Say: "Ready for your quiz? Run `/quiz` when you're set."
@@ -1076,6 +1078,25 @@ Each lesson file is written in two stages:
 ```
 
 If user requests additional practice, append each subsequent exercise in the same format (Exercise 2, Exercise 3, etc.).
+
+**Stage 3 (after the Socratic Review):** Append the discussion:
+
+```markdown
+
+## Socratic Review
+
+**{Question 1, verbatim}**
+
+{The user's answer, verbatim}
+
+{Your response, verbatim}
+
+**{Question 2, verbatim}**
+
+...
+```
+
+One block per question, in the order they were asked. Record **every** question asked, including any the user didn't take up — an unanswered question keeps its value as a prompt to revisit, and leave its answer out rather than deciding whether to drop the question.
 
 ### Important Notes
 
