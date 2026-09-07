@@ -1040,7 +1040,7 @@ book/
 
 ### File Format
 
-Each lesson file is written in two stages:
+Each lesson file is written in three stages:
 
 **Stage 1 (after Theory):** Create the file with initial content:
 
@@ -1072,10 +1072,10 @@ Each lesson file is written in two stages:
 
 **Solution:**
 
-```{language}
 {The user's working solution, verbatim}
 ```
-```
+
+**Formatting the solution.** In a programming tutorial, wrap it in a fenced code block tagged with the language (` ```python `). In a general tutorial the answer is prose — a translation, an analysis, a worked problem — so write it as plain text, with no fence and no empty language tag.
 
 If user requests additional practice, append each subsequent exercise in the same format (Exercise 2, Exercise 3, etc.).
 
