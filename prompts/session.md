@@ -469,7 +469,7 @@ Create a `.txt` file at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}.txt`
 - "Ready to continue"
 - "I'd like more practice"
 
-**Save to book (if enabled):** After each confirmation, call `get_preferences` — if `book` is true, append this exercise to the lesson file. Save both the full exercise prompt (verbatim, including requirements and hints) and the user's working solution (verbatim). Do this silently before continuing.
+**Save to book (if enabled):** After each confirmation, call `get_preferences` — if `book` is true, append this exercise to the lesson file. Save the full exercise prompt (verbatim, including requirements and hints), the user's solution as submitted (verbatim), and your review of it. Save the review even when the solution was already correct — the solution is recorded before any revision, so a solution stored on its own leaves whatever you corrected unrecorded, and the book becomes a study aid that preserves the mistake and drops the fix. Do this silently before continuing.
 
 If they want more practice, provide another exercise on the same concept (different scenario), review it, ask again, and save that exercise too.
 
@@ -1072,10 +1072,14 @@ Each lesson file is written in three stages:
 
 **Solution:**
 
-{The user's working solution, verbatim}
+{The user's solution as submitted, verbatim}
+
+**Feedback:**
+
+{Your review of it, verbatim}
 ```
 
-**Formatting the solution.** In a programming tutorial, wrap it in a fenced code block tagged with the language (` ```python `). In a general tutorial the answer is prose — a translation, an analysis, a worked problem — so write it as plain text, with no fence and no empty language tag.
+**Formatting the solution.** In a programming tutorial, wrap it in a fenced code block tagged with the language (` ```python `). In a general tutorial the answer is prose — a translation, an analysis, a worked problem — so write it as plain text, with no fence and no empty language tag. The feedback is prose in both cases.
 
 If user requests additional practice, append each subsequent exercise in the same format (Exercise 2, Exercise 3, etc.).
 
