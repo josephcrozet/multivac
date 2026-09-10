@@ -484,7 +484,11 @@ If they want more practice, provide another exercise on the same concept (differ
 
 ### 6. Quiz
 
-- Say: "Ready for your quiz? Run `/quiz` when you're set."
+- Use `AskUserQuestion` with the question "Ready for your quiz?" and these options:
+  - "Let's go" — Start the quiz
+  - "Quit" — Return to normal Claude Code
+  - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
+- Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
 - After the quiz completes, get the results and call `log_quiz_result` with:
   - `lesson_id`: Current lesson's ID
   - `score`: Number correct
