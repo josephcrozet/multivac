@@ -312,7 +312,7 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 - Say "Let's set up your tutorial." Then present all setup questions in a **single** `AskUserQuestion` call with these three questions:
   - **Question 1 — Topic:** "What topic would you like to learn?" with the CLAUDE.md topic marked "(Recommended)", plus 3 related topics that would complement or build on it (e.g., a framework for a language, a subfield for a science). For generic project names like "tutorial", use: Python, JavaScript, Web Development, Data Analysis.
   - **Question 2 — Difficulty:** "What's your experience level?" with options: "Beginner" (new to this topic), "Intermediate" (knows the basics), "Advanced" (looking to master it)
-  - **Question 3 — Book:** "Save lessons to a book for offline review?" with options: "Yes, build my book" (each lesson saved to a `book/` folder), "No thanks" (just interactive lessons)
+  - **Question 3 — Book:** "Save lessons to a book for offline review?" with options: "Yes, build my book" (each lesson and mock interview saved to a `book/` folder), "No thanks" (just interactive lessons)
 - Process the answers:
   - If the user selected a different topic than what's in CLAUDE.md, update the file: replace `<!-- multivac-topic: X -->` and `**Topic:** X` with the new topic
   - Map difficulty: Beginner → `difficulty_level: "beginner"`, Intermediate → `difficulty_level: "intermediate"`, Advanced → `difficulty_level: "advanced"`
@@ -532,6 +532,8 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
    - **Scratch directory:** `.multivac/tmp/` — the hidden location for the worker's verification scratch. The agent stays generic about the path; you supply this Multivac-specific one so its scratch lands in the known hidden location, never the learner's workspace.
 
    Example context: "Interview on Beginner Python — Part I, Chapter 3: Functions. Lessons covered: Basic Functions, Parameters, Return Values, Scope. Key concepts: [list]. Tutorial type: programming. Scratch dir: .multivac/tmp/"
+
+   **Save to book (if enabled):** Call `get_preferences` before the first question — if `book` is true, record the interview in the chapter's `interview.md` as you go (see "Interview File" under Book Format). Create the file when the interview begins, replacing any earlier one: an interview that was interrupted restarts with newly authored questions, so a leftover file records questions that no longer apply. Append each question right after you grade it, before you clear the scratch file for the next one — the scratch file is the only copy of an answer written there. Append the overall result when the interview ends. Do this silently.
 
 3. After the interview, call `log_interview_result` with:
    - `chapter_id`: Current chapter's ID
@@ -1018,7 +1020,7 @@ If the user asks a question unrelated to the current lesson:
 
 ## Book Format
 
-When the `book` preference is enabled, save lesson content incrementally as described in the Lesson Flow. This section defines the file structure and format.
+When the `book` preference is enabled, save lesson content incrementally as described in the Lesson Flow, and each chapter's mock interview as described in Chapter Completion. This section defines the file structure and format.
 
 ### Directory Structure
 
@@ -1029,7 +1031,8 @@ book/
 │   │   ├── 01-{lesson-name-slugified}.md
 │   │   ├── 02-{lesson-name-slugified}.md
 │   │   ├── 03-{lesson-name-slugified}.md
-│   │   └── 04-{lesson-name-slugified}.md
+│   │   ├── 04-{lesson-name-slugified}.md
+│   │   └── interview.md
 │   ├── chapter-2-{chapter-name-slugified}/
 │   │   └── ...
 │   └── ...
@@ -1106,6 +1109,50 @@ If user requests additional practice, append each subsequent exercise in the sam
 
 One block per question, in the order they were asked. Record **every** question asked, including any the user didn't take up — an unanswered question keeps its value as a prompt to revisit, and leave its answer out rather than deciding whether to drop the question.
 
+### Interview File
+
+Each chapter's mock interview is saved to `interview.md` in that chapter's folder, alongside its four lessons (it sorts after them). It's written in three steps as the interview runs:
+
+**When the interview begins:** Create the file, replacing any earlier one:
+
+```markdown
+# Mock Interview: {Chapter Name}
+
+**Part {N}: {Part Name} | Chapter {N}: {Chapter Name}**
+```
+
+**After grading each question:** Append it:
+
+```markdown
+
+## Question {N} of 8 — {Type}
+
+{Question text, verbatim}
+
+**Answer:**
+
+{The user's answer, verbatim}
+
+**Score:** {0–5}/5
+
+**Feedback:**
+
+{Your feedback, verbatim — including the ideal answer if you showed one}
+```
+
+Format the answer the same way as an exercise solution (see "Formatting the solution" above). Record a skipped question too, with "Skipped" as its answer. Save only what the user saw — never the worker's scoring guidance, or a model answer you didn't show.
+
+**When the interview ends:** Append the overall result:
+
+```markdown
+
+## Result
+
+**Score:** {X}/40 ({percentage}%)
+
+{Your wrap-up, verbatim — strongest areas, areas needing practice, concepts to review}
+```
+
 ### Important Notes
 
 - **Write verbatim:** Save content exactly as delivered/submitted—do not summarize or rewrite
@@ -1115,6 +1162,8 @@ One block per question, in the order they were asked. Record **every** question 
 ### Reviewing Previous Lessons
 
 If the user asks to revisit a previous lesson and the book preference is enabled, read the saved lesson file from `book/` and present it verbatim to the user — do not summarize or rephrase. The book preserves the exact theory, examples, and exercises as originally taught, which is better for review than regenerating the lesson (which would produce different examples and phrasing).
+
+A past interview works the same way: read that chapter's `interview.md` and present it verbatim.
 
 If the book preference is not enabled (no saved files), re-teach the lesson normally.
 
