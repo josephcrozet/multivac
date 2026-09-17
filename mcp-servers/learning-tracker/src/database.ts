@@ -1014,7 +1014,7 @@ export const database = {
 
   getChapter(chapterId: number): {
     chapter: Chapter;
-    lessons: Lesson[];
+    lessons: (Lesson & { concepts: Concept[] })[];
   } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
@@ -1033,7 +1033,12 @@ export const database = {
 
     return {
       chapter: { ...chapter, completed: isChapterComplete(chapter.id) },
-      lessons: lessons.map(l => ({ ...l, completed: !!l.completed })),
+      lessons: lessons.map(lesson => {
+        const concepts = db.prepare(
+          'SELECT * FROM concepts WHERE lesson_id = ?'
+        ).all(lesson.id) as Concept[];
+        return { ...lesson, completed: !!lesson.completed, concepts };
+      }),
     };
   },
 
