@@ -520,13 +520,15 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
 
 2. Run the mock interview as its **Orchestrator**. Read `~/.claude/agents/interview-agent.md` and follow the **Orchestrator** section: it spawns an **Authoring Worker** subagent (via the Task tool) that returns a verified question set, then it conducts the interview one question at a time and grades each answer. You only orchestrate — the worker authors and verifies the questions; you never write them yourself.
 
+   Call `get_chapter` with the current chapter's id for the lesson names and concepts below — don't rely on what's still in context, since the interview runs at a chapter end, after four lessons and often a compaction.
+
    Hand the Orchestrator this context (it passes the relevant parts to the worker):
    - **Topic:** The tutorial name (e.g., "Python", "French")
    - **Difficulty:** The difficulty level (e.g., "Beginner", "Intermediate", "Advanced")
    - **Part:** Current part (e.g., "Part I", "Part II")
    - **Chapter:** Current chapter name
-   - **Lessons covered:** List all 4 lesson names
-   - **Key concepts:** List concepts from all 4 lessons
+   - **Lessons covered:** All 4 lesson names, from `get_chapter`
+   - **Key concepts:** Every lesson's concepts, from `get_chapter` — this is what the questions are built from, so pass the recorded list rather than recalling what you taught
    - **Type:** The tutorial type (`programming` or `general`)
    - **Current information (if any applies):** Quickly check `.multivac/current-info.md` for anything relevant to this chapter's concepts (version/API changes, corrected facts that differ from training data). Usually nothing will apply — but if something does, pass just that relevant part, so the questions and answers match what the lessons taught rather than stale training data. The worker can't see this cache; it only knows what you hand it.
    - **Scratch directory:** `.multivac/tmp/` — the hidden location for the worker's verification scratch. The agent stays generic about the path; you supply this Multivac-specific one so its scratch lands in the known hidden location, never the learner's workspace.

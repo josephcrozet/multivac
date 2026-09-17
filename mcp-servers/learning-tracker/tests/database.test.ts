@@ -291,6 +291,18 @@ test('curriculum tree lifecycle', async (t) => {
     }
   });
 
+  await t.test('getChapter nests each lesson under its own concepts', () => {
+    const { lessons } = database.getChapter(ch11Id)!;
+    assert.equal(lessons.length, 4);
+    for (const lesson of lessons) {
+      const suffix = lesson.name.replace('Lesson ', '');
+      assert.deepEqual(
+        lesson.concepts.map((c) => c.name),
+        [1, 2, 3].map((kn) => `Concept ${suffix}.${kn}`)
+      );
+    }
+  });
+
   await t.test('getPart nests each lesson under its own concepts', () => {
     const { chapters } = database.getPart(part1Id)!;
     const lessons = chapters.flatMap((c) => c.lessons);

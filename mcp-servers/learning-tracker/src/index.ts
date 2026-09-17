@@ -161,7 +161,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_chapter',
-        description: 'Get a single chapter with its lessons (name, description, completion status). Lightweight call — use this for the Chapter Start Screen instead of get_tutorial. The chapter_id comes from current_chapter.id returned by get_current_position.',
+        description: "Get a single chapter with its lessons and each lesson's concepts. Use this for the Chapter Start Screen (which needs the lesson names) and for mock interview context (which needs every lesson's concepts) instead of get_tutorial. The chapter_id comes from current_chapter.id returned by get_current_position.",
         inputSchema: {
           type: 'object',
           properties: {
