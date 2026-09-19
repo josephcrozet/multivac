@@ -527,6 +527,17 @@ function isPartComplete(partId: number): boolean {
 export const database = {
   // Tutorial operations
   createTutorial(curriculum: Curriculum): Tutorial {
+    // One tutorial per database: getTutorialId() takes the first row it finds, so a
+    // second tutorial would be invisible while progress kept landing on the first.
+    // Refuse rather than replace — the caller may have lost track of existing work.
+    const existing = db.prepare('SELECT name FROM tutorials LIMIT 1').get() as { name: string } | undefined;
+    if (existing) {
+      throw new Error(
+        `This project already has a tutorial ("${existing.name}"). A project holds one tutorial: ` +
+        `resume it, or delete .multivac/learning.db to start a different topic.`
+      );
+    }
+
     const insertTutorial = db.prepare(
       'INSERT INTO tutorials (name, description, type, difficulty_level, preferences) VALUES (?, ?, ?, ?, ?)'
     );
