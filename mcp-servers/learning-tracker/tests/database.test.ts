@@ -291,6 +291,14 @@ test('curriculum tree lifecycle', async (t) => {
     }
   });
 
+  await t.test('createTutorial refuses a second tutorial and leaves the first untouched', () => {
+    assert.throws(() => database.createTutorial(makeFullCurriculum()), /already has a tutorial/);
+    // Refused before any write: the pointer still sits where progress left it, and the
+    // write-once curriculum.md snapshot is intact.
+    assert.equal(database.getCurrentPosition()!.tutorial_name, 'Test Tutorial');
+    assert.equal(readFileSync(join(tmpDir, 'curriculum.md'), 'utf-8'), initialFileContent);
+  });
+
   await t.test('getChapter nests each lesson under its own concepts', () => {
     const { lessons } = database.getChapter(ch11Id)!;
     assert.equal(lessons.length, 4);
