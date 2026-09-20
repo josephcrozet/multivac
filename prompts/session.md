@@ -416,8 +416,10 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 
 ### 3. Theory Introduction
 
+- **Call `get_lesson` with the current lesson's id before you teach anything.** Its concepts are the lesson's contract: the quiz, the review queue, and the chapter interview all assess against that recorded list, so teaching from memory instead risks covering something the learner is never asked about, or being asked about something you never taught. Call it for **every** lesson, including the first of a chapter, where `get_chapter` has just returned the same concepts — working out whether you already have them is a judgment call that fails silently, and the call is a few short strings.
+- **Teach one section per concept,** in the order returned, each headed by that concept's name. The number of sections follows from the concept list — don't fold two concepts into one section or split one across several. They're sections of a single lesson, so let them build on and refer back to each other rather than reading as isolated mini-lectures.
 - Pitch the depth, examples, and pacing to the tutorial's `difficulty_level` (from `get_current_position`) — beginner, intermediate, or advanced. This keeps lessons calibrated after a compaction or `/clear`, when the level is no longer in conversation context.
-- Explain the concept clearly with examples
+- Explain each concept clearly with examples
 - Use analogies and visual descriptions when helpful
 - You MAY write examples here to illustrate concepts (code, worked problems, example sentences, etc.)
 - Keep it focused—don't overwhelm
@@ -1176,8 +1178,9 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | Event                 | MCP Calls                                                                                                   |
 | --------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Session start         | `get_current_position` (lightweight), then `create_tutorial` + `start_tutorial` if no tutorial exists       |
-| Chapter start         | `get_current_position` (check `is_chapter_start`), `get_review_queue`                                       |
+| Chapter start         | `get_current_position` (check `is_chapter_start`), `get_chapter`, `get_review_queue`                        |
 | After review question | `log_review_result`                                                                                         |
+| Theory (every lesson) | `get_lesson` — its concepts are what theory teaches, one section each                                       |
 | After quiz            | `log_quiz_result`, `complete_lesson`, then Lesson Boundary Routing                                          |
 | Lesson boundary       | `get_current_position` (route on `is_chapter_end`/`is_part_end`/`interview_resolved`/`capstone_resolved`)        |
 | After interview       | `log_interview_result`                                                                                      |
