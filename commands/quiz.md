@@ -44,6 +44,7 @@ A distractor description can be true or false. Write a confident one that makes 
 ## Determining Quiz Content
 
 Base the quiz on the current context:
+- If you were handed specific material to quiz on, use exactly that — cover all of it, and don't substitute topics of your own that seem adjacent or more interesting
 - If discussing a specific topic, quiz on that topic
 - If working through a lesson or tutorial, quiz on recent material
 - If no clear context, use `AskUserQuestion` to ask what topic to quiz on
