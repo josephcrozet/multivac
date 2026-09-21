@@ -490,7 +490,8 @@ If they want more practice, provide another exercise on the same concept (differ
   - "Let's go" — Start the quiz
   - "Quit" — Return to normal Claude Code
   - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
-- Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
+- Call `get_lesson` for this lesson's concepts — the same list theory taught from. Call it again here rather than trusting what's left in context: the exercise and the Socratic review sit in between, and the quiz should be built from the recorded list, not from your memory of teaching it.
+- Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it, and hand it those concepts as the material to quiz on. Spread the 12 questions across them so each is tested at least once — the concepts are what the lesson promised to teach, so a quiz that skips one leaves it unassessed. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
 - After the quiz completes, get the results and call `log_quiz_result` with:
   - `lesson_id`: Current lesson's ID
   - `score`: Number correct
@@ -1181,6 +1182,7 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | Chapter start         | `get_current_position` (check `is_chapter_start`), `get_chapter`, `get_review_queue`                        |
 | After review question | `log_review_result`                                                                                         |
 | Theory (every lesson) | `get_lesson` — its concepts are what theory teaches, one section each                                       |
+| Quiz                  | `get_lesson` — the concepts to quiz on, spread across the 12 questions                                      |
 | After quiz            | `log_quiz_result`, `complete_lesson`, then Lesson Boundary Routing                                          |
 | Lesson boundary       | `get_current_position` (route on `is_chapter_end`/`is_part_end`/`interview_resolved`/`capstone_resolved`)        |
 | After interview       | `log_interview_result`                                                                                      |
