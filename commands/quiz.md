@@ -44,7 +44,7 @@ A distractor description can be true or false. Write a confident one that makes 
 ## Determining Quiz Content
 
 Base the quiz on the current context:
-- If you were handed specific material to quiz on, use exactly that — cover all of it, and don't substitute topics of your own that seem adjacent or more interesting
+- If you were handed specific material to quiz on, use exactly that — cover all of it, and don't substitute topics of your own that seem adjacent or more interesting. Refer to it by the names you were given, both in questions and when reporting results: a caller that named the material is tracking it under those names, and a renamed or invented one can't be matched back
 - If discussing a specific topic, quiz on that topic
 - If working through a lesson or tutorial, quiz on recent material
 - If no clear context, use `AskUserQuestion` to ask what topic to quiz on
@@ -81,7 +81,7 @@ Each question in the `questions` array should have:
    - Final score (X/12) and percentage
    - Breakdown by difficulty (Easy: X/4, Medium: X/4, Hard: X/4)
    - Questions answered incorrectly (list them)
-   - Concepts that need review
+   - Concepts that need review — drawn from the material you quizzed on, named as you were given it; say so plainly when nothing was missed rather than listing a concept that wasn't
    - Encouragement based on performance
 
 2. Offer to explain any concepts the user struggled with
