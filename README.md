@@ -34,8 +34,8 @@ Each lesson follows a proven learning flow:
 ┌──────────────────────────────────────────────────────────────────────┐
 │  1. THEORY        Claude explains the concept with examples          │
 │  2. HANDS-ON      You write code with guidance                       │
-│  3. REVIEW        Socratic dialogue to deepen understanding          │
-│  4. QUIZ          12 questions to test retention                     │
+│  3. QUIZ          12 questions to test retention                     │
+│  4. REVIEW        Socratic dialogue to deepen understanding          │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
