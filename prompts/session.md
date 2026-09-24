@@ -475,29 +475,31 @@ Create a `.txt` file at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}.txt`
 
 If they want more practice, provide another exercise on the same concept (different scenario), review it, ask again, and save that exercise too.
 
-### 5. Socratic Review
-
-- Ask a few probing questions to deepen understanding. **Present them together, all at once** — this is an ungraded, open invitation to reflect and discuss, not a tracked assessment, so don't gate them one at a time the way the review queue and interview do. The number can vary by lesson.
-- "Why do you think this works?"
-- "What would happen if...?"
-- "How does this relate to...?"
-
-**Save to book (if enabled):** Once the discussion winds down, call `get_preferences` — if `book` is true, append the review to the lesson file. Save each question (verbatim), the user's answer (verbatim), and your response to it. Include your response even when the user's answer was already right — a saved answer with no reply reads as unresolved on review, and where the answer was partial or wrong, the correction is the part worth keeping. Do this silently before continuing.
-
-### 6. Quiz
+### 5. Quiz
 
 - Use `AskUserQuestion` with the question "Ready for your quiz?" and these options:
   - "Let's go" — Start the quiz
   - "Quit" — Return to normal Claude Code
   - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
-- Call `get_lesson` for this lesson's concepts — the same list theory taught from. Call it again here rather than trusting what's left in context: the exercise and the Socratic review sit in between, and the quiz should be built from the recorded list, not from your memory of teaching it.
-- Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it, and hand it those concepts as the material to quiz on. Spread the 12 questions across them so each is tested at least once — the concepts are what the lesson promised to teach, so a quiz that skips one leaves it unassessed. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
+- Call `get_lesson` for this lesson's concepts — the same list theory taught from. Call it again here rather than trusting what's left in context: the exercise sits in between, and the quiz should be built from the recorded list, not from your memory of teaching it.
+- Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it, and hand it those concepts as the material to quiz on. Spread the 12 questions across them so each is tested at least once — the concepts are what the lesson promised to teach, so a quiz that skips one leaves it unassessed. Build the questions from what the theory and the exercise covered, not from side questions or tangents the learner raised along the way. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
 - After the quiz completes, get the results and call `log_quiz_result` with:
   - `lesson_id`: Current lesson's ID
   - `score`: Number correct
   - `total`: 12
   - `missed_concept_ids`: IDs of concepts answered incorrectly
-- Call `complete_lesson` to mark this lesson's content done and queue it for review. **Don't move on yet** — follow Lesson Boundary Routing below.
+
+### 6. Socratic Review
+
+- Ask a few probing questions to deepen understanding. **Present them together, all at once** — this is an ungraded, open invitation to reflect and discuss, not a tracked assessment, so don't gate them one at a time the way the review queue and interview do. The number can vary by lesson.
+- "Why do you think this works?"
+- "What would happen if...?"
+- "How does this relate to...?"
+- Draw mainly on the theory and the exercise. If the learner missed quiz questions, those concepts are worth probing too. Don't re-ask quiz questions in open-ended form — probe the reasoning behind a concept rather than restating a question they've already answered.
+
+**Save to book (if enabled):** Once the discussion winds down, call `get_preferences` — if `book` is true, append the review to the lesson file. Save each question (verbatim), the user's answer (verbatim), and your response to it. Include your response even when the user's answer was already right — a saved answer with no reply reads as unresolved on review, and where the answer was partial or wrong, the correction is the part worth keeping. Do this silently before continuing.
+
+Then call `complete_lesson` to mark this lesson's content done and queue it for review. **Don't move on yet** — follow Lesson Boundary Routing below.
 
 ### 7. Lesson Boundary Routing
 
@@ -1183,7 +1185,8 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | After review question | `log_review_result`                                                                                         |
 | Theory (every lesson) | `get_lesson` — its concepts are what theory teaches, one section each                                       |
 | Quiz                  | `get_lesson` — the concepts to quiz on, spread across the 12 questions                                      |
-| After quiz            | `log_quiz_result`, `complete_lesson`, then Lesson Boundary Routing                                          |
+| After quiz            | `log_quiz_result`                                                                                           |
+| After Socratic review | `complete_lesson`, then Lesson Boundary Routing                                                             |
 | Lesson boundary       | `get_current_position` (route on `is_chapter_end`/`is_part_end`/`interview_resolved`/`capstone_resolved`)        |
 | After interview       | `log_interview_result`                                                                                      |
 | After capstone        | `log_capstone_result`                                                                                       |
