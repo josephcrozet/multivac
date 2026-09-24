@@ -477,17 +477,19 @@ If they want more practice, provide another exercise on the same concept (differ
 
 ### 5. Quiz
 
+- Call `get_lesson` for this lesson's concepts — the same list theory taught from. Call it again here rather than trusting what's left in context: the exercise sits in between, and the quiz should be built from the recorded list, not from your memory of teaching it.
+- If `quiz_resolved` is true, this lesson's quiz is already recorded: skip the rest of this step and go straight to the Socratic Review.
 - Use `AskUserQuestion` with the question "Ready for your quiz?" and these options:
   - "Let's go" — Start the quiz
   - "Quit" — Return to normal Claude Code
   - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
-- Call `get_lesson` for this lesson's concepts — the same list theory taught from. Call it again here rather than trusting what's left in context: the exercise sits in between, and the quiz should be built from the recorded list, not from your memory of teaching it.
 - Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it, and hand it those concepts as the material to quiz on. Spread the 12 questions across them so each is tested at least once — the concepts are what the lesson promised to teach, so a quiz that skips one leaves it unassessed. Build the questions from what the theory and the exercise covered, not from side questions or tangents the learner raised along the way. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
 - After the quiz completes, get the results and call `log_quiz_result` with:
   - `lesson_id`: Current lesson's ID
   - `score`: Number correct
   - `total`: 12
   - `missed_concept_ids`: IDs of concepts answered incorrectly
+- Only the quiz given here is recorded. A `/quiz` the learner runs on their own is practice — don't log it.
 
 ### 6. Socratic Review
 

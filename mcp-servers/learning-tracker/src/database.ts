@@ -493,6 +493,12 @@ function interviewResolved(chapterId: number): boolean {
 function capstoneResolved(partId: number): boolean {
   return !!db.prepare('SELECT 1 FROM capstone_results WHERE part_id = ? LIMIT 1').get(partId);
 }
+// A lesson holds one quiz result at a time; this is the fact that gates a second one. It's
+// enforced here rather than as a UNIQUE constraint so that clearing a single lesson's row
+// is all it takes to reopen the quiz.
+function quizResolved(lessonId: number): boolean {
+  return !!db.prepare('SELECT 1 FROM quiz_results WHERE lesson_id = ? LIMIT 1').get(lessonId);
+}
 
 // Structural boundary facts: is this the last lesson of its chapter / last chapter of its part.
 function isLastLessonInChapter(chapterId: number, lessonSortOrder: number): boolean {
@@ -1054,7 +1060,7 @@ export const database = {
   },
 
   getLesson(lessonId: number): {
-    lesson: Lesson & { concepts: Concept[] };
+    lesson: Lesson & { concepts: Concept[]; quiz_resolved: boolean };
   } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
@@ -1073,7 +1079,7 @@ export const database = {
     ).all(lessonId) as Concept[];
 
     return {
-      lesson: { ...lesson, completed: !!lesson.completed, concepts },
+      lesson: { ...lesson, completed: !!lesson.completed, quiz_resolved: quizResolved(lessonId), concepts },
     };
   },
 
@@ -1482,6 +1488,13 @@ export const database = {
   },
 
   logQuizResult(lessonId: number, score: number, total: number, missedConceptIds: number[]): QuizResult {
+    // Quiz averages count every row, so a second result for the same lesson would count twice.
+    if (quizResolved(lessonId)) {
+      throw new Error(
+        `Lesson ${lessonId} already has a recorded quiz result. A lesson holds one quiz result at a time.`
+      );
+    }
+
     const result = db.prepare(`
       INSERT INTO quiz_results (lesson_id, score, total, missed_concepts)
       VALUES (?, ?, ?, ?)

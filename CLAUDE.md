@@ -92,7 +92,7 @@ Two formats based on tutorial type:
 | `get_tutorial` | Full nested structure + stats (~13k tokens). NOT used in normal flow — prefer get_stats/get_curriculum_tree/get_part/get_tutorial_metadata; full-export/debugging escape hatch |
 | `get_tutorial_metadata` | Lightweight: name, type, status, difficulty_level, dates (quick checks) |
 | `get_chapter` | Get a single chapter with lessons → concepts. Use for Chapter Start Screen and mock interview context instead of get_tutorial |
-| `get_lesson` | Get a single lesson with its concepts. The narrowest getter — use per lesson instead of fetching a whole chapter or part |
+| `get_lesson` | Get a single lesson with its concepts and `quiz_resolved`. The narrowest getter — use per lesson instead of fetching a whole chapter or part |
 | `get_part` | Get a single part with chapters → lessons → concepts. Use for capstone design instead of get_tutorial |
 | `get_stats` | Aggregate stats (overall + per-part). Use for Part Complete, Victory, Progress, Certificate screens |
 | `get_curriculum_tree` | Pre-formatted ASCII curriculum tree with live progress markers. Use for any "show curriculum" view instead of get_tutorial |
@@ -102,7 +102,7 @@ Two formats based on tutorial type:
 | `get_current_position` | Current lesson/chapter/part, type, difficulty_level, and boundary facts (is_chapter_start/is_chapter_end/is_part_end/interview_resolved/capstone_resolved) |
 | `complete_lesson` | Mark current lesson's content done + add to review queue; does NOT move the pointer |
 | `advance_position` | Move the pointer to the next lesson — guarded: refuses unless the lesson is completed and any chapter/part boundary work is resolved |
-| `log_quiz_result` | Record quiz scores |
+| `log_quiz_result` | Record quiz scores — one result per lesson; refuses a second |
 | `log_interview_result` | Record interview performance |
 | `log_capstone_result` | Record a capstone result (completed or skipped) |
 | `get_review_queue` | Get lessons pending review |
