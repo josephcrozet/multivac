@@ -323,4 +323,33 @@ test('curriculum tree lifecycle', async (t) => {
       );
     }
   });
+
+  // --- One quiz result per lesson ---
+
+  await t.test('getLesson reports quiz_resolved once a quiz result is recorded', () => {
+    const lessonId = database.getPart(part1Id)!.chapters[0].lessons[0].id;
+    assert.equal(database.getLesson(lessonId)!.lesson.quiz_resolved, false);
+    database.logQuizResult(lessonId, 10, 12, []);
+    assert.equal(database.getLesson(lessonId)!.lesson.quiz_resolved, true);
+    // Scoped to its own lesson, so a sibling is unaffected.
+    const siblingId = database.getPart(part1Id)!.chapters[0].lessons[1].id;
+    assert.equal(database.getLesson(siblingId)!.lesson.quiz_resolved, false);
+  });
+
+  await t.test('logQuizResult refuses a second result for the same lesson', () => {
+    const lessonId = database.getPart(part1Id)!.chapters[0].lessons[0].id;
+    const before = database.getStats()!.tutorial.average_quiz_score;
+    assert.throws(() => database.logQuizResult(lessonId, 0, 12, []), /already has a recorded quiz result/);
+    // The refused 0/12 must not have dragged the average down.
+    assert.equal(database.getStats()!.tutorial.average_quiz_score, before);
+  });
+
+  // Runs last: resetting wipes the progress every earlier subtest built up.
+  await t.test('resetProgress clears quiz results, so a lesson can be quizzed again', () => {
+    const lessonId = database.getPart(part1Id)!.chapters[0].lessons[0].id;
+    database.resetProgress();
+    assert.equal(database.getLesson(lessonId)!.lesson.quiz_resolved, false);
+    database.logQuizResult(lessonId, 12, 12, []);
+    assert.equal(database.getLesson(lessonId)!.lesson.quiz_resolved, true);
+  });
 });

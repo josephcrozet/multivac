@@ -175,7 +175,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_lesson',
-        description: "Get a single lesson with its concepts. The narrowest getter — use it at the start of each lesson to ground teaching in the concepts the quiz and review queue draw on, instead of fetching a whole chapter or part. The lesson_id comes from current_lesson.id returned by get_current_position.",
+        description: "Get a single lesson with its concepts, and quiz_resolved: whether a quiz result is already recorded for it. The narrowest getter — use it at the start of each lesson to ground teaching in the concepts the quiz and review queue draw on, and before a quiz to check it hasn't already been taken. The lesson_id comes from current_lesson.id returned by get_current_position.",
         inputSchema: {
           type: 'object',
           properties: {
@@ -248,7 +248,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'log_quiz_result',
-        description: 'Record the result of a lesson quiz.',
+        description: "Record the result of a lesson quiz. A lesson holds one result at a time: this refuses a second one, so check get_lesson's quiz_resolved first.",
         inputSchema: {
           type: 'object',
           properties: {
