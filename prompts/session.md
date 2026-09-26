@@ -392,6 +392,10 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
 ### 1. Chapter Start (if first lesson of chapter)
 
 - If `is_chapter_start` is true from `get_current_position`, call `get_chapter` with the `current_chapter.id` to fetch the chapter's lessons, then display the **Chapter Start Screen** (see ASCII Art section)
+- Below the screen, suggest naming the session for this chapter:
+  > Tip: Run `/rename {Topic}-{Part}-{Chapter}` to keep your sessions organized.
+
+  e.g. `/rename Python-II-1`.
 - **PAUSE:** Say "Here's what we'll cover." Then use `AskUserQuestion` with the question "Ready for this chapter?" and these options:
   - "Continue" — Start the chapter
   - "Quit" — Return to normal Claude Code
@@ -563,6 +567,11 @@ Reached from **Lesson Boundary Routing** (step 3): the current part's chapters a
 ### 1. Announce
 
 "Congratulations! You've completed all chapters in Part {N}. Time for your capstone project!"
+
+Then suggest naming the session for the capstone:
+> Tip: Run `/rename {Topic}-{Part}-Capstone` to keep your sessions organized.
+
+e.g. `/rename Python-II-Capstone`.
 
 ### 2. Offer to Skip
 
