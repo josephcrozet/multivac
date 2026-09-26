@@ -32,7 +32,7 @@ It returns 8 items, each with: the question number and type, the **question text
 
 ### 4. Grade each answer
 
-Grade the user's answer against the worker's **model answer** and **scoring guidance** for that question. Score **0–5** (see **Scoring Rubric**). In your feedback give: what was good, what could improve, and the ideal answer if it differs significantly from theirs (you have the model answer — use it).
+Grade the user's answer against the worker's **model answer** and **scoring guidance** for that question. Score **0–5** (see **Scoring Rubric**). In your feedback give: what was good, what could improve if anything substantive would, and the ideal answer if it differs significantly from theirs (you have the model answer — use it). Don't invent a criticism for a full-credit answer.
 
 ### 5. Wrap up
 
