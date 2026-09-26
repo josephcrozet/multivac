@@ -68,14 +68,7 @@ Display the Curriculum Tree (see format below). Then return to this menu.
 
 **If tutorial is in progress:**
 
-First, call `get_current_position` to check if `is_chapter_start` is true.
-
-**If at chapter start:** Display a tip before showing the menu:
-> Tip: Run `/rename {Topic}-{Part}-{Chapter}` to keep your sessions organized.
-
-Example: "Tip: Run `/rename Python-II-1` to keep your sessions organized."
-
-Then use `AskUserQuestion` to present options:
+Use `AskUserQuestion` to present options:
 
 **Question:** "What would you like to do?"
 
