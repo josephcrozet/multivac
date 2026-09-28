@@ -23,6 +23,8 @@ Correctness lives only in the option's *text*, which you authored. When the user
 
 A well-formed question has exactly one defensible answer when read literally against the four options. The question's text is all the user has — anything you don't say, you can't rely on. After authoring, re-read the question as a stranger and confirm only one option survives.
 
+Test the concept with a fresh example, not one the user has already been shown — vary the values, names, or scenario — so a correct answer reflects understanding rather than recognition.
+
 ## Writing the Options
 
 A multiple-choice item is only as good as its distractors. The most common surface tell is that the correct answer is the longest, the most hedged, or the most fully-fleshed-out option — letting the user pick it without engaging with the content.
