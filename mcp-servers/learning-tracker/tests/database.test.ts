@@ -344,6 +344,51 @@ test('curriculum tree lifecycle', async (t) => {
     assert.equal(database.getStats()!.tutorial.average_quiz_score, before);
   });
 
+  // --- Review queue targets concepts missed on the quiz ---
+
+  const queuedLesson = (lessonId: number) =>
+    database.getReviewQueue()!.queue.find((q) => q.lesson.id === lessonId)!;
+
+  await t.test('getReviewQueue marks the concepts missed on the lesson\'s quiz and reviews one of them', () => {
+    const lesson = database.getPart(part1Id)!.chapters[0].lessons[1]; // Lesson 1.1.2
+    const missed = lesson.concepts[1];
+    database.logQuizResult(lesson.id, 9, 12, [missed.id]);
+    const item = queuedLesson(lesson.id);
+    assert.deepEqual(item.concepts.map((c) => c.missed), [false, true, false]);
+    // With a single missed concept there's only one choice, so this is deterministic.
+    assert.equal(item.review_concept!.id, missed.id);
+  });
+
+  await t.test('review_concept is always drawn from the missed concepts when there are several', () => {
+    const lesson = database.getPart(part1Id)!.chapters[0].lessons[3]; // Lesson 1.1.4
+    const missedIds = [lesson.concepts[0].id, lesson.concepts[2].id];
+    database.logQuizResult(lesson.id, 8, 12, missedIds);
+    for (let i = 0; i < 25; i++) {
+      assert.ok(missedIds.includes(queuedLesson(lesson.id).review_concept!.id));
+    }
+  });
+
+  await t.test('with nothing missed, review_concept falls back to any of the lesson\'s concepts', () => {
+    // Lesson 1.1.1 was quizzed with no misses; Lesson 1.1.3 is logged with an id belonging to
+    // another lesson, which must not mark anything here.
+    const lessons = database.getPart(part1Id)!.chapters[0].lessons;
+    database.logQuizResult(lessons[2].id, 11, 12, [lessons[1].concepts[0].id]);
+    for (const lesson of [lessons[0], lessons[2]]) {
+      const item = queuedLesson(lesson.id);
+      assert.ok(item.concepts.every((c) => !c.missed));
+      assert.ok(lesson.concepts.some((c) => c.id === item.review_concept!.id));
+    }
+  });
+
+  await t.test('review_concept varies between calls rather than favoring one position', () => {
+    // The pick is made here precisely so it isn't always the first concept. With three
+    // concepts, 60 identical draws in a row has odds around 1e-28, so this won't flake.
+    const lessonId = database.getPart(part1Id)!.chapters[0].lessons[0].id; // nothing missed
+    const picked = new Set<number>();
+    for (let i = 0; i < 60; i++) picked.add(queuedLesson(lessonId).review_concept!.id);
+    assert.ok(picked.size > 1);
+  });
+
   // Runs last: resetting wipes the progress every earlier subtest built up.
   await t.test('resetProgress clears quiz results, so a lesson can be quizzed again', () => {
     const lessonId = database.getPart(part1Id)!.chapters[0].lessons[0].id;

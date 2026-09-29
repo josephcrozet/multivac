@@ -419,8 +419,7 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 - The queue contains lessons (not individual concepts)—each lesson has multiple concepts
 - Ask the questions **one at a time** — present a single question, wait for the answer, react briefly, then move to the next. Do **not** present all of them at once: these are open-ended recall questions (unlike the multiple-choice quiz), so a batch is harder to answer and defeats the per-question feedback that makes review worthwhile.
 - For EACH lesson returned, **in turn**:
-  - Randomly pick ONE concept from that lesson
-  - Ask a single review question about that concept and **wait for the answer** before continuing
+  - Ask a single review question about the lesson's `review_concept` (use that one rather than choosing your own), and **wait for the answer** before continuing
   - After the user answers, give brief feedback, then call `log_review_result` with `correct: true/false`
   - Correct answers remove the lesson from the queue; incorrect answers move it to the end
 - After all returned items are reviewed, proceed to the lesson
@@ -497,11 +496,12 @@ If they want more practice, provide another exercise on the same concept (differ
   - "Quit" — Return to normal Claude Code
   - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 - Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it, and hand it those concepts as the material to quiz on. Spread the 12 questions across them so each is tested at least once — the concepts are what the lesson promised to teach, so a quiz that skips one leaves it unassessed. Build the questions from what the theory and the exercise covered, not from side questions or tangents the learner raised along the way. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
+- As you write each question, note which of the concepts it tests.
 - After the quiz completes, get the results and call `log_quiz_result` with:
   - `lesson_id`: Current lesson's ID
   - `score`: Number correct
   - `total`: 12
-  - `missed_concept_ids`: IDs of concepts answered incorrectly
+  - `missed_concept_ids`: The `id` from `get_lesson` of each concept the learner got at least one question wrong on — empty if they got everything right. The review queue uses these to revisit the concepts they missed.
 - Only the quiz given here is recorded. A `/quiz` the learner runs on their own is practice — don't log it.
 
 ### 6. Socratic Review

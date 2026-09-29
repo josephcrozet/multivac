@@ -56,7 +56,7 @@ multivac/
 **Learning Flow**
 11. **Separated Commands** — /tutorial starts new tutorials; /menu is the pause menu for existing tutorials (view progress, curriculum, restart, exit); single responsibility per command
 12. **Batched Quizzes** — 3 prompts of 4 questions, not 12 individual prompts
-13. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at chapter start; correct answers remove from queue, incorrect answers move to end
+13. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; reviewed at chapter start; correct answers remove from queue, incorrect answers move to end. Each lesson is reviewed on one concept, which the server picks at random from those missed on the lesson's quiz (or from all its concepts if none were) — not the model, which doesn't choose randomly when asked to
 14. **Incremental Capstone Evaluation** — Programming: tests written per-milestone. General: criteria checked per-milestone. Both followed by qualitative review, both skippable. The capstone's spec + milestone progress live in a write-once `CAPSTONE.md` in the capstone dir (the agent's record), so a mid-build restart re-grounds and resumes the *same* project instead of designing a new one. The learner's deliverable (code files / `capstone.txt`) is theirs — the agent reads it to evaluate, never overwrites it.
 15. **Single Source of Truth** — Every behavior has exactly one authoritative definition. /tutorial is a thin entry point that checks state and delegates; session.md is the engine that owns the complete flow. If two files both define the same behavior, the model will reconcile them inconsistently
 16. **MCP-First for Tutorial Data** — All tutorial data flows through the MCP server, never through reads of Claude Code internal state files (`~/.claude/projects/...`). When adding features or fixing bugs, the answer to "how do I get this data?" is to add an MCP tool, not a workaround. See session.md's "MCP-First for Tutorial Data" section for the runtime behavior this enforces.
@@ -105,7 +105,7 @@ Two formats based on tutorial type:
 | `log_quiz_result` | Record quiz scores — one result per lesson; refuses a second |
 | `log_interview_result` | Record interview performance |
 | `log_capstone_result` | Record a capstone result (completed or skipped) |
-| `get_review_queue` | Get lessons pending review |
+| `get_review_queue` | Get lessons pending review, each with the `review_concept` to ask about and a `missed` flag per concept |
 | `log_review_result` | Correct removes from queue, incorrect moves to end |
 | `reset_progress` | Reset progress while keeping curriculum structure |
 
