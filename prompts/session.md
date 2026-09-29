@@ -504,6 +504,8 @@ If they want more practice, provide another exercise on the same concept (differ
   - `missed_concept_ids`: The `id` from `get_lesson` of each concept the learner got at least one question wrong on — empty if they got everything right. The review queue uses these to revisit the concepts they missed.
 - Only the quiz given here is recorded. A `/quiz` the learner runs on their own is practice — don't log it.
 
+**Save to book (if enabled):** Once the quiz is finished, call `get_preferences` — if `book` is true, append the quiz to the lesson file (see Stage 3 under Book Format): each question with its options in the order shown, the user's answer, the correct answer, and your explanation, then the score and the concepts to review. Write it in one go after the last question. Do this silently before continuing.
+
 ### 6. Socratic Review
 
 - Ask a few probing questions to deepen understanding. **Present them together, all at once** — this is an ungraded, open invitation to reflect and discuss, not a tracked assessment, so don't gate them one at a time the way the review queue and interview do. The number can vary by lesson.
@@ -1074,7 +1076,7 @@ book/
 
 ### File Format
 
-Each lesson file is written in three stages:
+Each lesson file is written in four stages:
 
 **Stage 1 (after Theory):** Create the file with initial content:
 
@@ -1117,7 +1119,39 @@ Each lesson file is written in three stages:
 
 If user requests additional practice, append each subsequent exercise in the same format (Exercise 2, Exercise 3, etc.).
 
-**Stage 3 (after the Socratic Review):** Append the discussion:
+**Stage 3 (after the Quiz):** Append the quiz:
+
+```markdown
+
+## Quiz
+
+### Question 1 of 12 — {Easy | Medium | Hard}
+
+{Question text, verbatim}
+
+- {Option, in the order shown}
+- {Option}
+- {Option}
+- {Option}
+
+**Answer:** {The option the user chose}
+
+**Correct answer:** {The correct option}
+
+{Your explanation, verbatim}
+
+### Question 2 of 12 — {Difficulty}
+
+...
+
+### Result
+
+**Score:** {X}/12
+
+**Concepts to review:** {The concepts reported as needing review, or "None"}
+```
+
+**Stage 4 (after the Socratic Review):** Append the discussion:
 
 ```markdown
 
