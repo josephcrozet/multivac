@@ -267,7 +267,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             missed_concept_ids: {
               type: 'array',
               items: { type: 'number' },
-              description: 'IDs of concepts the user got wrong',
+              description: "IDs of the lesson's concepts the user got at least one question wrong on, as returned by get_lesson. The review queue uses them to revisit weak spots first.",
             },
           },
           required: ['lesson_id', 'score', 'total', 'missed_concept_ids'],
@@ -323,7 +323,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_review_queue',
-        description: 'Get lessons in the review queue. Each lesson has multiple concepts; pick one concept per lesson for review questions. Use at the start of chapters to review previous material. For completed tutorials, auto-replenishes with all 48 lessons if queue is empty.',
+        description: "Get lessons in the review queue. Each lesson comes with review_concept: the concept to ask a review question about, chosen at random from the ones the learner missed on that lesson's most recent quiz, or from all its concepts if none were missed. Each concept also carries missed. Use at the start of chapters to review previous material. For completed tutorials, auto-replenishes with all 48 lessons if queue is empty.",
         inputSchema: {
           type: 'object',
           properties: {

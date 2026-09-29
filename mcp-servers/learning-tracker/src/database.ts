@@ -1294,7 +1294,8 @@ export const database = {
   getReviewQueue(limit?: number): {
     queue: {
       lesson: Lesson;
-      concepts: Concept[];
+      concepts: (Concept & { missed: boolean })[];
+      review_concept: (Concept & { missed: boolean }) | null;
       queue_position: number;
     }[];
     total_in_queue: number;
@@ -1352,6 +1353,17 @@ export const database = {
 
     const queue = queueItems.map(item => {
       const concepts = db.prepare('SELECT * FROM concepts WHERE lesson_id = ?').all(item.lesson_id) as Concept[];
+      // Mark the concepts missed on the lesson's most recent quiz, so a review can go to the weak
+      // spot first. Only ids that belong to this lesson can match.
+      const latestQuiz = db.prepare(
+        'SELECT missed_concepts FROM quiz_results WHERE lesson_id = ? ORDER BY completed_at DESC LIMIT 1'
+      ).get(item.lesson_id) as { missed_concepts: string | null } | undefined;
+      const missedIds = new Set<number>(latestQuiz?.missed_concepts ? JSON.parse(latestQuiz.missed_concepts) : []);
+      const marked = concepts.map(concept => ({ ...concept, missed: missedIds.has(concept.id) }));
+      // Pick the concept to review here rather than leaving it to the model, which doesn't
+      // choose randomly when asked to and would favor the same position every time.
+      const pool = marked.some(c => c.missed) ? marked.filter(c => c.missed) : marked;
+      const reviewConcept = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
       return {
         lesson: {
           id: item.lesson_id,
@@ -1361,7 +1373,8 @@ export const database = {
           completed: !!item.lesson_completed,
           sort_order: item.lesson_sort_order
         },
-        concepts,
+        concepts: marked,
+        review_concept: reviewConcept,
         queue_position: item.position
       };
     });
