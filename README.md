@@ -213,7 +213,7 @@ This project demonstrates Claude Code's extensibility:
 | `get_part`             | Get one part with chapters → lessons → concepts (for capstone design) |
 | `get_stats`            | Aggregate stats (overall + per-part) for completion/progress screens |
 | `get_curriculum_tree`  | Pre-formatted ASCII curriculum tree with live progress markers |
-| `get_preferences`      | Get user preferences (book, language)    |
+| `get_preferences`      | Get user preferences (book, language, version taught) |
 | `update_preferences`   | Update one or more preferences           |
 | `start_tutorial`       | Begin a tutorial                         |
 | `get_current_position` | Current lesson/chapter/part + type + difficulty + boundary facts |

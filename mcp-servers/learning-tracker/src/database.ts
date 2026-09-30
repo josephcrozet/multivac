@@ -294,9 +294,11 @@ db.exec(`
 export interface Preferences {
   book: boolean;
   language: string;
+  // Programming tutorials only: the version the course teaches, chosen at setup. Null until set.
+  teaching_target: string | null;
 }
 
-const DEFAULT_PREFERENCES: Preferences = { book: false, language: 'en' };
+const DEFAULT_PREFERENCES: Preferences = { book: false, language: 'en', teaching_target: null };
 
 function parsePreferences(raw: string | null): Preferences {
   try {
