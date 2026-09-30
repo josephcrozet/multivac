@@ -70,6 +70,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               properties: {
                 book: { type: 'boolean', description: 'Save lessons to a book/ folder for offline review' },
                 language: { type: 'string', description: 'Language of instruction (ISO 639-1 code). Defaults to "en".' },
+                teaching_target: { type: 'string', description: 'Programming tutorials only: the version the course teaches, as chosen at setup (e.g. "Java 21 (LTS)").' },
               },
             },
             parts: {
@@ -197,7 +198,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_preferences',
-        description: 'Get user preferences (book, language). Lightweight call — use this instead of get_tutorial when you only need to check a setting.',
+        description: 'Get user preferences (book, language, teaching_target). Lightweight call — use this instead of get_tutorial when you only need to check a setting.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -211,6 +212,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             book: { type: 'boolean', description: 'Enable/disable saving lessons to book/ folder' },
             language: { type: 'string', description: 'Language of instruction (ISO 639-1 code)' },
+            teaching_target: { type: 'string', description: 'Programming tutorials only: the version the course teaches' },
           },
         },
       },

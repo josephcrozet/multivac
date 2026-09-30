@@ -344,6 +344,19 @@ test('curriculum tree lifecycle', async (t) => {
     assert.equal(database.getStats()!.tutorial.average_quiz_score, before);
   });
 
+  // --- Preferences ---
+
+  await t.test('teaching_target defaults to null and persists once set', () => {
+    // The fixture curriculum passes no preferences, like a general tutorial would.
+    assert.equal(database.getPreferences()!.teaching_target, null);
+    database.updatePreferences({ teaching_target: 'Java 21 (LTS)' });
+    const prefs = database.getPreferences()!;
+    assert.equal(prefs.teaching_target, 'Java 21 (LTS)');
+    // Merging one preference leaves the others as they were.
+    assert.equal(prefs.book, false);
+    assert.equal(prefs.language, 'en');
+  });
+
   // --- Review queue targets concepts missed on the quiz ---
 
   const queuedLesson = (lessonId: number) =>

@@ -88,7 +88,6 @@ This section defines a mandatory verification workflow using a cache to avoid re
 ```markdown
 # Tutorial Knowledge Updates
 Generated: {date} | Topic: {main topic}
-Teaching target: {programming only — the version the course teaches, e.g. "Java 21 (LTS)"; set once at setup from the toolchain check, and authoritative over "latest" for every lesson}
 
 ## Verified Topics
 
@@ -343,9 +342,9 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
     - **"Learn my installed version ({installed})"** → teach to what's installed; older, but consistent and runnable.
 
     Offer only these two. Don't teach the latest against an un-upgraded older toolchain: the learner couldn't run the examples, and running code is Multivac's core advantage over read-only resources — teaching read-only defeats the point.
-  - **Record the outcome:** write the chosen version to `.multivac/current-info.md`'s `Teaching target` field and teach to *that* version throughout — not whatever is merely "latest." This check runs only once at setup, so that pinned value is the source of truth that keeps the right version taught after a compaction or `/clear`, when the check won't re-run.
+  - **Record the outcome:** pass the chosen version as `teaching_target` in `create_tutorial`'s `preferences` (below), and teach to *that* version throughout — not whatever is merely "latest." This check runs only once at setup, so the stored preference is what keeps the right version taught after a compaction or `/clear`, when the check won't re-run.
 - Design the curriculum calibrated to their difficulty level, using current patterns from your research (see Curriculum Structure below)
-- Call `create_tutorial` with the full curriculum, including `type`, `difficulty_level`, and `preferences` (e.g., `{ "book": true }` if they chose book). Do not display the raw response — the user doesn't need to see the JSON
+- Call `create_tutorial` with the full curriculum, including `type`, `difficulty_level`, and `preferences` — `book` if they chose it, and for a programming tutorial the `teaching_target` from the toolchain check (e.g., `{ "book": true, "teaching_target": "Java 21 (LTS)" }`). Do not display the raw response — the user doesn't need to see the JSON
 - Call `start_tutorial` to begin
 - **Display the Opening Screen** (see ASCII Art section)
 - **PAUSE:** Say "Your adventure awaits." Then use `AskUserQuestion` with the question "Ready to begin?" and these options:
@@ -394,7 +393,7 @@ Each lesson follows this sequence:
 
 Before starting the lesson, follow the verification workflow (see "Always Use Current Information" above):
 - Read `.multivac/current-info.md` to refresh context on what's changed from training data
-- If a `Teaching target` is pinned in the cache (programming tutorials), teach to **that** version — it may be an older LTS the learner chose at setup, and it governs over "latest"
+- For a programming tutorial, call `get_preferences` and teach to the version in `teaching_target` — it may be an older LTS the learner chose at setup, and it governs over "latest"
 - If this lesson covers topics not yet in the cache, run the full verification workflow
 - This step ensures you teach the pinned version and current patterns even after context compaction or session restarts
 
