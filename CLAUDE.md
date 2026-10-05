@@ -49,7 +49,7 @@ multivac/
 
 **Curriculum & Content**
 7. **Tutorial Types** — `programming` (code interviews + test-driven capstones) vs `general` (knowledge interviews + criteria-based capstones); type auto-detected from topic
-8. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache persists across context compaction and is checked before each lesson to short-circuit redundant searches and prevent fallback to stale training data
+8. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache persists across context compaction and is checked before each lesson to short-circuit redundant searches and prevent fallback to stale training data. For programming tutorials, research is scoped to the version the learner chose at setup (the `teaching_target` preference), not the latest release. The choice itself lives in the server, not the cache: the cache holds research results, and the target is a decision
 9. **Verify Before Asserting** — Two halves of the same principle. *General topics* have no safety net: for specific technical claims (terminology, formulas, linguistic rules), verify against authoritative sources rather than relying on training data. *Programming* has a natural safety net (code runs or it doesn't), but it only works if the agent actually runs the code instead of pattern-matching — so claims about code behavior must be verified by execution, graduated by stakes (interview questions always, owned by the interview agent; exercises with a definite right answer; theory by judgment; quiz left light since /quiz already guards quality). Verification is done at design time, silently (narrating what you tested leaks the answer), and cleaned up after. See session.md "Verify Code by Running It" and interview-agent.md "Verify every question before returning it"
 10. **Generic Commands** — /quiz and interview-agent work outside tutorials; session.md adds MCP integration
 
@@ -71,14 +71,15 @@ Two formats based on tutorial type:
 **Programming format:**
 - 4 code writing + 4 code analysis questions
 - Creates scratch file (e.g., `interview_scratch.py`) for code writing
-- User writes code in their editor, says "ready" when done
-- Agent reads and evaluates the file
+- User writes code in their editor and says "ready" when done, or answers directly in chat
+- Agent reads and evaluates the file only on that ready signal
 - Scratch file deleted after interview
 
 **General format:**
 - 4 knowledge demonstration + 4 analysis questions
 - Creates scratch file (`interview_scratch.txt`) for written responses
 - User writes in file or answers directly in chat
+- Two subject variants: **math and quantitative** subjects swap in 4 problem-solving + 4 mathematical-reasoning questions; **human-language** interviews shift the questions into the target language by difficulty level
 
 **Both formats:**
 - Scoring: 0-5 per question (0 = pass/skip, 5 = excellent)
