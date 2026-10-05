@@ -158,7 +158,7 @@ This project demonstrates Claude Code's extensibility:
 | Progress tracking   | MCP server with SQLite database                    |
 | `/tutorial` command | Slash command that loads session.md       |
 | `/quiz` command     | Batched multiple-choice questions (3 prompts of 4) |
-| Mock interviews     | Agent spawned via Task tool                        |
+| Mock interviews     | Main agent conducts; a Task-spawned subagent writes and verifies the questions |
 | Capstone tests      | PreToolUse hook that runs your test suite          |
 | Auto-prompt         | SessionStart hook offers to start/continue         |
 | `/menu` command     | Pause menu for progress, curriculum, restart       |
