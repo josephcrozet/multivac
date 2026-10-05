@@ -48,15 +48,14 @@ Completed lessons enter a review queue. At the start of each new chapter, you'll
 At the end of each chapter, face an 8-question interview:
 
 **For programming topics:**
-- 4 **code writing** challenges (write your solution in a scratch file)
+- 4 **code writing** challenges (write, implement, create, design)
 - 4 **code analysis** questions (debug, refactor, test, or explain)
 
 **For general topics:**
 - 4 **knowledge demonstration** questions (explain, describe, apply)
 - 4 **analysis** questions (interpret, compare, evaluate, problem-solve)
-- Write answers in a scratch file or directly in the chat
 
-Scored 0-5 per question with detailed feedback.
+Write your answers in a scratch file or directly in the chat. Scored 0-5 per question with detailed feedback.
 
 ### Capstone Projects
 
