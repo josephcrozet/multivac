@@ -82,6 +82,23 @@ Your progress persists across sessions via a local SQLite database. Pick up exac
 ╚══════════════════════════════════════════════════════════════════════╝
 ```
 
+### Lesson Book
+
+When you set up a tutorial, you can choose to build a book as you go: a record of everything you've covered, for quick review whenever you want to brush up on earlier material. Every lesson is saved as a plain Markdown file in a `book/` folder, so it's available offline and opens in any editor, no Claude session needed. It's organized by part and chapter:
+
+```
+book/
+└── part-1-foundations/
+    └── chapter-2-control-flow/
+        ├── 01-conditionals.md
+        ├── 02-loops.md
+        ├── 03-loop-control.md
+        ├── 04-comprehensions.md
+        └── interview.md
+```
+
+Each lesson file keeps the theory exactly as it was taught, your exercise solutions with the feedback you got, your quiz with the correct answers and explanations, and the Socratic discussion. Each chapter's mock interview is saved alongside its lessons. Ask Claude to revisit a lesson and it shows you the saved version rather than re-teaching it from scratch.
+
 ## Installation
 
 ### Quick Install (Recommended)
@@ -119,6 +136,8 @@ This:
 4. Claude will offer to start your tutorial automatically (or run `/tutorial` manually)
 
 Claude generates a full curriculum on the fly and guides you through it.
+
+For programming topics, Claude checks your setup first: the language, or the database or shell for a topic like SQL or Bash. If it's missing, you'll get install instructions. If it's much older than the current release, you'll be asked whether to upgrade or learn the version you have, and the course teaches that version throughout, so every example runs on your machine.
 
 ### Other Examples
 
