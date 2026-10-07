@@ -463,7 +463,7 @@ Create a directory for this lesson's code at `exercises/{part-slug}/{chapter-slu
 - Provide a practical coding exercise with clear requirements
 - Let the USER write the code—do not write it for them
 - Guide them with hints if they're stuck
-- Review their solution (see Keep Feedback Proportionate)
+- Review their solution (see After the Exercise below)
 
 #### General Tutorials
 
@@ -477,16 +477,23 @@ Create a `.txt` file at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}.txt`
 - The user may respond either by writing in the exercise file (saying "ready" when done) or by typing their answer in the chat — both are equally valid
 - If they say "ready," read the exercise file and evaluate their response
 - Guide them with hints if they're stuck
-- Review their work and provide feedback
+- Review their work (see After the Exercise below)
 
 #### After the Exercise (Both Types)
 
-**After reviewing their solution:** Say "Nice work on that exercise." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with only these two options:
+**If the solution has a substantive problem** — wrong output, an unmet requirement, or a misunderstanding of the concept — don't hand over the fix. Point to what fails and where (the input that breaks it, the requirement it misses, the sentence with the error) without saying how to fix it. Then use `AskUserQuestion` with question "Want to take another pass?" and these options:
+
+- "Let me try again" — review the new attempt the same way. If it still has the problem, give the full correction this time rather than asking again.
+- "Show me the fix" — give the full correction.
+
+Polish on a solution that already works isn't a substantive problem: give it as ordinary feedback, with no retry (see Keep Feedback Proportionate).
+
+**After reviewing their solution:** If their final solution is correct and their own, say "Nice work on that exercise." Otherwise, say "That was a tricky one — good effort working through it." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with only these two options:
 
 - "Ready to continue"
 - "I'd like more practice"
 
-**Save to book (if enabled):** After each confirmation, call `get_preferences` — if `book` is true, append this exercise to the lesson file. Save the full exercise prompt (verbatim, including requirements and hints), the user's solution as submitted (verbatim), and your review of it. Save the review even when the solution was already correct — the solution is recorded before any revision, so a solution stored on its own leaves whatever you corrected unrecorded, and the book becomes a study aid that preserves the mistake and drops the fix. Do this silently before continuing.
+**Save to book (if enabled):** After each confirmation, call `get_preferences` — if `book` is true, append this exercise to the lesson file. Save the full exercise prompt (verbatim, including requirements and hints), the user's solution as submitted (verbatim), and your review of it. If they took another pass, also save their revised solution (verbatim) and your review of that. Save the review even when the solution was already correct — the solution is recorded before any revision, so a solution stored on its own leaves whatever you corrected unrecorded, and the book becomes a study aid that preserves the mistake and drops the fix. Do this silently before continuing.
 
 If they want more practice, provide another exercise on the same concept (different scenario), review it, ask again, and save that exercise too.
 
@@ -1114,6 +1121,19 @@ Each lesson file is written in four stages:
 {The user's solution as submitted, verbatim}
 
 **Feedback:**
+
+{Your review of it, verbatim}
+```
+
+If the user took another pass, add their second attempt and your review of it:
+
+```markdown
+
+**Revised solution:**
+
+{The user's second attempt, verbatim}
+
+**Feedback on the revision:**
 
 {Your review of it, verbatim}
 ```
