@@ -162,7 +162,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_chapter',
-        description: "Get a single chapter with its lessons and each lesson's concepts. Use this for the Chapter Start Screen (which needs the lesson names) and for mock interview context (which needs every lesson's concepts) instead of get_tutorial. The chapter_id comes from current_chapter.id returned by get_current_position.",
+        description: "Get a single chapter with its lessons and each lesson's concepts, plus the chapter's results: average_quiz_score across its lessons and the interview score (null until each exists). Use this for the Chapter Start Screen (which needs the lesson names), for mock interview context (which needs every lesson's concepts), and for the end-of-chapter screen (which needs the results), instead of get_tutorial. The chapter_id comes from current_chapter.id returned by get_current_position.",
         inputSchema: {
           type: 'object',
           properties: {

@@ -402,6 +402,29 @@ test('curriculum tree lifecycle', async (t) => {
     assert.ok(picked.size > 1);
   });
 
+  // --- Chapter results ---
+
+  await t.test('getChapter reports the chapter\'s quiz average and interview score', () => {
+    // Earlier subtests logged quizzes for all four lessons of Chapter 1.1 (10, 9, 11, 8 out
+    // of 12) and a 32/40 interview while walking past the chapter's end.
+    const chapter = database.getChapter(ch11Id)!;
+    const expected = Math.round(((10 + 9 + 11 + 8) / 4 / 12) * 100 * 10) / 10; // 79.2
+    assert.equal(chapter.average_quiz_score, expected);
+    assert.deepEqual(chapter.interview, { score: 32, total: 40 });
+  });
+
+  await t.test('getChapter reports null results until they exist, and a real 0% as 0', () => {
+    const part2Id = database.getStats()!.parts[1].part_id;
+    const ch21 = database.getPart(part2Id)!.chapters[0];
+    let chapter = database.getChapter(ch21.id)!;
+    assert.equal(chapter.average_quiz_score, null); // no quiz taken yet
+    assert.equal(chapter.interview, null); // no interview yet
+    // A quiz scored 0/12 must read as 0, not as "no data".
+    database.logQuizResult(ch21.lessons[0].id, 0, 12, []);
+    chapter = database.getChapter(ch21.id)!;
+    assert.equal(chapter.average_quiz_score, 0);
+  });
+
   // Runs last: resetting wipes the progress every earlier subtest built up.
   await t.test('resetProgress clears quiz results, so a lesson can be quizzed again', () => {
     const lessonId = database.getPart(part1Id)!.chapters[0].lessons[0].id;

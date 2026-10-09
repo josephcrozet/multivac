@@ -226,7 +226,7 @@ This project demonstrates Claude Code's extensibility:
 | `create_tutorial`      | Generate a new curriculum                |
 | `get_tutorial`         | Full nested structure + stats (~13k tokens); not used in normal flow — full-export/debug escape hatch |
 | `get_tutorial_metadata`| Lightweight check for status, type, difficulty |
-| `get_chapter`          | Get one chapter with lessons → concepts (for Chapter Start Screen and interviews) |
+| `get_chapter`          | Get one chapter with lessons → concepts and its results (for chapter screens and interviews) |
 | `get_lesson`           | Get one lesson with its concepts (for teaching a lesson) |
 | `get_part`             | Get one part with chapters → lessons → concepts (for capstone design) |
 | `get_stats`            | Aggregate stats (overall + per-part) for completion/progress screens |
