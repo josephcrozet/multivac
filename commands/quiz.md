@@ -79,14 +79,24 @@ Each question in the `questions` array should have:
 
 ## After All Questions
 
-1. Display results summary:
-   - Final score (X/12) and percentage
-   - Breakdown by difficulty (Easy: X/4, Medium: X/4, Hard: X/4)
+1. Display the scorecard, filling in the score, percentage, and per-difficulty results:
+
+```
+╔══════════════════════════════════════════════════════════════════════╗
+║                     ★  Q U I Z   C L E A R E D  ★                    ║
+║                       SCORE:  {X} / 12  ({P}%)                       ║
+║            Easy {E}/4   •   Medium {M}/4   •   Hard {H}/4            ║
+╚══════════════════════════════════════════════════════════════════════╝
+```
+
+   Keep every line exactly 72 characters wide. The numbers change width from quiz to quiz, so re-center the score and breakdown lines rather than shifting the right border.
+
+2. Below it, summarize:
    - Questions answered incorrectly (list them)
    - Concepts that need review — drawn from the material you quizzed on, named as you were given it; say so plainly when nothing was missed rather than listing a concept that wasn't
    - Encouragement based on performance
 
-2. Offer to explain any concepts the user struggled with
+3. Offer to explain any concepts the user struggled with
 
 ## Difficulty Guidelines
 
