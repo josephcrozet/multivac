@@ -92,7 +92,7 @@ Two formats based on tutorial type:
 | `create_tutorial` | Generate new curriculum (with type, difficulty_level, preferences) |
 | `get_tutorial` | Full nested structure + stats (~13k tokens). NOT used in normal flow — prefer get_stats/get_curriculum_tree/get_part/get_tutorial_metadata; full-export/debugging escape hatch |
 | `get_tutorial_metadata` | Lightweight: name, type, status, difficulty_level, dates (quick checks) |
-| `get_chapter` | Get a single chapter with lessons → concepts. Use for Chapter Start Screen and mock interview context instead of get_tutorial |
+| `get_chapter` | Get a single chapter with lessons → concepts, plus its quiz average and interview score. Use for the chapter screens and mock interview context instead of get_tutorial |
 | `get_lesson` | Get a single lesson with its concepts and `quiz_resolved`. The narrowest getter — use per lesson instead of fetching a whole chapter or part |
 | `get_part` | Get a single part with chapters → lessons → concepts. Use for capstone design instead of get_tutorial |
 | `get_stats` | Aggregate stats (overall + per-part). Use for Part Complete, Victory, Progress, Certificate screens |

@@ -1034,6 +1034,8 @@ export const database = {
   getChapter(chapterId: number): {
     chapter: Chapter;
     lessons: (Lesson & { concepts: Concept[] })[];
+    average_quiz_score: number | null;
+    interview: { score: number; total: number } | null;
   } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
@@ -1050,6 +1052,18 @@ export const database = {
       'SELECT * FROM lessons WHERE chapter_id = ? ORDER BY sort_order'
     ).all(chapterId) as Lesson[];
 
+    // Chapter-level results, computed on read the way getStats does per part.
+    const quiz = db.prepare(`
+      SELECT AVG(CAST(qr.score AS FLOAT) / qr.total * 100) as avg_score
+      FROM quiz_results qr
+      JOIN lessons l ON qr.lesson_id = l.id
+      WHERE l.chapter_id = ?
+    `).get(chapterId) as { avg_score: number | null };
+
+    const interview = db.prepare(
+      'SELECT score, total FROM interview_results WHERE chapter_id = ? ORDER BY completed_at DESC LIMIT 1'
+    ).get(chapterId) as { score: number; total: number } | undefined;
+
     return {
       chapter: { ...chapter, completed: isChapterComplete(chapter.id) },
       lessons: lessons.map(lesson => {
@@ -1058,6 +1072,9 @@ export const database = {
         ).all(lesson.id) as Concept[];
         return { ...lesson, completed: !!lesson.completed, concepts };
       }),
+      // Checked against null, not falsiness, so a genuine 0% still reads as 0.
+      average_quiz_score: quiz.avg_score !== null ? Math.round(quiz.avg_score * 10) / 10 : null,
+      interview: interview ? { score: interview.score, total: interview.total } : null,
     };
   },
 
