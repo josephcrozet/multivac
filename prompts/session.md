@@ -575,7 +575,9 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
    - `total`: 40
    - `notes`: Summary of performance
 
-4. Sweep the scratch directory: clear out `.multivac/tmp/`. The worker deletes its own scratch, so this is just the chapter-end backstop — it keeps any stray verification artifacts from this chapter's lessons or interview from accumulating.
+4. Call `get_chapter` with the current chapter's id and display the **Chapter Cleared Screen** (see ASCII Art section).
+
+5. Sweep the scratch directory: clear out `.multivac/tmp/`. The worker deletes its own scratch, so this is just the chapter-end backstop — it keeps any stray verification artifacts from this chapter's lessons or interview from accumulating.
 
 ---
 
@@ -902,6 +904,27 @@ Display at the start of each chapter (12 total across the tutorial):
 ```
 
 Use ◆ for current lesson, ◇ for upcoming lessons, ✓ for completed.
+
+### Chapter Cleared Screen
+
+Display at the end of each chapter, once its interview is logged (12 total across the tutorial). The numbers come from `get_chapter`:
+
+```
+╔══════════════════════════════════════════════════════════════════════╗
+║  ░█▀▀░█░█░█▀█░█▀█░▀█▀░█▀▀░█▀▄   PART {N} - CHAPTER {M}               ║
+║  ░█░░░█▀█░█▀█░█▀▀░░█░░█▀▀░█▀▄   C L E A R E D                        ║
+║  ░▀▀▀░▀░▀░▀░▀░▀░░░░▀░░▀▀▀░▀░▀                                        ║
+║                                                                      ║
+║   {Chapter Name}                         ████████████ 100%           ║
+║   Lessons: 4/4   Quizzes: {Q}% avg   Interview: {S}/{T} {stars}      ║
+╚══════════════════════════════════════════════════════════════════════╝
+```
+
+- `{Q}` — `average_quiz_score`, rounded to a whole percent
+- `{S}/{T}` — the interview's `score` and `total`
+- `{stars}` — one ★ for each 20% of the interview score, rounded, then ☆ up to five in all (40/40 → ★★★★★, 32/40 → ★★★★☆)
+
+Keep every line exactly 72 characters wide. Names and numbers vary in length, so pad each line to fit rather than shifting the right border, and keep the progress bar in its column — if a long chapter name would run into it, shorten the name.
 
 ### Part Complete Screen
 
@@ -1265,7 +1288,7 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | After quiz            | `log_quiz_result`                                                                                           |
 | After Socratic review | `complete_lesson`, then Lesson Boundary Routing                                                             |
 | Lesson boundary       | `get_current_position` (route on `is_chapter_end`/`is_part_end`/`interview_resolved`/`capstone_resolved`)        |
-| After interview       | `log_interview_result`                                                                                      |
+| After interview       | `log_interview_result`, then `get_chapter` for the Chapter Cleared Screen                                   |
 | After capstone        | `log_capstone_result`                                                                                       |
 | Move to next lesson   | `advance_position` (only once boundary work is logged)                                                       |
 | Before book save      | `get_preferences` (check `book`)                                                                            |
