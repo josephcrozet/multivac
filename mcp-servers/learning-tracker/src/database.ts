@@ -362,6 +362,45 @@ function formatCurriculumTree(
   return lines.join('\n');
 }
 
+interface ChapterProgressInput {
+  part_sort_order: number;
+  chapter_sort_order: number;
+  chapter_name: string;
+  lessons: { sort_order: number; name: string; completed: boolean }[];
+  interview_resolved: boolean;
+}
+
+// How far through a lesson the learner is, from 0 to 1.
+function lessonProgress(lesson: { completed: boolean }): number {
+  return lesson.completed ? 1 : 0;
+}
+
+const PROGRESS_BAR = '██████████ 100%';
+
+function formatChapterProgress(chapter: ChapterProgressInput): string {
+  const items = [
+    ...chapter.lessons.map(l => ({
+      label: `Lesson ${l.sort_order}: ${l.name}`,
+      done: lessonProgress(l) === 1,
+      bar: lessonProgress(l) === 1,
+    })),
+    { label: 'Mock Interview', done: chapter.interview_resolved, bar: false },
+  ];
+  // The first item not yet done, from completion state rather than the position pointer.
+  const nextIndex = items.findIndex(item => !item.done);
+  const width = Math.max(...items.map(item => item.label.length));
+
+  const lines = [
+    `PART ${ROMAN_NUMERALS[chapter.part_sort_order - 1]} · Chapter ${chapter.chapter_sort_order}: ${chapter.chapter_name}`,
+  ];
+  items.forEach((item, i) => {
+    const marker = item.done ? '✓' : i === nextIndex ? '►' : '○';
+    const suffix = item.bar ? PROGRESS_BAR : i === nextIndex ? '◄── up next' : '';
+    lines.push(`  ${marker} ${suffix ? item.label.padEnd(width + 3) + suffix : item.label}`);
+  });
+  return lines.join('\n');
+}
+
 export interface Tutorial {
   id: number;
   name: string;
@@ -1076,6 +1115,31 @@ export const database = {
       average_quiz_score: quiz.avg_score !== null ? Math.round(quiz.avg_score * 10) / 10 : null,
       interview: interview ? { score: interview.score, total: interview.total } : null,
     };
+  },
+
+  getChapterProgress(chapterId: number): string | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const chapter = db.prepare(`
+      SELECT c.id, c.name, c.sort_order, p.sort_order as part_sort_order FROM chapters c
+      JOIN parts p ON c.part_id = p.id
+      WHERE c.id = ? AND p.tutorial_id = ?
+    `).get(chapterId, tutorialId) as { id: number; name: string; sort_order: number; part_sort_order: number } | undefined;
+
+    if (!chapter) return null;
+
+    const lessons = db.prepare(
+      'SELECT sort_order, name, completed FROM lessons WHERE chapter_id = ? ORDER BY sort_order'
+    ).all(chapterId) as { sort_order: number; name: string; completed: number }[];
+
+    return formatChapterProgress({
+      part_sort_order: chapter.part_sort_order,
+      chapter_sort_order: chapter.sort_order,
+      chapter_name: chapter.name,
+      lessons: lessons.map(l => ({ ...l, completed: !!l.completed })),
+      interview_resolved: interviewResolved(chapter.id),
+    });
   },
 
   getLesson(lessonId: number): {
