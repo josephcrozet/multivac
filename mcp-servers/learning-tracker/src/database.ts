@@ -740,10 +740,10 @@ export const database = {
       total_lessons: lessonStats.total,
       completed_lessons: lessonStats.completed,
       total_concepts: conceptStats.total,
-      average_quiz_score: quizAvg.avg_score ? Math.round(quizAvg.avg_score * 10) / 10 : null,
+      average_quiz_score: quizAvg.avg_score !== null ? Math.round(quizAvg.avg_score * 10) / 10 : null,
       total_interviews: interviewStats.total,
       completed_interviews: interviewStats.completed,
-      average_interview_score: interviewStats.avg_score ? Math.round(interviewStats.avg_score * 10) / 10 : null
+      average_interview_score: interviewStats.avg_score !== null ? Math.round(interviewStats.avg_score * 10) / 10 : null
     };
   },
 
@@ -1007,10 +1007,10 @@ export const database = {
         completed: isPartComplete(part.id),
         total_lessons: lessons.total,
         completed_lessons: lessons.completed,
-        average_quiz_score: partQuiz.avg_score ? Math.round(partQuiz.avg_score * 10) / 10 : null,
+        average_quiz_score: partQuiz.avg_score !== null ? Math.round(partQuiz.avg_score * 10) / 10 : null,
         total_interviews: partInterviews.total,
         completed_interviews: partInterviews.completed,
-        average_interview_score: partInterviews.avg_score ? Math.round(partInterviews.avg_score * 10) / 10 : null,
+        average_interview_score: partInterviews.avg_score !== null ? Math.round(partInterviews.avg_score * 10) / 10 : null,
         capstone_completed: partCapstone ? !!partCapstone.completed : false,
       };
     });
@@ -1020,10 +1020,10 @@ export const database = {
         total_lessons: lessonStats.total,
         completed_lessons: lessonStats.completed,
         total_concepts: conceptStats.total,
-        average_quiz_score: quizAvg.avg_score ? Math.round(quizAvg.avg_score * 10) / 10 : null,
+        average_quiz_score: quizAvg.avg_score !== null ? Math.round(quizAvg.avg_score * 10) / 10 : null,
         total_interviews: interviewStats.total,
         completed_interviews: interviewStats.completed,
-        average_interview_score: interviewStats.avg_score ? Math.round(interviewStats.avg_score * 10) / 10 : null,
+        average_interview_score: interviewStats.avg_score !== null ? Math.round(interviewStats.avg_score * 10) / 10 : null,
         capstones_completed: capstoneStats.completed ?? 0,
         total_capstones: capstoneStats.total,
       },
