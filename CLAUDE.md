@@ -95,6 +95,7 @@ Two formats based on tutorial type:
 | `get_chapter` | Get a single chapter with lessons → concepts, plus its quiz average and interview score. Use for the chapter screens and mock interview context instead of get_tutorial |
 | `get_lesson` | Get a single lesson with its concepts and `quiz_resolved`. The narrowest getter — use per lesson instead of fetching a whole chapter or part |
 | `get_part` | Get a single part with chapters → lessons → concepts. Use for capstone design instead of get_tutorial |
+| `get_chapter_progress` | Pre-formatted progress view for one chapter (✓ lessons with bars, mock interview, "up next" on the first unfinished item). Use after each lesson and when resuming mid-chapter; display verbatim |
 | `get_stats` | Aggregate stats (overall + per-part). Use for Part Complete, Victory, Progress, Certificate screens |
 | `get_curriculum_tree` | Pre-formatted ASCII curriculum tree with live progress markers. Use for any "show curriculum" view instead of get_tutorial |
 | `get_preferences` | Get user preferences (book, language, teaching_target). Lightweight — use for per-lesson checks |

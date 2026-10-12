@@ -139,6 +139,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: 'get_chapter_progress',
+        description: 'Get one chapter\'s progress view as a pre-formatted string: each lesson (✓ done, with a progress bar), the mock interview, and "◄── up next" on the first item not yet done. Use this for the progress view shown after a lesson and when resuming mid-chapter. The response is ready to display — present it verbatim, do not reformat. The chapter_id comes from current_chapter.id returned by get_current_position.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            chapter_id: {
+              type: 'number',
+              description: 'ID of the chapter to show',
+            },
+          },
+          required: ['chapter_id'],
+        },
+      },
+      {
         name: 'get_stats',
         description: 'Get aggregate stats for the tutorial: overall counts (lessons, concepts, interviews, capstones) and quiz/interview averages, plus the same breakdown per part. Lightweight — use for any screen that displays scores or progress (Part Complete Screen, Victory Screen, Progress Screen, Certificate) instead of get_tutorial.',
         inputSchema: {
@@ -393,6 +407,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const tree = database.getCurriculumTree();
         if (tree === null) return noTutorialError();
         return jsonResponse({ success: true, tree });
+      }
+
+      case 'get_chapter_progress': {
+        const { chapter_id } = args as { chapter_id: number };
+        const progress = database.getChapterProgress(chapter_id);
+        if (progress === null) return jsonResponse({ success: false, error: `Chapter ${chapter_id} not found` });
+        return jsonResponse({ success: true, progress });
       }
 
       case 'get_stats': {
