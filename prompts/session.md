@@ -526,7 +526,11 @@ If they want more practice, provide another exercise on the same concept (differ
 
 **Save to book (if enabled):** Once the discussion winds down, call `get_preferences` — if `book` is true, append the review to the lesson file. Save each question (verbatim), the user's answer (verbatim), and your response to it. Include your response even when the user's answer was already right — a saved answer with no reply reads as unresolved on review, and where the answer was partial or wrong, the correction is the part worth keeping. Do this silently before continuing.
 
-Then call `complete_lesson` to mark this lesson's content done and queue it for review. **Don't move on yet** — follow Lesson Boundary Routing below.
+Then call `complete_lesson` to mark this lesson's content done and queue it for review.
+
+Next, call `get_chapter_progress` with the current chapter's id. Say "Progress so far:" and display the result verbatim — it's pre-formatted, so don't redraw or reformat it. Do this after every lesson, including the last one in a chapter, where the mock interview shows as up next.
+
+**Don't move on yet** — follow Lesson Boundary Routing below.
 
 ### 7. Lesson Boundary Routing
 
@@ -1286,7 +1290,7 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | Theory (every lesson) | `get_lesson` — its concepts are what theory teaches, one section each                                       |
 | Quiz                  | `get_lesson` — the concepts to quiz on, spread across the 12 questions                                      |
 | After quiz            | `log_quiz_result`                                                                                           |
-| After Socratic review | `complete_lesson`, then Lesson Boundary Routing                                                             |
+| After Socratic review | `complete_lesson`, `get_chapter_progress` (shown verbatim), then Lesson Boundary Routing                    |
 | Lesson boundary       | `get_current_position` (route on `is_chapter_end`/`is_part_end`/`interview_resolved`/`capstone_resolved`)        |
 | After interview       | `log_interview_result`, then `get_chapter` for the Chapter Cleared Screen                                   |
 | After capstone        | `log_capstone_result`                                                                                       |
