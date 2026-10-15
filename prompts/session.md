@@ -315,6 +315,7 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 **If a tutorial exists (call succeeded):**
 
 - You now have the current position (part, chapter, lesson, `is_chapter_start`), the boundary facts (`is_chapter_end`, `is_part_end`, `interview_resolved`, `capstone_resolved`), and the tutorial's `type` and `difficulty_level`
+- **Show where they left off:** when the learner is coming back to the tutorial at the start of a session, call `get_chapter_progress` with `current_chapter.id`, say "Welcome back — here's where you left off:", and display the result verbatim. Skip it when `is_chapter_start` is true, because the Chapter Start Screen shows the same lessons. Skip it too after context was compacted mid-lesson: the learner never left, so there's nothing to come back to.
 - **Resume via Lesson Boundary Routing** (see Lesson Flow step 7): if the current lesson is **not** completed, teach it; if it **is** completed, route to any pending Mock Interview or Capstone before advancing. This is what keeps a restart at a chapter/part boundary from skipping the interview/capstone
 - Use `type` (programming vs general) to pick the right exercise/interview/capstone mode and `difficulty_level` to calibrate depth, without re-deriving either from the topic — this keeps the right mode and level after a compaction or `/clear`
 
@@ -1285,6 +1286,7 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | Event                 | MCP Calls                                                                                                   |
 | --------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Session start         | `get_current_position` (lightweight), then `create_tutorial` + `start_tutorial` if no tutorial exists       |
+| Resuming mid-chapter  | `get_chapter_progress` (shown verbatim), unless `is_chapter_start` or recovering from a compaction           |
 | Chapter start         | `get_current_position` (check `is_chapter_start`), `get_chapter`, `get_review_queue`                        |
 | After review question | `log_review_result`                                                                                         |
 | Theory (every lesson) | `get_lesson` — its concepts are what theory teaches, one section each                                       |
