@@ -141,6 +141,8 @@ Tests gate `git push` via lefthook's pre-push hook and gate merges via GitHub Ac
 
 When adding a new test file, follow the existing pattern: one top-level `test()` that owns the lifecycle, with `await t.test()` subtests for sequential assertions. This avoids `node:test`'s default top-level concurrency, which would race against shared MCP server state.
 
+Most tests call `database.ts` directly. `tests/server.test.ts` instead starts the real server and talks to it over stdio, as an MCP client does — use it for behavior in `index.ts`'s request handling, which the database tests can't reach.
+
 ### Manual verification
 
 - **MCP Server**: `cd ~/.claude/mcp-servers/learning-tracker && npm install && npm run build && npm start`
