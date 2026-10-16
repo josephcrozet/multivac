@@ -382,7 +382,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 // Handle tool calls
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
+  // A client may leave out `arguments`; treat that the same as an empty object.
+  const { name, arguments: args = {} } = request.params;
 
   try {
     switch (name) {
