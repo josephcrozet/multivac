@@ -132,7 +132,7 @@ cd ~/multivac/python && claude
 This:
 1. Creates a tutorial project at `~/multivac/python/`
 2. You launch Claude Code in the project directory
-3. When prompted, approve the MCP server — this enables progress tracking and is required for tutorials to work
+3. When prompted, approve the MCP server — this enables progress tracking and is required for tutorials to work. If you declined it, run `claude mcp reset-project-choices` in the project folder, then start Claude Code again and approve it.
 4. Claude will offer to start your tutorial automatically (or run `/tutorial` manually)
 
 Claude generates a full curriculum on the fly and guides you through it.
