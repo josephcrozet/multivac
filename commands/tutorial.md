@@ -8,7 +8,19 @@ Call `get_tutorial_metadata` from the learning-tracker MCP server.
 
 **If the call fails or the MCP server is not available:**
 
-This isn't a Multivac tutorial project. Tell the user:
+Check whether this is a tutorial project: its `CLAUDE.md` contains a `<!-- multivac-version: ... -->` marker.
+
+**If it is**, the tutorial exists but its learning tracker isn't running — usually because the prompt to approve the `learning-tracker` server was declined, which Claude Code remembers. Tell the user:
+
+"Your learning tracker isn't enabled for this project, so I can't load your tutorial. This usually means the prompt to approve it was declined. To turn it on:
+
+1. Exit Claude Code (`/exit`)
+2. In this folder, run: `claude mcp reset-project-choices`
+3. Start Claude Code again (`claude`) and approve `learning-tracker` when asked
+
+If you already approved it and still see this, run `multivac upgrade` and then restart Claude Code."
+
+**If it isn't**, this isn't a Multivac tutorial project. Tell the user:
 
 "This directory isn't set up as a tutorial project. To start a tutorial:
 
