@@ -98,7 +98,7 @@ Two formats based on tutorial type:
 | `get_chapter_progress` | Pre-formatted progress view for one chapter (✓ lessons with bars, mock interview, "up next" on the first unfinished item). Use after each lesson and when resuming mid-chapter; display verbatim |
 | `get_stats` | Aggregate stats (overall + per-part). Use for Part Complete, Victory, Progress, Certificate screens |
 | `get_curriculum_tree` | Pre-formatted ASCII curriculum tree with live progress markers. Use for any "show curriculum" view instead of get_tutorial |
-| `get_preferences` | Get user preferences (book, language, teaching_target). Lightweight — use for per-lesson checks |
+| `get_preferences` | Get user preferences (book, language, teaching_target, programming_language). Lightweight — use for per-lesson checks |
 | `update_preferences` | Update one or more preferences. Merges with existing values |
 | `start_tutorial` | Begin a tutorial |
 | `get_current_position` | Current lesson/chapter/part, type, difficulty_level, and boundary facts (is_chapter_start/is_chapter_end/is_part_end/interview_resolved/capstone_resolved) |
