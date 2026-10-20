@@ -296,9 +296,12 @@ export interface Preferences {
   language: string;
   // Programming tutorials only: the version the course teaches, chosen at setup. Null until set.
   teaching_target: string | null;
+  // The programming language exercises are written in, for a topic that doesn't decide it
+  // (Kafka, an API). Distinct from `language`, which is the language of instruction.
+  programming_language: string | null;
 }
 
-const DEFAULT_PREFERENCES: Preferences = { book: false, language: 'en', teaching_target: null };
+const DEFAULT_PREFERENCES: Preferences = { book: false, language: 'en', teaching_target: null, programming_language: null };
 
 function parsePreferences(raw: string | null): Preferences {
   try {

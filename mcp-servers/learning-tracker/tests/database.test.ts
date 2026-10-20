@@ -348,13 +348,27 @@ test('curriculum tree lifecycle', async (t) => {
 
   await t.test('teaching_target defaults to null and persists once set', () => {
     // The fixture curriculum passes no preferences, like a general tutorial would.
-    assert.equal(database.getPreferences()!.teaching_target, null);
+    assert.strictEqual(database.getPreferences()!.teaching_target, null);
     database.updatePreferences({ teaching_target: 'Java 21 (LTS)' });
     const prefs = database.getPreferences()!;
     assert.equal(prefs.teaching_target, 'Java 21 (LTS)');
     // Merging one preference leaves the others as they were.
     assert.equal(prefs.book, false);
     assert.equal(prefs.language, 'en');
+  });
+
+  await t.test('programming_language is separate from language, the language of instruction', () => {
+    assert.strictEqual(database.getPreferences()!.programming_language, null);
+    database.updatePreferences({ programming_language: 'Python' });
+    let prefs = database.getPreferences()!;
+    assert.equal(prefs.programming_language, 'Python');
+    assert.equal(prefs.language, 'en'); // untouched
+    // And the other way round: changing the language of instruction leaves it alone.
+    database.updatePreferences({ language: 'fr' });
+    prefs = database.getPreferences()!;
+    assert.equal(prefs.programming_language, 'Python');
+    assert.equal(prefs.language, 'fr');
+    database.updatePreferences({ language: 'en' }); // restore for later subtests
   });
 
   // --- Review queue targets concepts missed on the quiz ---
