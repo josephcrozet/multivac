@@ -72,6 +72,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 language: { type: 'string', description: 'Language of instruction (ISO 639-1 code). Defaults to "en".' },
                 teaching_target: { type: 'string', description: 'Programming tutorials only: the version the course teaches, as chosen at setup (e.g. "Java 21 (LTS)").' },
                 programming_language: { type: 'string', description: 'The programming language exercises are written in, when the topic doesn\'t decide it (e.g. "Python" for a Kafka tutorial). Not the language of instruction — that is `language`.' },
+                exercise_resources: { type: 'array', items: { type: 'string' }, description: 'What the learner\'s hands-on work can use beyond the toolchain (e.g. ["Docker", "GCP project", "Anthropic API key"]). Names only, never the secrets themselves.' },
               },
             },
             parts: {
@@ -213,7 +214,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_preferences',
-        description: 'Get user preferences (book, language, teaching_target, programming_language). Lightweight call — use this instead of get_tutorial when you only need to check a setting.',
+        description: 'Get user preferences (book, language, teaching_target, programming_language, exercise_resources). Lightweight call — use this instead of get_tutorial when you only need to check a setting.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -229,6 +230,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             language: { type: 'string', description: 'Language of instruction (ISO 639-1 code)' },
             teaching_target: { type: 'string', description: 'Programming tutorials only: the version the course teaches' },
             programming_language: { type: 'string', description: 'The programming language exercises are written in, when the topic doesn\'t decide it' },
+            exercise_resources: { type: 'array', items: { type: 'string' }, description: 'What the learner\'s hands-on work can use beyond the toolchain. Replaces the whole list; names only, never secrets' },
           },
         },
       },

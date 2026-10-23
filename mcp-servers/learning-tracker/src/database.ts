@@ -299,9 +299,12 @@ export interface Preferences {
   // The programming language exercises are written in, for a topic that doesn't decide it
   // (Kafka, an API). Distinct from `language`, which is the language of instruction.
   programming_language: string | null;
+  // What the learner's hands-on work can use beyond the toolchain (Docker, a cloud project, an
+  // API key). Never the secrets themselves. Null until asked; an update replaces the whole list.
+  exercise_resources: string[] | null;
 }
 
-const DEFAULT_PREFERENCES: Preferences = { book: false, language: 'en', teaching_target: null, programming_language: null };
+const DEFAULT_PREFERENCES: Preferences = { book: false, language: 'en', teaching_target: null, programming_language: null, exercise_resources: null };
 
 function parsePreferences(raw: string | null): Preferences {
   try {

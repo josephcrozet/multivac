@@ -371,6 +371,17 @@ test('curriculum tree lifecycle', async (t) => {
     database.updatePreferences({ language: 'en' }); // restore for later subtests
   });
 
+  await t.test('exercise_resources defaults to null and an update replaces the whole list', () => {
+    assert.strictEqual(database.getPreferences()!.exercise_resources, null);
+    database.updatePreferences({ exercise_resources: ['Docker', 'GCP project'] });
+    assert.deepStrictEqual(database.getPreferences()!.exercise_resources, ['Docker', 'GCP project']);
+    database.updatePreferences({ exercise_resources: ['Docker'] });
+    assert.deepStrictEqual(database.getPreferences()!.exercise_resources, ['Docker']);
+    // An empty list (asked, nothing available) is a recorded answer, not a reset to null.
+    database.updatePreferences({ exercise_resources: [] });
+    assert.deepStrictEqual(database.getPreferences()!.exercise_resources, []);
+  });
+
   // --- Review queue targets concepts missed on the quiz ---
 
   const queuedLesson = (lessonId: number) =>
