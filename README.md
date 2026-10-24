@@ -232,7 +232,7 @@ This project demonstrates Claude Code's extensibility:
 | `get_chapter_progress` | Pre-formatted progress view for one chapter |
 | `get_stats`            | Aggregate stats (overall + per-part) for completion/progress screens |
 | `get_curriculum_tree`  | Pre-formatted ASCII curriculum tree with live progress markers |
-| `get_preferences`      | Get user preferences (book, language of instruction, version taught, programming language, exercise resources) |
+| `get_preferences`      | Get user preferences (book, language of instruction, versions taught, programming language, exercise resources) |
 | `update_preferences`   | Update one or more preferences           |
 | `start_tutorial`       | Begin a tutorial                         |
 | `get_current_position` | Current lesson/chapter/part + type + difficulty + boundary facts |

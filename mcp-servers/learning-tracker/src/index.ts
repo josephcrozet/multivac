@@ -70,7 +70,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               properties: {
                 book: { type: 'boolean', description: 'Save lessons to a book/ folder for offline review' },
                 language: { type: 'string', description: 'Language of instruction (ISO 639-1 code). Defaults to "en".' },
-                teaching_target: { type: 'string', description: 'Programming tutorials only: the version the course teaches, as chosen at setup (e.g. "Java 21 (LTS)").' },
+                teaching_target: { type: 'array', items: { type: 'string' }, description: 'Programming tutorials only: the versions the course teaches, as chosen at setup, one entry per tool (e.g. ["Java 21 (LTS)"], or ["Kafka 4.1", "Python 3.14"]).' },
                 programming_language: { type: 'string', description: 'The programming language exercises are written in, when the topic doesn\'t decide it (e.g. "Python" for a Kafka tutorial). Not the language of instruction — that is `language`.' },
                 exercise_resources: { type: 'array', items: { type: 'string' }, description: 'What the learner\'s hands-on work can use beyond the toolchain (e.g. ["Docker", "GCP project", "Anthropic API key"]). Names only, never the secrets themselves.' },
               },
@@ -228,7 +228,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             book: { type: 'boolean', description: 'Enable/disable saving lessons to book/ folder' },
             language: { type: 'string', description: 'Language of instruction (ISO 639-1 code)' },
-            teaching_target: { type: 'string', description: 'Programming tutorials only: the version the course teaches' },
+            teaching_target: { type: 'array', items: { type: 'string' }, description: 'Programming tutorials only: the versions the course teaches, one entry per tool. Replaces the whole list' },
             programming_language: { type: 'string', description: 'The programming language exercises are written in, when the topic doesn\'t decide it' },
             exercise_resources: { type: 'array', items: { type: 'string' }, description: 'What the learner\'s hands-on work can use beyond the toolchain. Replaces the whole list; names only, never secrets' },
           },
