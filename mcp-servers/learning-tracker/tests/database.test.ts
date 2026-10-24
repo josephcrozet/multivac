@@ -349,9 +349,9 @@ test('curriculum tree lifecycle', async (t) => {
   await t.test('teaching_target defaults to null and persists once set', () => {
     // The fixture curriculum passes no preferences, like a general tutorial would.
     assert.strictEqual(database.getPreferences()!.teaching_target, null);
-    database.updatePreferences({ teaching_target: 'Java 21 (LTS)' });
+    database.updatePreferences({ teaching_target: ['Kafka 4.1', 'Python 3.14'] });
     const prefs = database.getPreferences()!;
-    assert.equal(prefs.teaching_target, 'Java 21 (LTS)');
+    assert.deepStrictEqual(prefs.teaching_target, ['Kafka 4.1', 'Python 3.14']);
     // Merging one preference leaves the others as they were.
     assert.equal(prefs.book, false);
     assert.equal(prefs.language, 'en');

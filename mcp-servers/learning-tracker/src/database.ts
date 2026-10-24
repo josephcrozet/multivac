@@ -294,8 +294,9 @@ db.exec(`
 export interface Preferences {
   book: boolean;
   language: string;
-  // Programming tutorials only: the version the course teaches, chosen at setup. Null until set.
-  teaching_target: string | null;
+  // Programming tutorials only: the versions the course teaches, chosen at setup, one entry per
+  // tool (e.g. ["Kafka 4.1", "Python 3.14"]). Null until set.
+  teaching_target: string[] | null;
   // The programming language exercises are written in, for a topic that doesn't decide it
   // (Kafka, an API). Distinct from `language`, which is the language of instruction.
   programming_language: string | null;
