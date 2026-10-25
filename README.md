@@ -137,7 +137,7 @@ This:
 
 Claude generates a full curriculum on the fly and guides you through it.
 
-For programming topics, Claude checks your setup first: the language, or the database or shell for a topic like SQL or Bash. If it's missing, you'll get install instructions. If it's much older than the current release, you'll be asked whether to upgrade or learn the version you have, and the course teaches that version throughout, so every example runs on your machine.
+For programming topics, Claude checks your setup first: the language, or the database or shell for a topic like SQL or Bash. If the topic can be taught in more than one language, like Kafka or an API, you pick the language first. If it's missing, you'll get install instructions. If it's much older than the current release, you'll be asked whether to upgrade or learn the version you have, and the course teaches that version throughout, so every example runs on your machine.
 
 ### Other Examples
 
