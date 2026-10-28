@@ -13,7 +13,10 @@ const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 type Response = { id: number; result?: { content: { text: string }[] }; error?: unknown };
 
-test('the server over stdio', async (t) => {
+// Starts a server with its own data directory. `send` makes one request and resolves with its
+// reply; `notify` sends a notification. Each connection is pinned to one protocol era, so a test of
+// another era starts its own server.
+function startServer(t: { after: (fn: () => void) => void }) {
   const tmpDir = mkdtempSync(join(tmpdir(), 'multivac-server-test-'));
   const server = spawn(process.execPath, ['--import', 'tsx', 'src/index.ts'], {
     cwd: packageRoot,
@@ -42,14 +45,21 @@ test('the server over stdio', async (t) => {
     server.stdin!.write(JSON.stringify({ jsonrpc: '2.0', id, method, ...(params && { params }) }) + '\n');
     return reply;
   };
-  const toolResult = (r: Response) => JSON.parse(r.result!.content[0].text) as Record<string, unknown>;
+  const notify = (method: string) => server.stdin!.write(JSON.stringify({ jsonrpc: '2.0', method }) + '\n');
+  return { send, notify };
+}
+
+const toolResult = (r: Response) => JSON.parse(r.result!.content[0].text) as Record<string, unknown>;
+
+test('the server over stdio, for a 2025-era client', async (t) => {
+  const { send, notify } = startServer(t);
 
   await send('initialize', {
     protocolVersion: '2025-06-18',
     capabilities: {},
     clientInfo: { name: 'test', version: '0' },
   });
-  server.stdin!.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
+  notify('notifications/initialized');
 
   const created = await send('tools/call', {
     name: 'create_tutorial',
@@ -72,5 +82,28 @@ test('the server over stdio', async (t) => {
     const result = toolResult(await send('tools/call', { name: 'get_lesson' }));
     assert.equal(result.success, false);
     assert.doesNotMatch(String(result.error), /destructure/);
+  });
+});
+
+test('the server over stdio, on the 2026-07-28 protocol revision', async (t) => {
+  const { send } = startServer(t);
+  // A 2026-07-28 client opens with server/discover instead of initialize, and every request
+  // carries its protocol version and client identity in _meta.
+  const _meta = {
+    'io.modelcontextprotocol/protocolVersion': '2026-07-28',
+    'io.modelcontextprotocol/clientInfo': { name: 'test', version: '0' },
+    'io.modelcontextprotocol/clientCapabilities': {},
+  };
+
+  await t.test('server/discover offers the 2026-07-28 revision', async () => {
+    const reply = await send('server/discover', { _meta });
+    assert.equal(reply.error, undefined);
+    assert.ok((reply.result as unknown as { supportedVersions: string[] }).supportedVersions.includes('2026-07-28'));
+  });
+
+  await t.test('a tool call is served on that revision', async () => {
+    const reply = await send('tools/call', { name: 'get_tutorial_metadata', arguments: {}, _meta });
+    assert.equal(reply.error, undefined);
+    assert.equal(toolResult(reply).success, true);
   });
 });

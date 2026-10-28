@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { Server, ProtocolError, ProtocolErrorCode, type ListToolsResult } from '@modelcontextprotocol/server';
-import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
+import { Server, ProtocolError, ProtocolErrorCode, type CallToolRequest, type ListToolsResult } from '@modelcontextprotocol/server';
+import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import database, { type Curriculum, type Preferences } from './database.js';
 
 // Response helpers
@@ -18,20 +18,8 @@ function noTutorialError() {
   });
 }
 
-const server = new Server(
-  {
-    name: 'learning-tracker',
-    version: '1.0.0',
-  },
-  {
-    capabilities: {
-      tools: {},
-    },
-  }
-);
-
 // Define available tools
-server.setRequestHandler('tools/list', async (): Promise<ListToolsResult> => {
+async function listTools(): Promise<ListToolsResult> {
   return {
     tools: [
       {
@@ -376,10 +364,10 @@ server.setRequestHandler('tools/list', async (): Promise<ListToolsResult> => {
       },
     ],
   };
-});
+}
 
 // Handle tool calls
-server.setRequestHandler('tools/call', async (request) => {
+async function callTool(request: CallToolRequest) {
   // A client may leave out `arguments`; treat that the same as an empty object.
   const { name, arguments: args = {} } = request.params;
 
@@ -564,13 +552,26 @@ server.setRequestHandler('tools/call', async (request) => {
     const message = error instanceof Error ? error.message : String(error);
     return jsonResponse({ success: false, error: message });
   }
-});
-
-// Start server
-async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error('Learning Tracker MCP server running on stdio');
 }
 
-main().catch(console.error);
+function createServer(): Server {
+  const server = new Server(
+    {
+      name: 'learning-tracker',
+      version: '1.0.0',
+    },
+    {
+      capabilities: {
+        tools: {},
+      },
+    }
+  );
+  server.setRequestHandler('tools/list', listTools);
+  server.setRequestHandler('tools/call', callTool);
+  return server;
+}
+
+// Start server. serveStdio negotiates the protocol revision per connection, so both
+// 2026-07-28 clients and 2025-era clients are served.
+serveStdio(createServer);
+console.error('Learning Tracker MCP server running on stdio');
