@@ -20,8 +20,8 @@
     "verbatimModuleSyntax": true,
 
     // Language and Environment
-    "lib": ["ES2024"],
-    "target": "ES2024",
+    "lib": ["ES2025"],
+    "target": "ES2025",
 
     // Completeness
     "skipLibCheck": true
