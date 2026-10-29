@@ -248,7 +248,7 @@ This project demonstrates Claude Code's extensibility:
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
-- [Node.js](https://nodejs.org/) 24+
+- [Node.js](https://nodejs.org/) 26+
 
 ## Any Topic
 
