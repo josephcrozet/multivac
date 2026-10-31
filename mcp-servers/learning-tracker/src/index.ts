@@ -174,7 +174,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'get_lesson',
-        description: "Get a single lesson with its concepts, and quiz_resolved: whether a quiz result is already recorded for it. The narrowest getter — use it at the start of each lesson to ground teaching in the concepts the quiz and review queue draw on, and before a quiz to check it hasn't already been taken. The lesson_id comes from current_lesson.id returned by get_current_position.",
+        description: "Get a single lesson with its concepts, and current_section: the section it's on (theory, exercise, quiz, or socratic), or null once it's completed. The narrowest getter — use it at the start of each lesson to ground teaching in the concepts the quiz and review queue draw on. The lesson_id comes from current_lesson.id returned by get_current_position.",
         inputSchema: {
           type: 'object',
           properties: {
@@ -226,7 +226,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'get_current_position',
-        description: 'Get the current position in the tutorial (current lesson, chapter, and part) plus the tutorial type (programming/general) and difficulty_level (beginner/intermediate/advanced), so lessons are taught in the right mode and at the right level after compaction or clearing. Also returns boundary facts for the controller to route on: is_chapter_start (trigger reviews), is_chapter_end / is_part_end (whether this lesson ends its chapter/part), and interview_resolved / capstone_resolved (whether the chapter interview / part capstone has been recorded — done, or for the skippable capstone, skipped).',
+        description: 'Get the current position in the tutorial (current lesson, chapter, and part, and current_section: the section the current lesson is on — theory, exercise, quiz, or socratic — or null once the lesson is completed) plus the tutorial type (programming/general) and difficulty_level (beginner/intermediate/advanced), so lessons are taught in the right mode and at the right level after compaction or clearing. Also returns boundary facts for the controller to route on: is_chapter_start (trigger reviews), is_chapter_end / is_part_end (whether this lesson ends its chapter/part), and interview_resolved / capstone_resolved (whether the chapter interview / part capstone has been recorded — done, or for the skippable capstone, skipped).',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -234,7 +234,15 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'complete_lesson',
-        description: "Mark the current lesson's content as complete and add it to the review queue. Does NOT move the pointer — call this when the lesson (theory, exercise, quiz) is done. Any boundary work (mock interview at a chapter end, capstone at a part end) happens next, and only then is advance_position called to move on.",
+        description: "Mark the current lesson complete and add it to the review queue. This finishes the Socratic review, the lesson's last section. Guarded: refuses (completed=false, with a reason) until the lesson reaches that section. Does NOT move the pointer — any boundary work (mock interview at a chapter end, capstone at a part end) happens next, and only then is advance_position called to move on.",
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'advance_section',
+        description: "Move the current lesson on to its next section: theory → exercise → quiz → socratic. Call it when the learner finishes theory and when they finish the exercise. log_quiz_result moves past the quiz itself, and complete_lesson finishes the Socratic review. Guarded: refuses (advanced=false, with a reason) to leave the quiz before its result is recorded or to move past the Socratic review. Returns the new current_section.",
         inputSchema: {
           type: 'object',
           properties: {},
@@ -250,14 +258,10 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'log_quiz_result',
-        description: "Record the result of a lesson quiz. A lesson holds one result at a time: this refuses a second one, so check get_lesson's quiz_resolved first.",
+        description: "Record the current lesson's quiz result and move the lesson on to its Socratic review. Guarded: refuses unless the lesson is on its quiz section (current_section from get_current_position), so it also refuses a second result for the same lesson.",
         inputSchema: {
           type: 'object',
           properties: {
-            lesson_id: {
-              type: 'number',
-              description: 'ID of the lesson',
-            },
             score: {
               type: 'number',
               description: 'Number of correct answers',
@@ -272,7 +276,7 @@ async function listTools(): Promise<ListToolsResult> {
               description: "IDs of the lesson's concepts the user got at least one question wrong on, as returned by get_lesson. The review queue uses them to revisit weak spots first.",
             },
           },
-          required: ['lesson_id', 'score', 'total', 'missed_concept_ids'],
+          required: ['score', 'total', 'missed_concept_ids'],
         },
       },
       {
@@ -467,6 +471,12 @@ async function callTool(request: CallToolRequest) {
         return jsonResponse({ success: true, ...result });
       }
 
+      case 'advance_section': {
+        const result = database.advanceSection();
+        if (!result) return noTutorialError();
+        return jsonResponse({ success: true, ...result });
+      }
+
       case 'advance_position': {
         const result = database.advancePosition();
         if (!result) return noTutorialError();
@@ -474,13 +484,12 @@ async function callTool(request: CallToolRequest) {
       }
 
       case 'log_quiz_result': {
-        const { lesson_id, score, total, missed_concept_ids } = args as {
-          lesson_id: number;
+        const { score, total, missed_concept_ids } = args as {
           score: number;
           total: number;
           missed_concept_ids: number[];
         };
-        const result = database.logQuizResult(lesson_id, score, total, missed_concept_ids);
+        const result = database.logQuizResult(score, total, missed_concept_ids);
         return jsonResponse({ success: true, message: `Quiz result logged: ${score}/${total}`, result });
       }
 
