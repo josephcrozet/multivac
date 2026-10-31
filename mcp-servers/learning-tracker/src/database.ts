@@ -139,7 +139,7 @@ const db = await SqliteAdapter.open(DB_PATH);
 // 3. Use columnExists() helper for safe ALTER TABLE additions
 // ---------------------------------------------------------------------------
 
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 2;
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS schema_version (
@@ -149,6 +149,16 @@ db.exec(`
 
 const versionRow = db.prepare('SELECT version FROM schema_version LIMIT 1').get() as { version: number } | undefined;
 const currentVersion = versionRow?.version ?? 0;
+
+function tableExists(table: string): boolean {
+  return !!db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(table);
+}
+
+// The four sections of a lesson, in the order they're taught.
+export type Section = 'theory' | 'exercise' | 'quiz' | 'socratic';
+const SECTIONS: Section[] = ['theory', 'exercise', 'quiz', 'socratic'];
+const CURRENT_SECTION_COLUMN =
+  "current_section TEXT NOT NULL DEFAULT 'theory' CHECK (current_section IN ('theory', 'exercise', 'quiz', 'socratic'))";
 
 function columnExists(table: string, column: string): boolean {
   const columns = db.pragma(`table_info(${table})`) as { name: string }[];
@@ -161,12 +171,11 @@ if (currentVersion < CURRENT_SCHEMA_VERSION) {
     // No changes needed — this just sets the initial version marker.
     // All v0.1.0 databases are created with the full schema below.
 
-    // Future migrations:
-    // if (currentVersion < 2) {
-    //   if (!columnExists('tutorials', 'new_column')) {
-    //     db.exec("ALTER TABLE tutorials ADD COLUMN new_column TEXT DEFAULT 'value'");
-    //   }
-    // }
+    // Migration 1 -> 2: the section pointer within the current lesson. A new database has no
+    // progress table yet; the schema below creates it with the column.
+    if (currentVersion < 2 && tableExists('progress') && !columnExists('progress', 'current_section')) {
+      db.exec(`ALTER TABLE progress ADD COLUMN ${CURRENT_SECTION_COLUMN}`);
+    }
 
     if (versionRow) {
       db.prepare('UPDATE schema_version SET version = ?').run(CURRENT_SCHEMA_VERSION);
@@ -275,6 +284,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tutorial_id INTEGER NOT NULL UNIQUE,
     current_lesson_id INTEGER,
+    ${CURRENT_SECTION_COLUMN},
     status TEXT DEFAULT 'not_started' CHECK (status IN ('not_started', 'in_progress', 'completed')),
     started_at TEXT,
     updated_at TEXT DEFAULT (datetime('now')),
@@ -373,36 +383,40 @@ interface ChapterProgressInput {
   part_sort_order: number;
   chapter_sort_order: number;
   chapter_name: string;
-  lessons: { sort_order: number; name: string; completed: boolean }[];
+  lessons: { sort_order: number; name: string; completed: boolean; current_section: Section | null }[];
   interview_resolved: boolean;
 }
 
-// How far through a lesson the learner is, from 0 to 1.
-function lessonProgress(lesson: { completed: boolean }): number {
-  return lesson.completed ? 1 : 0;
+// How far through a lesson the learner is, from 0 to 1: the share of its sections finished.
+// Only the current lesson can be part-way through, since the pointer can't leave a lesson
+// until it's completed; every other lesson is either done or not begun.
+function lessonProgress(lesson: { completed: boolean; current_section: Section | null }): number {
+  if (lesson.completed) return 1;
+  return lesson.current_section ? SECTIONS.indexOf(lesson.current_section) / SECTIONS.length : 0;
 }
 
-const PROGRESS_BAR = '██████████ 100%';
+function progressBar(progress: number): string {
+  const filled = Math.round(progress * 10);
+  return `${'█'.repeat(filled)}${'░'.repeat(10 - filled)} ${String(Math.round(progress * 100)).padStart(3)}%`;
+}
 
 function formatChapterProgress(chapter: ChapterProgressInput): string {
   const items = [
-    ...chapter.lessons.map(l => ({
-      label: `Lesson ${l.sort_order}: ${l.name}`,
-      done: lessonProgress(l) === 1,
-      bar: lessonProgress(l) === 1,
-    })),
-    { label: 'Mock Interview', done: chapter.interview_resolved, bar: false },
+    ...chapter.lessons.map(l => ({ label: `Lesson ${l.sort_order}: ${l.name}`, progress: lessonProgress(l), hasBar: true })),
+    { label: 'Mock Interview', progress: chapter.interview_resolved ? 1 : 0, hasBar: false },
   ];
   // The first item not yet done, from completion state rather than the position pointer.
-  const nextIndex = items.findIndex(item => !item.done);
+  const nextIndex = items.findIndex(item => item.progress < 1);
   const width = Math.max(...items.map(item => item.label.length));
 
   const lines = [
     `PART ${ROMAN_NUMERALS[chapter.part_sort_order - 1]} · Chapter ${chapter.chapter_sort_order}: ${chapter.chapter_name}`,
   ];
   items.forEach((item, i) => {
-    const marker = item.done ? '✓' : i === nextIndex ? '►' : '○';
-    const suffix = item.bar ? PROGRESS_BAR : i === nextIndex ? '◄── up next' : '';
+    const marker = item.progress === 1 ? '✓' : i === nextIndex ? '►' : '○';
+    const bar = item.hasBar && item.progress > 0 ? progressBar(item.progress) : '';
+    const note = i !== nextIndex ? '' : item.progress > 0 ? '◄── in progress' : '◄── up next';
+    const suffix = [bar, note].filter(Boolean).join('  ');
     lines.push(`  ${marker} ${suffix ? item.label.padEnd(width + 3) + suffix : item.label}`);
   });
   return lines.join('\n');
@@ -492,6 +506,7 @@ export interface Progress {
   id: number;
   tutorial_id: number;
   current_lesson_id: number | null;
+  current_section: Section;
   status: 'not_started' | 'in_progress' | 'completed';
   started_at: string | null;
   updated_at: string;
@@ -546,6 +561,26 @@ function capstoneResolved(partId: number): boolean {
 // is all it takes to reopen the quiz.
 function quizResolved(lessonId: number): boolean {
   return !!db.prepare('SELECT 1 FROM quiz_results WHERE lesson_id = ? LIMIT 1').get(lessonId);
+}
+
+// The section a lesson is on: the pointer's section for the current lesson, null once a lesson
+// is completed, and 'theory' for one not yet begun. Every reader of section state goes
+// through here, so the pointer is the one place it's stored. With no lesson pointer set
+// (before start_tutorial, or after reset_progress), the current lesson is the first one, as
+// in getCurrentPosition.
+function currentSection(lesson: { id: number; completed: number | boolean }): Section | null {
+  if (lesson.completed) return null;
+  const progress = db.prepare('SELECT current_lesson_id, current_section FROM progress LIMIT 1').get() as
+    { current_lesson_id: number | null; current_section: Section } | undefined;
+  if (!progress) return 'theory';
+  const currentLessonId = progress.current_lesson_id ?? (db.prepare(`
+    SELECT l.id FROM lessons l
+    JOIN chapters c ON l.chapter_id = c.id
+    JOIN parts p ON c.part_id = p.id
+    ORDER BY p.sort_order, c.sort_order, l.sort_order
+    LIMIT 1
+  `).get() as { id: number } | undefined)?.id;
+  return currentLessonId === lesson.id ? progress.current_section : 'theory';
 }
 
 // Structural boundary facts: is this the last lesson of its chapter / last chapter of its part.
@@ -1137,20 +1172,20 @@ export const database = {
     if (!chapter) return null;
 
     const lessons = db.prepare(
-      'SELECT sort_order, name, completed FROM lessons WHERE chapter_id = ? ORDER BY sort_order'
-    ).all(chapterId) as { sort_order: number; name: string; completed: number }[];
+      'SELECT id, sort_order, name, completed FROM lessons WHERE chapter_id = ? ORDER BY sort_order'
+    ).all(chapterId) as { id: number; sort_order: number; name: string; completed: number }[];
 
     return formatChapterProgress({
       part_sort_order: chapter.part_sort_order,
       chapter_sort_order: chapter.sort_order,
       chapter_name: chapter.name,
-      lessons: lessons.map(l => ({ ...l, completed: !!l.completed })),
+      lessons: lessons.map(l => ({ ...l, completed: !!l.completed, current_section: currentSection(l) })),
       interview_resolved: interviewResolved(chapter.id),
     });
   },
 
   getLesson(lessonId: number): {
-    lesson: Lesson & { concepts: Concept[]; quiz_resolved: boolean };
+    lesson: Lesson & { concepts: Concept[]; current_section: Section | null };
   } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
@@ -1169,7 +1204,7 @@ export const database = {
     ).all(lessonId) as Concept[];
 
     return {
-      lesson: { ...lesson, completed: !!lesson.completed, quiz_resolved: quizResolved(lessonId), concepts },
+      lesson: { ...lesson, completed: !!lesson.completed, current_section: currentSection(lesson), concepts },
     };
   },
 
@@ -1178,6 +1213,7 @@ export const database = {
     type: 'programming' | 'general';
     difficulty_level: 'beginner' | 'intermediate' | 'advanced';
     current_lesson: Lesson | null;
+    current_section: Section | null;
     current_chapter: Chapter | null;
     current_part: Part | null;
     position: { part: number; chapter: number; lesson: number } | null;
@@ -1206,7 +1242,7 @@ export const database = {
         LIMIT 1
       `).get(tutorialId) as (Lesson & { part_id: number; chapter_order: number; part_order: number }) | undefined;
 
-      if (!firstLesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false, is_chapter_end: false, is_part_end: false, interview_resolved: false, capstone_resolved: false };
+      if (!firstLesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_section: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false, is_chapter_end: false, is_part_end: false, interview_resolved: false, capstone_resolved: false };
 
       const chapter = db.prepare('SELECT * FROM chapters WHERE id = ?').get(firstLesson.chapter_id) as Chapter;
       const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(firstLesson.part_id) as Part;
@@ -1217,6 +1253,7 @@ export const database = {
         type: tutorial.type,
         difficulty_level: tutorial.difficulty_level,
         current_lesson: firstLesson,
+        current_section: currentSection(firstLesson),
         current_chapter: chapter,
         current_part: part,
         position: { part: firstLesson.part_order, chapter: firstLesson.chapter_order, lesson: firstLesson.sort_order },
@@ -1229,7 +1266,7 @@ export const database = {
     }
 
     const lesson = db.prepare('SELECT * FROM lessons WHERE id = ?').get(progress.current_lesson_id) as Lesson | undefined;
-    if (!lesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false, is_chapter_end: false, is_part_end: false, interview_resolved: false, capstone_resolved: false };
+    if (!lesson) return { tutorial_name: tutorial.name, type: tutorial.type, difficulty_level: tutorial.difficulty_level, current_lesson: null, current_section: null, current_chapter: null, current_part: null, position: null, is_chapter_start: false, is_chapter_end: false, is_part_end: false, interview_resolved: false, capstone_resolved: false };
 
     const chapter = db.prepare('SELECT * FROM chapters WHERE id = ?').get(lesson.chapter_id) as Chapter;
     const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(chapter.part_id) as Part;
@@ -1240,6 +1277,7 @@ export const database = {
       type: tutorial.type,
       difficulty_level: tutorial.difficulty_level,
       current_lesson: lesson,
+      current_section: currentSection(lesson),
       current_chapter: chapter,
       current_part: part,
       position: { part: part.sort_order, chapter: chapter.sort_order, lesson: lesson.sort_order },
@@ -1251,24 +1289,63 @@ export const database = {
     };
   },
 
-  // Mark the current lesson's content as complete and queue it for review.
-  // Does NOT move the pointer: boundary work (interview/capstone) and the
+  // Mark the current lesson's content as complete and queue it for review. This is what
+  // finishes the Socratic review, the lesson's last section, so it's refused until the
+  // section pointer reaches it.
+  // Does NOT move the lesson pointer: boundary work (interview/capstone) and the
   // pointer advance are separate, controller-driven steps, so the pointer stays
   // on this lesson until that work is logged.
-  completeLesson(): { lesson: Lesson | null } | null {
+  completeLesson(): { completed: boolean; reason?: string; lesson: Lesson | null } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
 
     const currentPos = this.getCurrentPosition();
     if (!currentPos || !currentPos.current_lesson) {
-      return { lesson: null };
+      return { completed: false, reason: 'no current lesson', lesson: null };
     }
 
     const lesson = currentPos.current_lesson;
+    const section = currentPos.current_section;
+    if (section !== null && section !== 'socratic') {
+      return { completed: false, reason: `the lesson is on its ${section} section — the Socratic review comes last`, lesson };
+    }
     db.prepare('UPDATE lessons SET completed = 1 WHERE id = ?').run(lesson.id);
     this.addToReviewQueue(tutorialId, lesson.id);
 
-    return { lesson };
+    return { completed: true, lesson };
+  },
+
+  // Move the section pointer to the current lesson's next section. The one place the
+  // pointer moves forward within a lesson: log_quiz_result calls this too, so recording
+  // the quiz and leaving it are a single write.
+  //
+  // Guard: refuses to leave the quiz until its result is recorded, and to move past the
+  // Socratic review, which complete_lesson finishes. `advanced: false` signals the no-op.
+  advanceSection(): { advanced: boolean; reason?: string; current_section: Section | null } | null {
+    const tutorialId = getTutorialId();
+    if (!tutorialId) return null;
+
+    const currentPos = this.getCurrentPosition();
+    if (!currentPos || !currentPos.current_lesson) {
+      return { advanced: false, reason: 'no current lesson', current_section: null };
+    }
+    const section = currentPos.current_section;
+    const refuse = (reason: string) => ({ advanced: false as const, reason, current_section: section });
+
+    if (section === null) {
+      return refuse('the lesson is already completed — call advance_position to move to the next one');
+    }
+    if (section === 'socratic') {
+      return refuse('the Socratic review is the last section — call complete_lesson to finish the lesson');
+    }
+    if (section === 'quiz' && !quizResolved(currentPos.current_lesson.id)) {
+      return refuse('the quiz is not recorded — call log_quiz_result');
+    }
+
+    const next = SECTIONS[SECTIONS.indexOf(section) + 1];
+    db.prepare(`UPDATE progress SET current_section = ?, updated_at = datetime('now') WHERE tutorial_id = ?`)
+      .run(next, tutorialId);
+    return { advanced: true, current_section: next };
   },
 
   // Move the pointer to the next lesson, or mark the tutorial completed when
@@ -1340,7 +1417,7 @@ export const database = {
 
     if (nextLesson) {
       db.prepare(`
-        UPDATE progress SET current_lesson_id = ?, status = 'in_progress', updated_at = datetime('now')
+        UPDATE progress SET current_lesson_id = ?, current_section = 'theory', status = 'in_progress', updated_at = datetime('now')
         WHERE tutorial_id = ?
       `).run(nextLesson.id, tutorialId);
     } else {
@@ -1530,7 +1607,7 @@ export const database = {
       // Reset progress table
       db.prepare(`
         UPDATE progress
-        SET current_lesson_id = NULL, status = 'not_started', started_at = NULL, updated_at = datetime('now')
+        SET current_lesson_id = NULL, current_section = 'theory', status = 'not_started', started_at = NULL, updated_at = datetime('now')
         WHERE tutorial_id = ?
       `).run(tutorialId);
 
@@ -1590,20 +1667,30 @@ export const database = {
     return true;
   },
 
-  logQuizResult(lessonId: number, score: number, total: number, missedConceptIds: number[]): QuizResult {
+  // Record the current lesson's quiz and move the section pointer on to the Socratic review,
+  // in one transaction, so a recorded quiz is never left behind a pointer still on it.
+  logQuizResult(score: number, total: number, missedConceptIds: number[]): QuizResult {
+    const currentPos = this.getCurrentPosition();
+    const lesson = currentPos?.current_lesson;
+    if (!lesson) throw new Error('No current lesson to record a quiz for.');
     // Quiz averages count every row, so a second result for the same lesson would count twice.
-    if (quizResolved(lessonId)) {
+    if (quizResolved(lesson.id)) {
       throw new Error(
-        `Lesson ${lessonId} already has a recorded quiz result. A lesson holds one quiz result at a time.`
+        `Lesson ${lesson.id} already has a recorded quiz result. A lesson holds one quiz result at a time.`
       );
     }
+    if (currentPos.current_section !== 'quiz') {
+      throw new Error(`The lesson is on its ${currentPos.current_section} section; the quiz comes after the exercise.`);
+    }
 
-    const result = db.prepare(`
-      INSERT INTO quiz_results (lesson_id, score, total, missed_concepts)
-      VALUES (?, ?, ?, ?)
-    `).run(lessonId, score, total, JSON.stringify(missedConceptIds));
-
-    return db.prepare('SELECT * FROM quiz_results WHERE id = ?').get(result.lastInsertRowid) as QuizResult;
+    return db.transaction(() => {
+      const result = db.prepare(`
+        INSERT INTO quiz_results (lesson_id, score, total, missed_concepts)
+        VALUES (?, ?, ?, ?)
+      `).run(lesson.id, score, total, JSON.stringify(missedConceptIds));
+      this.advanceSection();
+      return db.prepare('SELECT * FROM quiz_results WHERE id = ?').get(result.lastInsertRowid) as QuizResult;
+    })();
   },
 
   logInterviewResult(chapterId: number, score: number, total: number, notes?: string): InterviewResult {
@@ -1645,7 +1732,7 @@ export const database = {
 
     db.prepare(`
       UPDATE progress
-      SET current_lesson_id = ?, status = 'in_progress', started_at = datetime('now'), updated_at = datetime('now')
+      SET current_lesson_id = ?, current_section = 'theory', status = 'in_progress', started_at = datetime('now'), updated_at = datetime('now')
       WHERE tutorial_id = ?
     `).run(firstLesson.id, tutorialId);
 

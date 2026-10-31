@@ -36,6 +36,12 @@ test('chapter progress view', async (t) => {
   const chapterId = database.getCurrentPosition()!.current_chapter!.id;
   const view = () => database.getChapterProgress(chapterId)!;
   const lineFor = (label: string) => view().split('\n').find((l) => l.includes(label))!;
+  const finishLesson = () => {
+    database.advanceSection();
+    database.advanceSection();
+    database.logQuizResult(12, 12, []);
+    database.completeLesson();
+  };
 
   await t.test('a fresh chapter marks its first lesson up next, with no bars', () => {
     const lines = view().split('\n');
@@ -46,9 +52,9 @@ test('chapter progress view', async (t) => {
   });
 
   await t.test('up next follows completion, not the position pointer', () => {
-    database.completeLesson();
+    finishLesson();
     database.advancePosition();
-    database.completeLesson(); // lesson 2 done; the pointer has not moved past it yet
+    finishLesson(); // lesson 2 done; the pointer has not moved past it yet
     assert.equal(database.getCurrentPosition()!.current_lesson!.name, 'Your First Program');
     assert.equal(
       view(),
@@ -63,20 +69,29 @@ test('chapter progress view', async (t) => {
     );
   });
 
+  await t.test('a lesson part-way through shows a partial bar and is marked in progress', () => {
+    database.advancePosition(); // onto lesson 3, at its theory
+    database.advanceSection(); // theory done: 1 of 4 sections
+    assert.equal(lineFor('Lesson 3:'), '  ► Lesson 3: Variables and Data Types    ███░░░░░░░  25%  ◄── in progress');
+    database.advanceSection(); // exercise done: 2 of 4
+    assert.match(lineFor('Lesson 3:'), /█████░░░░░  50%  ◄── in progress$/);
+    database.logQuizResult(12, 12, []); // quiz done: 3 of 4
+    assert.match(lineFor('Lesson 3:'), /████████░░  75%  ◄── in progress$/);
+  });
+
   await t.test('bars and the up-next marker line up in one column', () => {
     const columns = view()
       .split('\n')
       .slice(1)
-      .map((l) => Math.max(l.indexOf('█'), l.indexOf('◄')))
+      .map((l) => l.search(/[█░◄]/))
       .filter((c) => c !== -1);
     assert.equal(new Set(columns).size, 1);
   });
 
   await t.test('with every lesson done, the mock interview is up next', () => {
+    database.completeLesson(); // lesson 3, already on its Socratic review
     database.advancePosition();
-    database.completeLesson();
-    database.advancePosition();
-    database.completeLesson();
+    finishLesson();
     assert.match(lineFor('Mock Interview'), /^ {2}► Mock Interview +◄── up next$/);
   });
 

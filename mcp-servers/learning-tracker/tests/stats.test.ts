@@ -45,7 +45,9 @@ test('a real 0% average reads as 0, not as no data', async (t) => {
   });
 
   await t.test('once every result is 0, every average reads 0', () => {
-    database.logQuizResult(chapter.lessons[0].id, 0, 12, []);
+    database.advanceSection();
+    database.advanceSection();
+    database.logQuizResult(0, 12, []); // Lesson 1's quiz
     database.logInterviewResult(chapter.id, 0, 40, 'all skipped');
 
     const stats = database.getStats()!;

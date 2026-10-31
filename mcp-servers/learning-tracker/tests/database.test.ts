@@ -136,8 +136,17 @@ test('curriculum tree lifecycle', async (t) => {
     assert.ok(!line.includes('YOU ARE HERE'));
   });
 
+  // Take the current lesson through its sections the way the controller does: theory and
+  // the exercise, then the quiz (which moves on to the Socratic review), then complete it.
+  const finishLesson = (score = 12, missedConceptIds: number[] = []) => {
+    assert.equal(database.advanceSection()!.advanced, true); // theory → exercise
+    assert.equal(database.advanceSection()!.advanced, true); // exercise → quiz
+    database.logQuizResult(score, 12, missedConceptIds); // quiz → socratic
+    assert.equal(database.completeLesson()!.completed, true);
+  };
+
   await t.test('completeLesson marks the current lesson ✓ without moving the pointer', () => {
-    database.completeLesson();
+    finishLesson(10);
     const tree = database.getCurriculumTree()!;
     const line = tree.split('\n').find((l) => l.includes('Lesson 1.1.1'))!;
     assert.ok(line.includes('✓'));
@@ -162,6 +171,68 @@ test('curriculum tree lifecycle', async (t) => {
     assert.equal(database.getCurrentPosition()!.current_lesson!.name, 'Lesson 1.1.2');
   });
 
+  // --- The section pointer within a lesson (on Lesson 1.1.2) ---
+
+  const lesson112 = () => database.getCurrentPosition()!.current_lesson!;
+  const section = () => database.getCurrentPosition()!.current_section;
+
+  await t.test('a lesson the pointer has just reached starts on its theory', () => {
+    assert.equal(section(), 'theory');
+  });
+
+  await t.test('the quiz and completion are refused before their sections', () => {
+    assert.throws(() => database.logQuizResult(12, 12, []), /the quiz comes after the exercise/);
+    const refused = database.completeLesson()!;
+    assert.equal(refused.completed, false);
+    assert.match(refused.reason ?? '', /theory section/);
+    assert.equal(lesson112().completed, 0); // nothing was written
+  });
+
+  await t.test('advanceSection moves theory → exercise → quiz', () => {
+    assert.equal(database.advanceSection()!.current_section, 'exercise');
+    assert.equal(database.advanceSection()!.current_section, 'quiz');
+    assert.equal(section(), 'quiz');
+  });
+
+  await t.test('advanceSection refuses to leave the quiz before its result is recorded', () => {
+    const refused = database.advanceSection()!;
+    assert.equal(refused.advanced, false);
+    assert.match(refused.reason ?? '', /log_quiz_result/);
+    assert.equal(section(), 'quiz');
+  });
+
+  await t.test('logQuizResult records the quiz and moves on to the Socratic review in one step', () => {
+    const missed = database.getLesson(lesson112().id)!.lesson.concepts[1];
+    database.logQuizResult(9, 12, [missed.id]);
+    assert.equal(section(), 'socratic');
+  });
+
+  await t.test('logQuizResult refuses a second result for the same lesson', () => {
+    const before = database.getStats()!.tutorial.average_quiz_score;
+    assert.throws(() => database.logQuizResult(0, 12, []), /already has a recorded quiz result/);
+    // The refused 0/12 must not have dragged the average down.
+    assert.equal(database.getStats()!.tutorial.average_quiz_score, before);
+  });
+
+  await t.test('advanceSection refuses to move past the Socratic review', () => {
+    const refused = database.advanceSection()!;
+    assert.equal(refused.advanced, false);
+    assert.match(refused.reason ?? '', /complete_lesson/);
+  });
+
+  await t.test('completeLesson finishes the Socratic review, leaving no current section', () => {
+    assert.equal(database.completeLesson()!.completed, true);
+    assert.equal(section(), null);
+    assert.match(database.advanceSection()!.reason ?? '', /advance_position/);
+  });
+
+  await t.test('getLesson reports each lesson\'s section: null once completed, theory before it begins', () => {
+    const [l1, l2, l3] = database.getChapter(database.getCurrentPosition()!.current_chapter!.id)!.lessons;
+    assert.equal(database.getLesson(l1.id)!.lesson.current_section, null);
+    assert.equal(database.getLesson(l2.id)!.lesson.current_section, null);
+    assert.equal(database.getLesson(l3.id)!.lesson.current_section, 'theory');
+  });
+
   await t.test('curriculum.md is write-once: byte-identical to initial snapshot', () => {
     const fileContent = readFileSync(join(tmpDir, 'curriculum.md'), 'utf-8');
     assert.equal(fileContent, initialFileContent);
@@ -179,7 +250,7 @@ test('curriculum tree lifecycle', async (t) => {
   // end), then advance. Used to walk to a target lesson.
   const driveForward = () => {
     const pos = database.getCurrentPosition()!;
-    database.completeLesson();
+    if (!pos.current_lesson!.completed) finishLesson();
     if (pos.is_part_end && !pos.capstone_resolved) database.logCapstoneResult(pos.current_part!.id, true, 'done');
     if (pos.is_chapter_end && !pos.interview_resolved) database.logInterviewResult(pos.current_chapter!.id, 32, 40, 'ok');
     assert.equal(database.advancePosition()!.advanced, true);
@@ -190,7 +261,7 @@ test('curriculum tree lifecycle', async (t) => {
   let part1Id = 0;
 
   await t.test('boundary facts: a mid-chapter lesson is neither chapter-end nor part-end', () => {
-    const pos = database.getCurrentPosition()!; // at Lesson 1.1.2 from the lifecycle above
+    const pos = database.getCurrentPosition()!; // at Lesson 1.1.2 from the section tests above
     assert.equal(pos.current_lesson!.name, 'Lesson 1.1.2');
     assert.equal(pos.is_chapter_end, false);
     assert.equal(pos.is_part_end, false);
@@ -201,15 +272,21 @@ test('curriculum tree lifecycle', async (t) => {
   });
 
   await t.test('boundary facts: last lesson of a non-final chapter is chapter-end, not part-end', () => {
-    let g = 0;
-    while (database.getCurrentPosition()!.current_lesson!.name !== 'Lesson 1.1.4' && g++ < 100) driveForward();
+    // Lesson 1.1.3's quiz is logged with an id belonging to Lesson 1.1.2, which must not
+    // mark anything on Lesson 1.1.3 (checked under the review queue below).
+    const foreignConceptId = database.getPart(part1Id)!.chapters[0].lessons[1].concepts[0].id;
+    assert.equal(database.advancePosition()!.advanced, true); // off the completed Lesson 1.1.2
+    finishLesson(11, [foreignConceptId]); // Lesson 1.1.3
+    assert.equal(database.advancePosition()!.advanced, true);
     const pos = database.getCurrentPosition()!;
+    assert.equal(pos.current_lesson!.name, 'Lesson 1.1.4');
     assert.equal(pos.is_chapter_end, true);
     assert.equal(pos.is_part_end, false);
   });
 
   await t.test('guard refuses to advance off a chapter end until the interview is resolved', () => {
-    database.completeLesson(); // Lesson 1.1.4 content done
+    const concepts = database.getLesson(database.getCurrentPosition()!.current_lesson!.id)!.lesson.concepts;
+    finishLesson(8, [concepts[0].id, concepts[2].id]); // Lesson 1.1.4 done
     const refused = database.advancePosition()!;
     assert.equal(refused.advanced, false);
     assert.match(refused.reason ?? '', /interview/);
@@ -230,7 +307,7 @@ test('curriculum tree lifecycle', async (t) => {
   });
 
   await t.test('guard refuses a part end until interview AND capstone are resolved, in order', () => {
-    database.completeLesson(); // Lesson 1.4.4 content done
+    finishLesson(); // Lesson 1.4.4 done
     let r = database.advancePosition()!;
     assert.equal(r.advanced, false);
     assert.match(r.reason ?? '', /interview/); // interview gate first
@@ -324,26 +401,6 @@ test('curriculum tree lifecycle', async (t) => {
     }
   });
 
-  // --- One quiz result per lesson ---
-
-  await t.test('getLesson reports quiz_resolved once a quiz result is recorded', () => {
-    const lessonId = database.getPart(part1Id)!.chapters[0].lessons[0].id;
-    assert.equal(database.getLesson(lessonId)!.lesson.quiz_resolved, false);
-    database.logQuizResult(lessonId, 10, 12, []);
-    assert.equal(database.getLesson(lessonId)!.lesson.quiz_resolved, true);
-    // Scoped to its own lesson, so a sibling is unaffected.
-    const siblingId = database.getPart(part1Id)!.chapters[0].lessons[1].id;
-    assert.equal(database.getLesson(siblingId)!.lesson.quiz_resolved, false);
-  });
-
-  await t.test('logQuizResult refuses a second result for the same lesson', () => {
-    const lessonId = database.getPart(part1Id)!.chapters[0].lessons[0].id;
-    const before = database.getStats()!.tutorial.average_quiz_score;
-    assert.throws(() => database.logQuizResult(lessonId, 0, 12, []), /already has a recorded quiz result/);
-    // The refused 0/12 must not have dragged the average down.
-    assert.equal(database.getStats()!.tutorial.average_quiz_score, before);
-  });
-
   // --- Preferences ---
 
   await t.test('teaching_target defaults to null and persists once set', () => {
@@ -388,9 +445,8 @@ test('curriculum tree lifecycle', async (t) => {
     database.getReviewQueue()!.queue.find((q) => q.lesson.id === lessonId)!;
 
   await t.test('getReviewQueue marks the concepts missed on the lesson\'s quiz and reviews one of them', () => {
-    const lesson = database.getPart(part1Id)!.chapters[0].lessons[1]; // Lesson 1.1.2
+    const lesson = database.getPart(part1Id)!.chapters[0].lessons[1]; // Lesson 1.1.2, quizzed above
     const missed = lesson.concepts[1];
-    database.logQuizResult(lesson.id, 9, 12, [missed.id]);
     const item = queuedLesson(lesson.id);
     assert.deepEqual(item.concepts.map((c) => c.missed), [false, true, false]);
     // With a single missed concept there's only one choice, so this is deterministic.
@@ -398,19 +454,17 @@ test('curriculum tree lifecycle', async (t) => {
   });
 
   await t.test('review_concept is always drawn from the missed concepts when there are several', () => {
-    const lesson = database.getPart(part1Id)!.chapters[0].lessons[3]; // Lesson 1.1.4
+    const lesson = database.getPart(part1Id)!.chapters[0].lessons[3]; // Lesson 1.1.4, quizzed above
     const missedIds = [lesson.concepts[0].id, lesson.concepts[2].id];
-    database.logQuizResult(lesson.id, 8, 12, missedIds);
     for (let i = 0; i < 25; i++) {
       assert.ok(missedIds.includes(queuedLesson(lesson.id).review_concept!.id));
     }
   });
 
   await t.test('with nothing missed, review_concept falls back to any of the lesson\'s concepts', () => {
-    // Lesson 1.1.1 was quizzed with no misses; Lesson 1.1.3 is logged with an id belonging to
-    // another lesson, which must not mark anything here.
+    // Lesson 1.1.1 was quizzed with no misses; Lesson 1.1.3 was logged with an id belonging
+    // to another lesson, which must not mark anything here.
     const lessons = database.getPart(part1Id)!.chapters[0].lessons;
-    database.logQuizResult(lessons[2].id, 11, 12, [lessons[1].concepts[0].id]);
     for (const lesson of [lessons[0], lessons[2]]) {
       const item = queuedLesson(lesson.id);
       assert.ok(item.concepts.every((c) => !c.missed));
@@ -444,18 +498,23 @@ test('curriculum tree lifecycle', async (t) => {
     let chapter = database.getChapter(ch21.id)!;
     assert.equal(chapter.average_quiz_score, null); // no quiz taken yet
     assert.equal(chapter.interview, null); // no interview yet
-    // A quiz scored 0/12 must read as 0, not as "no data".
-    database.logQuizResult(ch21.lessons[0].id, 0, 12, []);
+    // A quiz scored 0/12 must read as 0, not as "no data". The pointer is on Lesson 2.1.1.
+    assert.equal(database.getCurrentPosition()!.current_lesson!.id, ch21.lessons[0].id);
+    database.advanceSection();
+    database.advanceSection();
+    database.logQuizResult(0, 12, []);
     chapter = database.getChapter(ch21.id)!;
     assert.equal(chapter.average_quiz_score, 0);
   });
 
   // Runs last: resetting wipes the progress every earlier subtest built up.
-  await t.test('resetProgress clears quiz results, so a lesson can be quizzed again', () => {
-    const lessonId = database.getPart(part1Id)!.chapters[0].lessons[0].id;
+  await t.test('resetProgress clears quiz results and the section pointer, so a lesson can be quizzed again', () => {
+    assert.equal(database.getCurrentPosition()!.current_section, 'socratic'); // from the 0/12 quiz above
+    // A restart from /menu resets and resumes without calling startTutorial, so the
+    // pointer is read from the first lesson.
     database.resetProgress();
-    assert.equal(database.getLesson(lessonId)!.lesson.quiz_resolved, false);
-    database.logQuizResult(lessonId, 12, 12, []);
-    assert.equal(database.getLesson(lessonId)!.lesson.quiz_resolved, true);
+    assert.equal(database.getCurrentPosition()!.current_lesson!.name, 'Lesson 1.1.1');
+    assert.equal(database.getCurrentPosition()!.current_section, 'theory');
+    finishLesson(); // its quiz is accepted again
   });
 });

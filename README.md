@@ -235,8 +235,9 @@ This project demonstrates Claude Code's extensibility:
 | `get_preferences`      | Get user preferences (book, language of instruction, versions taught, programming language, exercise resources) |
 | `update_preferences`   | Update one or more preferences           |
 | `start_tutorial`       | Begin a tutorial                         |
-| `get_current_position` | Current lesson/chapter/part + type + difficulty + boundary facts |
+| `get_current_position` | Current lesson/chapter/part and section + type + difficulty + boundary facts |
 | `complete_lesson`      | Mark current lesson done + queue for review (pointer stays put) |
+| `advance_section`      | Move the current lesson to its next section |
 | `advance_position`     | Move the pointer to the next lesson      |
 | `log_quiz_result`      | Record quiz scores                       |
 | `log_interview_result` | Record interview performance             |
