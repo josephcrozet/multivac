@@ -315,8 +315,8 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 **If a tutorial exists (call succeeded):**
 
 - You now have the current position (part, chapter, lesson, `is_chapter_start`), the boundary facts (`is_chapter_end`, `is_part_end`, `interview_resolved`, `capstone_resolved`), and the tutorial's `type` and `difficulty_level`
-- **Show where they left off:** when the learner is coming back to the tutorial at the start of a session, call `get_chapter_progress` with `current_chapter.id`, say "Welcome back — here's where you left off:", and display the result verbatim. Skip it when `is_chapter_start` is true, because the Chapter Start Screen shows the same lessons. Skip it too after context was compacted mid-lesson: the learner never left, so there's nothing to come back to.
-- **Resume via Lesson Boundary Routing** (see Lesson Flow step 7): if the current lesson is **not** completed, teach it; if it **is** completed, route to any pending Mock Interview or Capstone before advancing. This is what keeps a restart at a chapter/part boundary from skipping the interview/capstone
+- **Show where they left off:** when the learner is coming back to the tutorial at the start of a session, call `get_chapter_progress` with `current_chapter.id`, say "Welcome back — here's where you left off:", and display the result verbatim. Skip it when `is_chapter_start` is true and `current_section` is `theory`, because the Chapter Start Screen shows the same lessons. Skip it too after context was compacted mid-lesson: the learner never left, so there's nothing to come back to.
+- **Resume via Lesson Boundary Routing** (see Lesson Flow step 7): if the current lesson is **not** completed, teach it from its `current_section`; if it **is** completed, route to any pending Mock Interview or Capstone before advancing. This is what keeps a restart at a chapter/part boundary from skipping the interview/capstone
 - Use `type` (programming vs general) to pick the right exercise/interview/capstone mode and `difficulty_level` to calibrate depth, without re-deriving either from the topic — this keeps the right mode and level after a compaction or `/clear`
 
 **If no tutorial exists (call failed or returned null):**
@@ -411,7 +411,7 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
 
 ### 1. Chapter Start (if first lesson of chapter)
 
-- If `is_chapter_start` is true from `get_current_position`, call `get_chapter` with the `current_chapter.id` to fetch the chapter's lessons, then display the **Chapter Start Screen** (see ASCII Art section)
+- If `is_chapter_start` is true and `current_section` is `theory` from `get_current_position` — the chapter's first lesson, not yet begun — call `get_chapter` with the `current_chapter.id` to fetch the chapter's lessons, then display the **Chapter Start Screen** (see ASCII Art section)
 - Below the screen, suggest naming the session for this chapter:
   > Tip: Run `/rename {Topic}-{Part}-{Chapter}` to keep your sessions organized.
 
@@ -424,7 +424,7 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
 
 ### 2. Review Queue (at start of each chapter)
 
-At the start of each chapter (lesson 1 of any chapter after the first), check the review queue:
+At the start of each chapter (lesson 1 of any chapter after the first, before it begins — the same condition as the Chapter Start Screen), check the review queue:
 
 - Call `get_review_queue` with `limit: 4` to get up to 4 lessons for this review session
 - The queue contains lessons (not individual concepts)—each lesson has multiple concepts
@@ -455,6 +455,8 @@ At the start of each chapter (lesson 1 of any chapter after the first), check th
 If they select "Can you explain that differently?", provide an alternative explanation using different analogies or examples. If they type a custom question, answer it. Then ask again until they're ready to proceed.
 
 **Save to book (if enabled):** Once the user is ready for practice, call `get_preferences` — if `book` is true, create the lesson file with the theory section. See "Book Format" section below for file structure and format. Do this silently before presenting the exercise.
+
+Then call `advance_section` to record that the theory is done, so an interrupted lesson resumes at the exercise.
 
 ### 4. Hands-On Exercise
 
@@ -505,10 +507,12 @@ Polish on a solution that already works isn't a substantive problem: give it as 
 
 If they want more practice, provide another exercise on the same concept (different scenario), review it, ask again, and save that exercise too.
 
+Once they choose "Ready to continue", call `advance_section` to record that the exercise is done, so an interrupted lesson resumes at the quiz.
+
 ### 5. Quiz
 
 - Call `get_lesson` for this lesson's concepts — the same list theory taught from. Call it again here rather than trusting what's left in context: the exercise sits in between, and the quiz should be built from the recorded list, not from your memory of teaching it.
-- If `quiz_resolved` is true, this lesson's quiz is already recorded: skip the rest of this step and go straight to the Socratic Review.
+- If `current_section` is `socratic`, this lesson's quiz is already recorded: skip the rest of this step and go straight to the Socratic Review.
 - Use `AskUserQuestion` with the question "Ready for your quiz?" and these options:
   - "Let's go" — Start the quiz
   - "Quit" — Return to normal Claude Code
@@ -516,10 +520,10 @@ If they want more practice, provide another exercise on the same concept (differ
 - Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it, and hand it those concepts as the material to quiz on. Spread the 12 questions across them so each is tested at least once — the concepts are what the lesson promised to teach, so a quiz that skips one leaves it unassessed. Build the questions from what the theory and the exercise covered, not from side questions or tangents the learner raised along the way. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
 - As you write each question, note which of the concepts it tests.
 - After the quiz completes, get the results and call `log_quiz_result` with:
-  - `lesson_id`: Current lesson's ID
   - `score`: Number correct
   - `total`: 12
   - `missed_concept_ids`: The `id` from `get_lesson` of each concept the learner got at least one question wrong on — empty if they got everything right. The review queue uses these to revisit the concepts they missed.
+- `log_quiz_result` records the quiz for the current lesson and moves it on to the Socratic review itself, so don't call `advance_section` after it.
 - Only the quiz given here is recorded. A `/quiz` the learner runs on their own is practice — don't log it.
 
 **Save to book (if enabled):** Once the quiz is finished, call `get_preferences` — if `book` is true, append the quiz to the lesson file (see Stage 3 under Book Format): each question with its options in the order shown, the user's answer, the correct answer, and your explanation, then the score and the concepts to review. Write it in one go after the last question. Do this silently before continuing.
@@ -544,7 +548,7 @@ Next, call `get_chapter_progress` with the current chapter's id. Say "Progress s
 
 After `complete_lesson` — and also whenever you resume onto an already-completed lesson (after a session restart or `/clear`) — call `get_current_position` and route on its boundary facts. Apply these in order, re-reading `get_current_position` after each step:
 
-1. **Current lesson not completed** → teach it (start the Lesson Flow from step 1). *(This is the resume entry point; it won't match right after `complete_lesson`.)*
+1. **Current lesson not completed** → teach it, starting at its `current_section`: `theory` → the Lesson Flow from step 1, `exercise` → step 4, `quiz` → step 5, `socratic` → step 6. When starting past the theory, first run step 0 and call `get_lesson` for the lesson's concepts, since the earlier sections may no longer be in context; an interrupted section starts over from its beginning (a fresh exercise, the whole quiz). *(This is the resume entry point; it won't match right after `complete_lesson`.)*
 2. **`is_chapter_end` is true and `interview_resolved` is false** → run the **Mock Interview** for the current chapter (below), then `log_interview_result`.
 3. **`is_part_end` is true and `capstone_resolved` is false** → run the **Capstone Project** for the current part (below), then `log_capstone_result`.
 4. **Otherwise** (no boundary work left) → call `advance_position` to move to the next lesson, then continue the Lesson Flow (handle chapter start if `is_chapter_start`).
@@ -1293,12 +1297,15 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | Event                 | MCP Calls                                                                                                   |
 | --------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Session start         | `get_current_position` (lightweight), then `create_tutorial` + `start_tutorial` if no tutorial exists       |
-| Resuming mid-chapter  | `get_chapter_progress` (shown verbatim), unless `is_chapter_start` or recovering from a compaction           |
-| Chapter start         | `get_current_position` (check `is_chapter_start`), `get_chapter`, `get_review_queue`                        |
+| Resuming mid-chapter  | `get_chapter_progress` (shown verbatim), unless at an unbegun chapter start or recovering from a compaction |
+| Resuming a lesson     | `get_current_position` (start at `current_section`), `get_lesson` if past the theory                        |
+| Chapter start         | `get_current_position` (`is_chapter_start` and `current_section` is `theory`), `get_chapter`, `get_review_queue` |
 | After review question | `log_review_result`                                                                                         |
 | Theory (every lesson) | `get_lesson` — its concepts are what theory teaches, one section each                                       |
+| After theory          | `advance_section`                                                                                           |
+| After exercise        | `advance_section`                                                                                           |
 | Quiz                  | `get_lesson` — the concepts to quiz on, spread across the 12 questions                                      |
-| After quiz            | `log_quiz_result`                                                                                           |
+| After quiz            | `log_quiz_result` (also moves the lesson on to the Socratic review)                                         |
 | After Socratic review | `complete_lesson`, `get_chapter_progress` (shown verbatim), then Lesson Boundary Routing                    |
 | Lesson boundary       | `get_current_position` (route on `is_chapter_end`/`is_part_end`/`interview_resolved`/`capstone_resolved`)        |
 | After interview       | `log_interview_result`, then `get_chapter` for the Chapter Cleared Screen                                   |
