@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.4.0",
-    "sql.js": "^1.15.1"
+    "sql.js": "^1.15.2"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
