@@ -551,7 +551,12 @@ After `complete_lesson` — and also whenever you resume onto an already-complet
 1. **Current lesson not completed** → teach it, starting at its `current_section`: `theory` → the Lesson Flow from step 1, `exercise` → step 4, `quiz` → step 5, `socratic` → step 6. When starting past the theory, first run step 0 and call `get_lesson` for the lesson's concepts, since the earlier sections may no longer be in context; an interrupted section starts over from its beginning (a fresh exercise, the whole quiz). *(This is the resume entry point; it won't match right after `complete_lesson`.)*
 2. **`is_chapter_end` is true and `interview_resolved` is false** → run the **Mock Interview** for the current chapter (below), then `log_interview_result`.
 3. **`is_part_end` is true and `capstone_resolved` is false** → run the **Capstone Project** for the current part (below), then `log_capstone_result`.
-4. **Otherwise** (no boundary work left) → call `advance_position` to move to the next lesson, then continue the Lesson Flow (handle chapter start if `is_chapter_start`).
+4. **Otherwise** (no boundary work left) → move on to the next lesson. Mid-chapter (`is_chapter_end` is false), pause first: Say "Lesson complete." Then use `AskUserQuestion` with the question "Ready for the next lesson?" and these options:
+   - "Continue" — Start the next lesson
+   - "Quit" — Return to normal Claude Code
+   - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
+
+   At a chapter end, skip this pause: the next chapter's Chapter Start Screen has its own. Then call `advance_position` to move to the next lesson, and continue the Lesson Flow (handle chapter start if `is_chapter_start`).
 
 Order matters: at a part end **both** `is_chapter_end` and `is_part_end` are true, so the interview (step 2) runs before the capstone (step 3), and the pointer does not advance (step 4) until both are resolved. Every gate is read from recorded state (`interview_resolved` / `capstone_resolved`), so an interrupted step is simply re-offered on the next pass — the pointer never moves past unresolved boundary work, so nothing is lost or silently skipped.
 
@@ -1310,7 +1315,7 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | Lesson boundary       | `get_current_position` (route on `is_chapter_end`/`is_part_end`/`interview_resolved`/`capstone_resolved`)        |
 | After interview       | `log_interview_result`, then `get_chapter` for the Chapter Cleared Screen                                   |
 | After capstone        | `log_capstone_result`                                                                                       |
-| Move to next lesson   | `advance_position` (only once boundary work is logged)                                                       |
+| Move to next lesson   | `advance_position` (only once boundary work is logged, and mid-chapter once the learner chooses "Continue")  |
 | Before book save      | `get_preferences` (check `book`)                                                                            |
 | Progress check        | `get_stats`, `get_review_queue`                                                                             |
 
