@@ -409,7 +409,23 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
 - If this lesson covers topics not yet in the cache, run the full verification workflow
 - This step ensures you teach the pinned version and current patterns even after context compaction or session restarts
 
-### 1. Chapter Start (if first lesson of chapter)
+### 1. Review Queue (at start of each chapter)
+
+At the start of each chapter (lesson 1 of any chapter after the first, before it begins — the same condition as the Chapter Start Screen), check the review queue before showing that screen:
+
+- Say "Before we start this chapter, a quick review of earlier lessons."
+- Call `get_review_queue` with `limit: 4` to get up to 4 lessons for this review session
+- The queue contains lessons (not individual concepts)—each lesson has multiple concepts
+- Ask the questions **one at a time** — present a single question, wait for the answer, react briefly, then move to the next. Do **not** present all of them at once: these are open-ended recall questions (unlike the multiple-choice quiz), so a batch is harder to answer and defeats the per-question feedback that makes review worthwhile.
+- For EACH lesson returned, **in turn**:
+  - Ask a single review question about the lesson's `review_concept` (use that one rather than choosing your own), and **wait for the answer** before continuing
+  - After the user answers, give brief feedback, then call `log_review_result` with `correct: true/false`
+  - Correct answers remove the lesson from the queue; incorrect answers move it to the end
+- After all returned items are reviewed, proceed to the Chapter Start Screen (step 2)
+
+**Note:** The queue typically has 4 items (from the previous chapter). If the user aces all reviews, the queue empties. If they get some wrong, those lessons move to the back and accumulate. The `limit: 4` caps each review session, so if the queue grows large (many wrong answers), users won't be stuck reviewing 20+ items at once.
+
+### 2. Chapter Start (if first lesson of chapter)
 
 - If `is_chapter_start` is true and `current_section` is `theory` from `get_current_position` — the chapter's first lesson, not yet begun — call `get_chapter` with the `current_chapter.id` to fetch the chapter's lessons, then display the **Chapter Start Screen** (see ASCII Art section)
 - Below the screen, suggest naming the session for this chapter:
@@ -420,22 +436,7 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
   - "Continue" — Start the chapter
   - "Quit" — Return to normal Claude Code
 - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
-- Then proceed to review (if applicable)
-
-### 2. Review Queue (at start of each chapter)
-
-At the start of each chapter (lesson 1 of any chapter after the first, before it begins — the same condition as the Chapter Start Screen), check the review queue:
-
-- Call `get_review_queue` with `limit: 4` to get up to 4 lessons for this review session
-- The queue contains lessons (not individual concepts)—each lesson has multiple concepts
-- Ask the questions **one at a time** — present a single question, wait for the answer, react briefly, then move to the next. Do **not** present all of them at once: these are open-ended recall questions (unlike the multiple-choice quiz), so a batch is harder to answer and defeats the per-question feedback that makes review worthwhile.
-- For EACH lesson returned, **in turn**:
-  - Ask a single review question about the lesson's `review_concept` (use that one rather than choosing your own), and **wait for the answer** before continuing
-  - After the user answers, give brief feedback, then call `log_review_result` with `correct: true/false`
-  - Correct answers remove the lesson from the queue; incorrect answers move it to the end
-- After all returned items are reviewed, proceed to the lesson
-
-**Note:** The queue typically has 4 items (from the previous chapter). If the user aces all reviews, the queue empties. If they get some wrong, those lessons move to the back and accumulate. The `limit: 4` caps each review session, so if the queue grows large (many wrong answers), users won't be stuck reviewing 20+ items at once.
+- Then proceed to the theory
 
 ### 3. Theory Introduction
 
@@ -1304,7 +1305,7 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | Session start         | `get_current_position` (lightweight), then `create_tutorial` + `start_tutorial` if no tutorial exists       |
 | Resuming mid-chapter  | `get_chapter_progress` (shown verbatim), unless at an unbegun chapter start or recovering from a compaction |
 | Resuming a lesson     | `get_current_position` (start at `current_section`), `get_lesson` if past the theory                        |
-| Chapter start         | `get_current_position` (`is_chapter_start` and `current_section` is `theory`), `get_chapter`, `get_review_queue` |
+| Chapter start         | `get_current_position` (`is_chapter_start` and `current_section` is `theory`), `get_review_queue`, then `get_chapter` |
 | After review question | `log_review_result`                                                                                         |
 | Theory (every lesson) | `get_lesson` — its concepts are what theory teaches, one section each                                       |
 | After theory          | `advance_section`                                                                                           |
