@@ -41,7 +41,7 @@ Each lesson follows a proven learning flow:
 
 ### Spaced Repetition
 
-Completed lessons enter a review queue. At the start of each new chapter, you'll answer quick review questions on past material. Get it right? It's cleared. Get it wrong? It goes back in the queue. This isn't date-based — it works whether you finish in a day or a month.
+Completed lessons enter a review queue. At the start of each new chapter, you can choose to answer quick review questions on past material. Get it right? It's cleared. Get it wrong? It goes back in the queue. This isn't date-based — it works whether you finish in a day or a month.
 
 ### Mock Interviews
 
