@@ -541,8 +541,10 @@ Once they choose "Ready to continue", call `advance_section` to record that the 
 - "What would happen if...?"
 - "How does this relate to...?"
 - Draw mainly on the theory and the exercise. If the learner missed quiz questions, those concepts are worth probing too. Don't re-ask quiz questions in open-ended form — probe the reasoning behind a concept rather than restating a question they've already answered.
+- It's a discussion in both directions. Along with your questions, tell the learner they can ask you about anything in the lesson they're unsure of, and answer what they ask as you would during the theory.
+- When the discussion winds down, close it by asking in plain text: "Anything else on this lesson before we move on?" Answer anything they raise, and continue once they have nothing more.
 
-**Save to book (if enabled):** Once the discussion winds down, call `get_preferences` — if `book` is true, append the review to the lesson file. Save each question (verbatim), the user's answer (verbatim), and your response to it. Include your response even when the user's answer was already right — a saved answer with no reply reads as unresolved on review, and where the answer was partial or wrong, the correction is the part worth keeping. Do this silently before continuing.
+**Save to book (if enabled):** Once they have nothing more to ask, call `get_preferences` — if `book` is true, append the review to the lesson file. Save each question (verbatim), the user's answer (verbatim), and your response to it, and each question the user asked (verbatim) with your answer. Include your response even when the user's answer was already right — a saved answer with no reply reads as unresolved on review, and where the answer was partial or wrong, the correction is the part worth keeping. Do this silently before continuing.
 
 Then call `complete_lesson` to mark this lesson's content done and queue it for review.
 
@@ -1239,9 +1241,13 @@ If user requests additional practice, append each subsequent exercise in the sam
 **{Question 2, verbatim}**
 
 ...
+
+**You asked:** {A question the user asked, verbatim}
+
+{Your answer, verbatim}
 ```
 
-One block per question, in the order they were asked. Record **every** question asked, including any the user didn't take up — an unanswered question keeps its value as a prompt to revisit, and leave its answer out rather than deciding whether to drop the question.
+One block per question, yours and the user's, in the order they were asked. Record **every** question asked, including any the user didn't take up — an unanswered question keeps its value as a prompt to revisit, and leave its answer out rather than deciding whether to drop the question.
 
 ### Interview File
 
