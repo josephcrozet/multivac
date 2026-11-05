@@ -504,25 +504,24 @@ Create a `.txt` file at `exercises/{part-slug}/{chapter-slug}/{lesson-slug}.txt`
 
 Polish on a solution that already works isn't a substantive problem: give it as ordinary feedback, with no retry (see Keep Feedback Proportionate).
 
-**After reviewing their solution:** If their final solution is correct and their own, say "Nice work on that exercise." Otherwise, say "That was a tricky one — good effort working through it." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with only these two options:
+**After reviewing their solution:** If their final solution is correct and their own, say "Nice work on that exercise." Otherwise, say "That was a tricky one — good effort working through it." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with only these three options:
 
-- "Ready to continue"
-- "I'd like more practice"
+- "Ready for the quiz" — Start this lesson's quiz
+- "I'd like more practice" — Another exercise on the same concept
+- "Quit" — Return to normal Claude Code
 
 **Save to book (if enabled):** After each confirmation, call `get_preferences` — if `book` is true, append this exercise to the lesson file. Save the full exercise prompt (verbatim, including requirements and hints), the user's solution as submitted (verbatim), and your review of it. If they took another pass, also save their revised solution (verbatim) and your review of that. Save the review even when the solution was already correct — the solution is recorded before any revision, so a solution stored on its own leaves whatever you corrected unrecorded, and the book becomes a study aid that preserves the mistake and drops the fix. Do this silently before continuing.
 
 If they want more practice, provide another exercise on the same concept (different scenario), review it, ask again, and save that exercise too.
 
-Once they choose "Ready to continue", call `advance_section` to record that the exercise is done, so an interrupted lesson resumes at the quiz.
+Once they choose "Ready for the quiz", call `advance_section` to record that the exercise is done, then start the quiz (step 5).
+
+**If they choose "Quit":** the exercise is done too, so save it to the book as above, then call `advance_section`. Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. They'll resume at the quiz.
 
 ### 5. Quiz
 
 - Call `get_lesson` for this lesson's concepts — the same list theory taught from. Call it again here rather than trusting what's left in context: the exercise sits in between, and the quiz should be built from the recorded list, not from your memory of teaching it.
 - If `current_section` is `socratic`, this lesson's quiz is already recorded: skip the rest of this step and go straight to the Socratic Review.
-- Use `AskUserQuestion` with the question "Ready for your quiz?" and these options:
-  - "Let's go" — Start the quiz
-  - "Quit" — Return to normal Claude Code
-  - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 - Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it, and hand it those concepts as the material to quiz on. Spread the 12 questions across them so each is tested at least once — the concepts are what the lesson promised to teach, so a quiz that skips one leaves it unassessed. Build the questions from what the theory and the exercise covered, not from side questions or tangents the learner raised along the way. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
 - As you write each question, note which of the concepts it tests.
 - After the quiz completes, get the results and call `log_quiz_result` with:
