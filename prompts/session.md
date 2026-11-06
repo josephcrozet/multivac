@@ -453,16 +453,19 @@ Run when the learner chooses a review: at a chapter start (step 1), or from `/me
 - You MAY write examples here to illustrate concepts (code, worked problems, example sentences, etc.)
 - Keep it focused—don't overwhelm
 
-**After theory:** Say "That covers the theory." Then use `AskUserQuestion` with question "Any questions before we practice?" with only these two options:
+**After theory:** Say "That covers the theory." Then use `AskUserQuestion` with question "Any questions before we practice?" with only these three options:
 
-- "Ready for hands-on practice"
-- "Can you explain that differently?"
+- "Ready for hands-on practice" — Start this lesson's exercise
+- "Can you explain that differently?" — A new explanation of the same material
+- "Quit" — Return to normal Claude Code
 
 If they select "Can you explain that differently?", provide an alternative explanation using different analogies or examples. If they type a custom question, answer it. Then ask again until they're ready to proceed.
 
 **Save to book (if enabled):** Once the user is ready for practice, call `get_preferences` — if `book` is true, create the lesson file with the theory section. See "Book Format" section below for file structure and format. Do this silently before presenting the exercise.
 
 Then call `advance_section` to record that the theory is done, so an interrupted lesson resumes at the exercise.
+
+**If they choose "Quit":** the theory is done too, so save it to the book as above, then call `advance_section`. Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. They'll resume at the exercise.
 
 ### 4. Hands-On Exercise
 
