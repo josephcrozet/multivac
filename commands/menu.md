@@ -39,7 +39,7 @@ Use `AskUserQuestion` to present options:
 1. **Review** — "Work through your spaced repetition queue"
 2. **View curriculum** — "See the full table of contents"
 3. **View progress** — "See your final stats, get certificate, and see suggested topics"
-4. **More...** — "Credits, start over, or quit"
+4. **More...** — "Credits, start over, or save & quit"
 
 **If "Review" selected:**
 
@@ -77,7 +77,7 @@ Use `AskUserQuestion` to present options:
 1. **Continue** — "Resume learning from your current position"
 2. **View curriculum** — "See the full table of contents"
 3. **View progress** — "See your stats and progress in detail"
-4. **More...** — "Credits, start over, or quit"
+4. **More...** — "Credits, start over, or save & quit"
 
 **If "Continue" selected:**
 
@@ -108,7 +108,7 @@ Use `AskUserQuestion` with the question "More options:" and these options:
 1. **Back to menu** — "Return to the main menu"
 2. **Credits** — "See who made this"
 3. **Start over** — "Clear all progress and restart"
-4. **Quit** — "Return to normal Claude Code"
+4. **Save & Quit** — "Return to normal Claude Code — pick up here anytime with `/tutorial`"
 
 **If "Back to menu" selected:**
 
@@ -143,7 +143,7 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 **Options:**
 
 1. **Restart this curriculum** — "Reset your progress but keep the same lesson structure"
-2. **Change topics and start fresh** — "Delete everything and create a new curriculum"
+2. **New game** — "Delete everything and create a new curriculum on a new topic"
 3. **Cancel** — "Go back without changing anything"
 
 **If "Cancel":** Return to the main menu.
@@ -154,13 +154,13 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 - Tell the user: "Progress reset. For a fresh learning experience, run `/clear` to reset the conversation context, then `/tutorial` to begin."
 - End the command (do not auto-start the tutorial)
 
-**If "Change topics and start fresh":**
+**If "New game":**
 
 - Delete the `.multivac/learning.db` file
 - Tell the user: "Tutorial deleted. Run `/clear` to reset the conversation context, then `/tutorial` to set up your new topic."
 - End the command (do not auto-start the tutorial)
 
-**If "Quit" selected:**
+**If "Save & Quit" selected:**
 
 Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
