@@ -362,11 +362,11 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 - **PAUSE:** Say "Your adventure awaits." Then use `AskUserQuestion` with the question "Ready to begin?" and these options:
   - "Start" (Recommended) — Begin the first lesson
   - "View curriculum" — See the full table of contents first
-  - "Quit" — Return to normal Claude Code
+  - "Save & Quit" — Return to normal Claude Code — pick up here anytime with `/tutorial`
 - **If they choose "View curriculum":** Display the Curriculum Tree (see Curriculum Tree Format in `~/.claude/commands/menu.md`). Say "Here's your path." Then use `AskUserQuestion` with the question "Ready to begin?" and these options:
   - "Start" (Recommended) — Begin the first lesson
-  - "Quit" — Return to normal Claude Code
-- **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
+  - "Save & Quit" — Return to normal Claude Code — pick up here anytime with `/tutorial`
+- **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
 ---
 
@@ -417,18 +417,22 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
 
   e.g. `/rename Python-II-1`.
 - Call `get_review_queue` with `limit: 4`. The lessons it returns, if any, are what a review would cover.
-- **PAUSE:** Say "Here's what we'll cover." Then use `AskUserQuestion` with the question "Ready for this chapter?" and these options:
-  - "Review earlier lessons" (Recommended) — A few questions on lessons from earlier chapters. Offer this only when `get_review_queue` returned at least one lesson.
-  - "Start the chapter" — Begin the first lesson
-  - "Quit" — Return to normal Claude Code
-- **If they choose "Review earlier lessons":** run the Review Queue (step 2) on the lessons just returned. Then call `get_review_queue` with `limit: 4` again, say "Review complete.", and use `AskUserQuestion` with the question "Ready for this chapter?" and these options:
-  - "Start the chapter" (Recommended) — Begin the first lesson
+- **PAUSE:** Say "Here's what we'll cover." Then use `AskUserQuestion`:
+  - If `get_review_queue` returned at least one lesson, ask "Warm up first?" with these options:
+    - "Quick review" (Recommended) — A few questions on earlier lessons
+    - "Continue" — Start the chapter
+    - "Save & Quit" — Return to normal Claude Code — pick up here anytime with `/tutorial`
+  - Otherwise, ask "Ready for this chapter?" with these options:
+    - "Continue" — Start the chapter
+    - "Save & Quit" — Return to normal Claude Code — pick up here anytime with `/tutorial`
+- **If they choose "Quick review":** run the Review Queue (step 2) on the lessons just returned. Then call `get_review_queue` with `limit: 4` again, say "Review complete.", and use `AskUserQuestion` with the question "Ready for this chapter?" and these options:
+  - "Continue" (Recommended) — Start the chapter
   - "Review more" — Another round of review. Offer this only when `get_review_queue` returned at least one lesson.
-  - "Quit" — Return to normal Claude Code
+  - "Save & Quit" — Return to normal Claude Code — pick up here anytime with `/tutorial`
 
   "Review more" runs step 2 on the lessons just returned, then asks this question again.
-- **If they choose "Start the chapter":** proceed to the theory (step 3).
-- **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. Nothing before the theory moves the lesson on, so a learner who quits anywhere in this step returns to the Chapter Start Screen and its first question.
+- **If they choose "Continue":** proceed to the theory (step 3).
+- **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. Nothing before the theory moves the lesson on, so a learner who quits anywhere in this step returns to the Chapter Start Screen and its first question.
 
 ### 2. Review Queue
 
@@ -455,17 +459,17 @@ Run when the learner chooses a review: at a chapter start (step 1), or from `/me
 
 **After theory:** Say "That covers the theory." Then use `AskUserQuestion` with question "Any questions before we practice?" with only these three options:
 
-- "Ready for hands-on practice" — Start this lesson's exercise
-- "Can you explain that differently?" — A new explanation of the same material
-- "Quit" — Return to normal Claude Code
+- "Continue" — Start the exercise
+- "Explain it differently" — A new explanation of the same material
+- "Save & Quit" — Return to normal Claude Code — pick up here anytime with `/tutorial`
 
-If they select "Can you explain that differently?", provide an alternative explanation using different analogies or examples. If they type a custom question, answer it. Then ask again until they're ready to proceed.
+If they select "Explain it differently", provide an alternative explanation using different analogies or examples. If they type a custom question, answer it. Then ask again until they're ready to proceed.
 
 **Save to book (if enabled):** Once the user is ready for practice, call `get_preferences` — if `book` is true, create the lesson file with the theory section. See "Book Format" section below for file structure and format. Do this silently before presenting the exercise.
 
 Then call `advance_section` to record that the theory is done, so an interrupted lesson resumes at the exercise.
 
-**If they choose "Quit":** the theory is done too, so save it to the book as above, then call `advance_section`. Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. They'll resume at the exercise.
+**If they choose "Save & Quit":** the theory is done too, so save it to the book as above, then call `advance_section`. Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. They'll resume at the exercise.
 
 ### 4. Hands-On Exercise
 
@@ -509,17 +513,17 @@ Polish on a solution that already works isn't a substantive problem: give it as 
 
 **After reviewing their solution:** If their final solution is correct and their own, say "Nice work on that exercise." Otherwise, say "That was a tricky one — good effort working through it." Then use `AskUserQuestion` with question "How are you feeling about this concept?" with only these three options:
 
-- "Ready for the quiz" — Start this lesson's quiz
-- "I'd like more practice" — Another exercise on the same concept
-- "Quit" — Return to normal Claude Code
+- "Continue" — Start the quiz
+- "More practice" — Another exercise on the same concept
+- "Save & Quit" — Return to normal Claude Code — pick up here anytime with `/tutorial`
 
 **Save to book (if enabled):** After each confirmation, call `get_preferences` — if `book` is true, append this exercise to the lesson file. Save the full exercise prompt (verbatim, including requirements and hints), the user's solution as submitted (verbatim), and your review of it. If they took another pass, also save their revised solution (verbatim) and your review of that. Save the review even when the solution was already correct — the solution is recorded before any revision, so a solution stored on its own leaves whatever you corrected unrecorded, and the book becomes a study aid that preserves the mistake and drops the fix. Do this silently before continuing.
 
 If they want more practice, provide another exercise on the same concept (different scenario), review it, ask again, and save that exercise too.
 
-Once they choose "Ready for the quiz", call `advance_section` to record that the exercise is done, then start the quiz (step 5).
+Once they choose "Continue", call `advance_section` to record that the exercise is done, then start the quiz (step 5).
 
-**If they choose "Quit":** the exercise is done too, so save it to the book as above, then call `advance_section`. Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. They'll resume at the quiz.
+**If they choose "Save & Quit":** the exercise is done too, so save it to the book as above, then call `advance_section`. Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. They'll resume at the quiz.
 
 ### 5. Quiz
 
@@ -561,10 +565,10 @@ After `complete_lesson` — and also whenever you resume onto an already-complet
 1. **Current lesson not completed** → teach it, starting at its `current_section`: `theory` → the Lesson Flow from step 1, `exercise` → step 4, `quiz` → step 5, `socratic` → step 6. When starting past the theory, first run step 0 and call `get_lesson` for the lesson's concepts, since the earlier sections may no longer be in context; an interrupted section starts over from its beginning (a fresh exercise, the whole quiz). *(This is the resume entry point; it won't match right after `complete_lesson`.)*
 2. **`is_chapter_end` is true and `interview_resolved` is false** → run the **Mock Interview** for the current chapter (below), then `log_interview_result`.
 3. **`is_part_end` is true and `capstone_resolved` is false** → run the **Capstone Project** for the current part (below), then `log_capstone_result`.
-4. **Otherwise** (no boundary work left) → move on to the next lesson. Mid-chapter (`is_chapter_end` is false), pause first: Say "Lesson complete." Then use `AskUserQuestion` with the question "Ready for the next lesson?" and these options:
+4. **Otherwise** (no boundary work left) → move on to the next lesson. Mid-chapter (`is_chapter_end` is false), pause first: Say "Lesson cleared." Then use `AskUserQuestion` with the question "On to the next lesson?" and these options:
    - "Continue" — Start the next lesson
-   - "Quit" — Return to normal Claude Code
-   - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
+   - "Save & Quit" — Return to normal Claude Code — pick up here anytime with `/tutorial`
+   - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
    At a chapter end, skip this pause: the next chapter's Chapter Start Screen has its own. Then call `advance_position` to move to the next lesson, and continue the Lesson Flow (handle chapter start if `is_chapter_start`).
 
@@ -578,8 +582,8 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
 
 1. Say "You've completed all lessons in this chapter. Time for a mock interview!" Then use `AskUserQuestion` with the question "Ready for your interview?" and these options:
    - "Let's go" — Start the interview
-   - "Quit" — Return to normal Claude Code
-   - **If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
+   - "Save & Quit" — Return to normal Claude Code — pick up here anytime with `/tutorial`
+   - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
 2. Run the mock interview as its **Orchestrator**. Read `~/.claude/agents/interview-agent.md` and follow the **Orchestrator** section: it spawns an **Authoring Worker** subagent (via the Task tool) that returns a verified question set, then it conducts the interview one question at a time and grades each answer. You only orchestrate — the worker authors and verifies the questions; you never write them yourself.
 
@@ -629,13 +633,13 @@ e.g. `/rename Python-II-Capstone`.
 
 ### 2. Offer to Skip
 
-Say "Here's what's ahead." Then use `AskUserQuestion` with the question "Ready for the capstone?" and these options:
+Say "Here's what's ahead." Then use `AskUserQuestion` with the question "Take on the capstone?" and these options:
 
-- "Let's do it" (Recommended)
-- "Skip and continue"
-- "Quit" — Return to normal Claude Code
+- "Let's do it" (Recommended) — Build the project, milestone by milestone
+- "Skip and continue" — Move on without it (it shows as ☆ on your certificate)
+- "Save & Quit" — Return to normal Claude Code — pick up here anytime with `/tutorial`
 
-**If they choose "Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
+**If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
 If they skip: call `log_capstone_result` with `completed: false` to record the skip, then proceed directly to **Display Completion Screen** (step 7). Recording the skip *resolves* the capstone — it marks `capstone_resolved` so the boundary routing won't re-offer it and `advance_position` will move on — while leaving it uncompleted (it shows as skipped, ☆, on progress screens and certificates; the part itself still counts as complete from its lessons and interviews).
 
