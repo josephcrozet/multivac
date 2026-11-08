@@ -108,7 +108,7 @@ Use `AskUserQuestion` with the question "More options:" and these options:
 1. **Back to menu** — "Return to the main menu"
 2. **Credits** — "See who made this"
 3. **Start over** — "Clear all progress and restart"
-4. **Save & Quit** — "Return to normal Claude Code — pick up here anytime with `/tutorial`"
+4. **Save & Quit** — "Return to normal Claude Code"
 
 **If "Back to menu" selected:**
 
@@ -143,7 +143,7 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 **Options:**
 
 1. **Restart this curriculum** — "Reset your progress but keep the same lesson structure"
-2. **New game** — "Delete everything and create a new curriculum on a new topic"
+2. **New game** — "Delete everything and start fresh on a new topic"
 3. **Cancel** — "Go back without changing anything"
 
 **If "Cancel":** Return to the main menu.
