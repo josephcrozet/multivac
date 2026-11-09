@@ -991,7 +991,7 @@ Display after completing a part's capstone project:
 ╚══════════════════════════════════════════════════════════════════════╝
 ```
 
-`{capstone_result}` depends on how the capstone was resolved: the project's name followed by `COMPLETE ★` if the learner completed it, or `SKIPPED ☆` if they skipped it. A skipped capstone was never designed, so it has no name to show.
+`{capstone_result}` depends on how the capstone was resolved: the project's title from `CAPSTONE.md` followed by `COMPLETE ★` if the learner completed it, or `SKIPPED ☆` if they skipped it. A skipped capstone was never designed and has no `CAPSTONE.md`, so it has no name to show.
 
 ### Victory Screen
 
