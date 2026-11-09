@@ -198,11 +198,11 @@ Include the difficulty level (Beginner/Intermediate/Advanced).
 ║                                                                      ║
 ║  PART PROGRESS                                                       ║
 ║  ┌────────────────────────────────────────────────────────────────┐  ║
-║  │  Chapter 1  {progress_bar}  {status}                           │  ║
-║  │  Chapter 2  {progress_bar}  {status}                           │  ║
-║  │  Chapter 3  {progress_bar}  {status}    ◄── YOU                │  ║
-║  │  Chapter 4  {progress_bar}  {status}                           │  ║
-║  │  Capstone   {progress_bar}  {status}                           │  ║
+║  │  Chapter 1  {progress_bar}  {status}  {marker}                 │  ║
+║  │  Chapter 2  {progress_bar}  {status}  {marker}                 │  ║
+║  │  Chapter 3  {progress_bar}  {status}  {marker}                 │  ║
+║  │  Chapter 4  {progress_bar}  {status}  {marker}                 │  ║
+║  │  Capstone   {progress_bar}  {status}  {marker}                 │  ║
 ║  └────────────────────────────────────────────────────────────────┘  ║
 ║                                                                      ║
 ║  STATS                            │  REVIEW QUEUE                    ║
@@ -210,7 +210,7 @@ Include the difficulty level (Beginner/Intermediate/Advanced).
 ║  Lessons:     {X}/{Y} ({Z}%)      │  {N} lessons pending             ║
 ║  Quizzes Avg: {Q}%                │  ┌─────────────────────────────┐ ║
 ║  Interviews:  {I}/{J}             │  │ • {concept_1}               │ ║
-║  Capstones:   {C}/{D}             │  │ • {concept_2}               │ ║
+║  Capstones:   {capstone_stars}    │  │ • {concept_2}               │ ║
 ║                                   │  │ • {concept_3}               │ ║
 ║                                   │  │ • {concept_4}               │ ║
 ║                                   │  └─────────────────────────────┘ ║
@@ -237,14 +237,17 @@ Chapter rows:
 - `{X}%` — Chapter in progress (show percentage)
 - `LOCKED` — Chapter not yet started (previous not complete)
 
-Capstone row, from `capstone_resolved` (`get_current_position`) and the current part's `capstone_completed` (`get_stats`):
+Capstone row, for the current part. Check these in order and use the first that applies, reading `capstone_resolved` from `get_current_position` and the part's `capstone_completed` from `get_stats`:
 
-- `COMPLETE ★` — Capstone completed (full bar)
-- `SKIPPED ☆` — Capstone skipped (empty bar)
-- `READY` — All four chapters cleared, capstone not yet resolved (empty bar)
-- `LOCKED` — Chapters still in progress (empty bar)
+1. `COMPLETE ★` — Capstone resolved and completed (full bar)
+2. `SKIPPED ☆` — Capstone resolved and skipped (empty bar)
+3. `LOCKED` — Not all four chapters cleared yet (empty bar)
+4. `IN PROGRESS` — `CAPSTONE.md` exists in the part's capstone directory: the project has been designed (empty bar)
+5. `READY` — Chapters cleared, capstone not started (empty bar)
 
-Put `◄── YOU` on the row the learner is on: the current chapter, or the Capstone row once all four chapters are cleared and the capstone isn't resolved. The template shows it on Chapter 3 only as an example.
+`{marker}` is `◄── YOU` on the row the learner is on — the current chapter, or the Capstone row once all four chapters are cleared and the capstone isn't resolved — and blank on every other row.
+
+`{capstone_stars}` in STATS shows every part's capstone, in part order: ★ completed, ☆ skipped, ◇ not reached yet. A part before the current one has always resolved its capstone, since the pointer can't leave a part until it is, so it's ★ if `capstone_completed` is true and ☆ otherwise. The current part's is ★ or ☆ once `capstone_resolved` is true, and ◇ before that. Later parts are ◇.
 
 ### Review Queue Display
 
@@ -285,7 +288,7 @@ For each lesson in the queue:
 ║  Lessons:     22/48  (46%)        │  4 lessons pending               ║
 ║  Quizzes Avg: 88%                 │  ┌─────────────────────────────┐ ║
 ║  Interviews:  6/12                │  │ • list comprehensions       │ ║
-║  Capstones:   1/3                 │  │ • dictionary methods        │ ║
+║  Capstones:   ★ ◇ ◇               │  │ • dictionary methods        │ ║
 ║                                   │  │ • exception handling        │ ║
 ║                                   │  │ • lambda functions          │ ║
 ║                                   │  └─────────────────────────────┘ ║
