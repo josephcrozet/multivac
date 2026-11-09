@@ -237,17 +237,21 @@ Chapter rows:
 - `{X}%` — Chapter in progress (show percentage)
 - `LOCKED` — Chapter not yet started (previous not complete)
 
-Capstone row, for the current part. Check these in order and use the first that applies, reading `capstone_resolved` from `get_current_position` and the part's `capstone_completed` from `get_stats`:
+Capstone row, for the current part, using `capstone_resolved` from `get_current_position` and the part's `capstone_completed` from `get_stats`:
 
-1. `COMPLETE ★` — Capstone resolved and completed (full bar)
-2. `SKIPPED ☆` — Capstone resolved and skipped (empty bar)
-3. `LOCKED` — Not all four chapters cleared yet (empty bar)
-4. `IN PROGRESS` — `CAPSTONE.md` exists in the part's capstone directory: the project has been designed (empty bar)
-5. `READY` — Chapters cleared, capstone not started (empty bar)
+- `COMPLETE ★` — Capstone resolved and completed (full bar)
+- `SKIPPED ☆` — Capstone resolved and skipped (empty bar)
+- `IN PROGRESS` — All four chapters cleared, and `CAPSTONE.md` exists in the part's capstone directory (empty bar)
+- `READY` — All four chapters cleared, and no `CAPSTONE.md` yet (empty bar)
+- `LOCKED` — Not all four chapters cleared yet (empty bar)
 
 `{marker}` is `◄── YOU` on the row the learner is on — the current chapter, or the Capstone row once all four chapters are cleared and the capstone isn't resolved — and blank on every other row.
 
-`{capstone_stars}` in STATS shows every part's capstone, in part order: ★ completed, ☆ skipped, ◇ not reached yet. A part before the current one has always resolved its capstone, since the pointer can't leave a part until it is, so it's ★ if `capstone_completed` is true and ☆ otherwise. The current part's is ★ or ☆ once `capstone_resolved` is true, and ◇ before that. Later parts are ◇.
+`{capstone_stars}` in STATS shows one symbol per part, in part order (★ completed, ☆ skipped, ◇ not reached yet):
+
+- Earlier parts: ★ if `capstone_completed` is true, otherwise ☆
+- The current part: ◇ until `capstone_resolved` is true, then ★ or ☆ the same way
+- Later parts: ◇
 
 ### Review Queue Display
 
