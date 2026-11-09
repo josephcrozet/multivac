@@ -198,11 +198,11 @@ Include the difficulty level (Beginner/Intermediate/Advanced).
 ║                                                                      ║
 ║  PART PROGRESS                                                       ║
 ║  ┌────────────────────────────────────────────────────────────────┐  ║
-║  │  Chapter 1  {progress_bar}  {status}                           │  ║
-║  │  Chapter 2  {progress_bar}  {status}                           │  ║
-║  │  Chapter 3  {progress_bar}  {status}    ◄── YOU                │  ║
-║  │  Chapter 4  {progress_bar}  {status}                           │  ║
-║  │  Capstone   {progress_bar}  {status}                           │  ║
+║  │  Chapter 1  {progress_bar}  {status}  {marker}                 │  ║
+║  │  Chapter 2  {progress_bar}  {status}  {marker}                 │  ║
+║  │  Chapter 3  {progress_bar}  {status}  {marker}                 │  ║
+║  │  Chapter 4  {progress_bar}  {status}  {marker}                 │  ║
+║  │  Capstone   {progress_bar}  {status}  {marker}                 │  ║
 ║  └────────────────────────────────────────────────────────────────┘  ║
 ║                                                                      ║
 ║  STATS                            │  REVIEW QUEUE                    ║
@@ -210,7 +210,7 @@ Include the difficulty level (Beginner/Intermediate/Advanced).
 ║  Lessons:     {X}/{Y} ({Z}%)      │  {N} lessons pending             ║
 ║  Quizzes Avg: {Q}%                │  ┌─────────────────────────────┐ ║
 ║  Interviews:  {I}/{J}             │  │ • {concept_1}               │ ║
-║  Capstones:   {C}/{D}             │  │ • {concept_2}               │ ║
+║  Capstones:   {capstone_stars}    │  │ • {concept_2}               │ ║
 ║                                   │  │ • {concept_3}               │ ║
 ║                                   │  │ • {concept_4}               │ ║
 ║                                   │  └─────────────────────────────┘ ║
@@ -231,9 +231,27 @@ Calculate proportionally: `filled_chars = round(percentage / 100 * 20)`
 
 ### Status Labels
 
+Chapter rows:
+
 - `CLEAR` — Chapter completed
 - `{X}%` — Chapter in progress (show percentage)
 - `LOCKED` — Chapter not yet started (previous not complete)
+
+Capstone row, for the current part, using `capstone_resolved` from `get_current_position` and the part's `capstone_completed` from `get_stats`:
+
+- `COMPLETE ★` — Capstone resolved and completed (full bar)
+- `SKIPPED ☆` — Capstone resolved and skipped (empty bar)
+- `IN PROGRESS` — All four chapters cleared, capstone not resolved, and `CAPSTONE.md` exists in the part's capstone directory (empty bar)
+- `READY` — All four chapters cleared, capstone not resolved, and no `CAPSTONE.md` yet (empty bar)
+- `LOCKED` — Not all four chapters cleared yet (empty bar)
+
+`{marker}` is `◄── YOU` on the row the learner is on — the current chapter, or the Capstone row once all four chapters are cleared and the capstone isn't resolved — and blank on every other row.
+
+`{capstone_stars}` in STATS shows one symbol per part, in part order (★ completed, ☆ skipped, ◇ not reached yet):
+
+- Earlier parts: ★ if `capstone_completed` is true, otherwise ☆
+- The current part: ◇ until `capstone_resolved` is true, then ★ or ☆ the same way
+- Later parts: ◇
 
 ### Review Queue Display
 
@@ -274,7 +292,7 @@ For each lesson in the queue:
 ║  Lessons:     22/48  (46%)        │  4 lessons pending               ║
 ║  Quizzes Avg: 88%                 │  ┌─────────────────────────────┐ ║
 ║  Interviews:  6/12                │  │ • list comprehensions       │ ║
-║  Capstones:   1/3                 │  │ • dictionary methods        │ ║
+║  Capstones:   ★ ◇ ◇               │  │ • dictionary methods        │ ║
 ║                                   │  │ • exception handling        │ ║
 ║                                   │  │ • lambda functions          │ ║
 ║                                   │  └─────────────────────────────┘ ║
