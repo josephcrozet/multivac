@@ -978,7 +978,7 @@ Display after completing a part's capstone project:
 ║   ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝                                     ║
 ║                                                                      ║
 ║   ┌──────────────────────────────────────────────────────────────┐   ║
-║   │  CAPSTONE PROJECT: {name}                COMPLETE ✓          │   ║
+║   │  CAPSTONE PROJECT: {capstone_result}                         │   ║
 ║   │  ───────────────────────────────────────────────────         │   ║
 ║   │  Chapters Cleared:  4/4  ████████████████████  100%          │   ║
 ║   │  Quiz Average:      {X}%                                     │   ║
@@ -990,6 +990,8 @@ Display after completing a part's capstone project:
 ║                      ▶ CONTINUE TO PART {N+1} ◀                      ║
 ╚══════════════════════════════════════════════════════════════════════╝
 ```
+
+`{capstone_result}` depends on how the capstone was resolved: the project's name followed by `COMPLETE ★` if the learner completed it, or `SKIPPED ☆` if they skipped it. A skipped capstone was never designed, so it has no name to show.
 
 ### Victory Screen
 
