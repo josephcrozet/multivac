@@ -1011,11 +1011,11 @@ Display after completing the final capstone (Part III):
 ║   ┌──────────────────────────────────────────────────────────────┐   ║
 ║   │                    ☆ TUTORIAL MASTERED ☆                     │   ║
 ║   │                                                              │   ║
-║   │   {Difficulty} {Topic}               RANK: ★★★               │   ║
+║   │   {Difficulty} {Topic}                                       │   ║
 ║   │   ───────────────────────────────────────────────            │   ║
 ║   │   Parts Completed:      3/3   ████████████████ 100%          │   ║
 ║   │   Total Lessons:       48/48                                 │   ║
-║   │   Capstones Cleared:   {X}/3                                 │   ║
+║   │   Capstones Cleared:   {capstone_stars}                      │   ║
 ║   │   Concepts Mastered:    {N}                                  │   ║
 ║   │                                                              │   ║
 ║   │   You have proven yourself worthy.                           │   ║
@@ -1029,6 +1029,8 @@ Display after completing the final capstone (Part III):
 ```
 
 Use "Now go forth and build." for programming tutorials, "Now go forth and explore." for general tutorials.
+
+`{capstone_stars}` follows the same rule as the Completion Certificate: ★ for each completed capstone and ☆ for each skipped one, in part order (e.g. `★ ★ ☆`), from the `parts` array of `get_stats`.
 
 ### Completion Certificate
 
