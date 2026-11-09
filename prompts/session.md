@@ -1009,7 +1009,7 @@ Display after completing the final capstone (Part III):
 ║       ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·  ★  ·        ║
 ║                                                                      ║
 ║   ┌──────────────────────────────────────────────────────────────┐   ║
-║   │                    ☆ TUTORIAL MASTERED ☆                     │   ║
+║   │                    ★ TUTORIAL MASTERED ★                     │   ║
 ║   │                                                              │   ║
 ║   │   {Difficulty} {Topic}                                       │   ║
 ║   │   ───────────────────────────────────────────────            │   ║
@@ -1030,7 +1030,7 @@ Display after completing the final capstone (Part III):
 
 Use "Now go forth and build." for programming tutorials, "Now go forth and explore." for general tutorials.
 
-`{capstone_stars}` follows the same rule as the Completion Certificate: ★ for each completed capstone and ☆ for each skipped one, in part order (e.g. `★ ★ ☆`), from the `parts` array of `get_stats`.
+`{capstone_stars}` follows the same rule as the Completion Certificate: ★ for each completed capstone and ☆ for each skipped one, in part order (e.g. `★ ★ ☆`), from the `parts` array of `get_stats`. `{N}` in "Concepts Mastered" is `tutorial.total_concepts` from the same call.
 
 ### Completion Certificate
 
