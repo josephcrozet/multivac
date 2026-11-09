@@ -231,9 +231,20 @@ Calculate proportionally: `filled_chars = round(percentage / 100 * 20)`
 
 ### Status Labels
 
+Chapter rows:
+
 - `CLEAR` — Chapter completed
 - `{X}%` — Chapter in progress (show percentage)
 - `LOCKED` — Chapter not yet started (previous not complete)
+
+Capstone row, from `capstone_resolved` (`get_current_position`) and the current part's `capstone_completed` (`get_stats`):
+
+- `COMPLETE ★` — Capstone completed (full bar)
+- `SKIPPED ☆` — Capstone skipped (empty bar)
+- `READY` — All four chapters cleared, capstone not yet resolved (empty bar)
+- `LOCKED` — Chapters still in progress (empty bar)
+
+Put `◄── YOU` on the row the learner is on: the current chapter, or the Capstone row once all four chapters are cleared and the capstone isn't resolved. The template shows it on Chapter 3 only as an example.
 
 ### Review Queue Display
 
