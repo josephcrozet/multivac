@@ -241,8 +241,8 @@ Capstone row, for the current part, using `capstone_resolved` from `get_current_
 
 - `COMPLETE ★` — Capstone resolved and completed (full bar)
 - `SKIPPED ☆` — Capstone resolved and skipped (empty bar)
-- `IN PROGRESS` — All four chapters cleared, and `CAPSTONE.md` exists in the part's capstone directory (empty bar)
-- `READY` — All four chapters cleared, and no `CAPSTONE.md` yet (empty bar)
+- `IN PROGRESS` — All four chapters cleared, capstone not resolved, and `CAPSTONE.md` exists in the part's capstone directory (empty bar)
+- `READY` — All four chapters cleared, capstone not resolved, and no `CAPSTONE.md` yet (empty bar)
 - `LOCKED` — Not all four chapters cleared yet (empty bar)
 
 `{marker}` is `◄── YOU` on the row the learner is on — the current chapter, or the Capstone row once all four chapters are cleared and the capstone isn't resolved — and blank on every other row.
