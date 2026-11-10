@@ -565,14 +565,15 @@ After `complete_lesson` — and also whenever you resume onto an already-complet
 1. **Current lesson not completed** → teach it, starting at its `current_section`: `theory` → the Lesson Flow from step 1, `exercise` → step 4, `quiz` → step 5, `socratic` → step 6. When starting past the theory, first run step 0 and call `get_lesson` for the lesson's concepts, since the earlier sections may no longer be in context; an interrupted section starts over from its beginning (a fresh exercise, the whole quiz). *(This is the resume entry point; it won't match right after `complete_lesson`.)*
 2. **`is_chapter_end` is true and `interview_resolved` is false** → run the **Mock Interview** for the current chapter (below), then `log_interview_result`.
 3. **`is_part_end` is true and `capstone_resolved` is false** → run the **Capstone Project** for the current part (below), then `log_capstone_result`.
-4. **Otherwise** (no boundary work left) → move on to the next lesson. Mid-chapter (`is_chapter_end` is false), pause first: Say "Lesson cleared." Then use `AskUserQuestion` with the question "On to the next lesson?" and these options:
+4. **The final part's capstone is resolved and the tutorial isn't complete yet** (`is_part_end` and `capstone_resolved` are true, `position.part` is 3, and `get_tutorial_metadata` doesn't report `status` as `completed`) → run **Tutorial Completion** (below). It calls `advance_position` itself, which marks the tutorial complete.
+5. **Otherwise** (no boundary work left) → move on to the next lesson. Mid-chapter (`is_chapter_end` is false), pause first: Say "Lesson cleared." Then use `AskUserQuestion` with the question "On to the next lesson?" and these options:
    - "Continue" — Start the next lesson
    - "Save & Quit" — Return to normal Claude Code
    - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
    At a chapter end, skip this pause: the next chapter's Chapter Start Screen has its own. Then call `advance_position` to move to the next lesson, and continue the Lesson Flow (handle chapter start if `is_chapter_start`).
 
-Order matters: at a part end **both** `is_chapter_end` and `is_part_end` are true, so the interview (step 2) runs before the capstone (step 3), and the pointer does not advance (step 4) until both are resolved. Every gate is read from recorded state (`interview_resolved` / `capstone_resolved`), so an interrupted step is simply re-offered on the next pass — the pointer never moves past unresolved boundary work, so nothing is lost or silently skipped.
+Order matters: at a part end **both** `is_chapter_end` and `is_part_end` are true, so the interview (step 2) runs before the capstone (step 3), and the pointer does not advance (step 5) until both are resolved. At the final part, Tutorial Completion (step 4) takes the place of step 5. Every gate is read from recorded state (`interview_resolved` / `capstone_resolved`), so an interrupted step is simply re-offered on the next pass — the pointer never moves past unresolved boundary work, so nothing is lost or silently skipped.
 
 ---
 
@@ -743,22 +744,40 @@ The student should never be permanently blocked by a flawed evaluation.
 
 ### 7. Display Completion Screen
 
-Call `get_stats` to fetch the aggregate numbers needed for the screen (use the current part's slice from the `parts` array for the Part Complete Screen, or the `tutorial` object for the Victory Screen).
-
-- If Part I or II: Display the **Part Complete Screen** (see ASCII Art section), then show the `/clear` tip from "Manage Token Usage" so the capstone gets its own session and the next part starts fresh. The pointer holds at this part's final lesson until the capstone is resolved, so the next session resumes cleanly into the next part.
-- If Part III (final): Display the **Victory Screen** (see ASCII Art section), then proceed to **Tutorial Completion** flow
+- If Part I or II: Call `get_stats` and display the **Part Complete Screen** (using the current part's slice of the `parts` array) (see ASCII Art section), then show the `/clear` tip from "Manage Token Usage" so the capstone gets its own session and the next part starts fresh. The pointer holds at this part's final lesson until the capstone is resolved, so the next session resumes cleanly into the next part.
+- If Part III (final): Return to **Lesson Boundary Routing**. Its final-part rule runs **Tutorial Completion**: the final review, then the Victory Screen.
 
 ---
 
 ## Tutorial Completion
 
-When the user completes Part III (the final part), follow this sequence after displaying the Victory Screen:
+Reached from **Lesson Boundary Routing** (step 4): the final part's capstone is resolved and the tutorial isn't complete yet. Because it's reached from recorded state, a learner who stops anywhere before `advance_position` below comes back to the final review.
 
-### 1. Pause for Appreciation
+### 1. Final Review
+
+- Call `get_review_queue` with `limit: 4`. If it returns no lessons, go straight to step 2.
+- Otherwise, say "Before the finale, there's time for one last review." Then use `AskUserQuestion` with the question "One last review?" and these options:
+  - "Quick review" (Recommended) — A few questions on earlier lessons
+  - "Continue" — On to the finale
+  - "Save & Quit" — Return to normal Claude Code
+- **If they choose "Quick review":** run the Review Queue (Lesson Flow step 2) on the lessons just returned. Then call `get_review_queue` with `limit: 4` again, say "Review complete.", and use `AskUserQuestion` with the question "Ready for the finale?" and these options:
+  - "Continue" (Recommended) — On to the finale
+  - "Review more" — Another round of review. Offer this only when `get_review_queue` returned at least one lesson.
+  - "Save & Quit" — Return to normal Claude Code
+
+  "Review more" runs the review on the lessons just returned, then asks this question again.
+- **If they choose "Continue":** go to step 2.
+- **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
+
+### 2. Victory Screen
+
+Call `get_stats` and display the **Victory Screen** (see ASCII Art section), using the `tutorial` object. Then call `advance_position`: there's no next lesson, so it marks the tutorial complete.
+
+### 3. Pause for Appreciation
 
 Say "You did it." Then use `AskUserQuestion` with a single "Continue" option to let the user appreciate the Victory Screen before it scrolls away.
 
-### 2. Roll Credits
+### 4. Roll Credits
 
 Display the credits:
 
@@ -780,7 +799,7 @@ Display the credits:
 
 Say "*Psst — legend has it Multivac still responds to those who remember the old boot sequence.*" Then on a new line, say "Thanks for playing."
 
-### 3. Offer Completion Certificate
+### 5. Offer Completion Certificate
 
 Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completion certificate?"
 
@@ -798,7 +817,7 @@ Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completi
 
 **If no:** Skip to step 4.
 
-### 4. Suggest Next Topics
+### 6. Suggest Next Topics
 
 Get `name` and `difficulty_level` from `get_tutorial_metadata` (reuse the response from step 3 if you already called it). Generate 4 personalized topic suggestions.
 
@@ -838,7 +857,7 @@ Show 3 related topics, then replay as a primary option:
 
 **Fresh start topics** are in the same broad category of learning but require starting over with new fundamentals. For a programming language, this means a different programming language. For a spoken language, this means a different spoken language. For a science, this means a different science.
 
-### 5. Recommend Resources
+### 7. Recommend Resources
 
 Use `WebSearch` to find authoritative resources for going deeper with {Topic}. Present exactly 4 recommendations, one from each category:
 
@@ -855,7 +874,7 @@ Use `WebSearch` to find authoritative resources for going deeper with {Topic}. P
 - **Course**: A popular course on a major platform (Coursera, Udemy, edX, freeCodeCamp, etc.)
 - **Creator**: A respected content creator who teaches this topic (YouTube channel, blog, podcast)
 
-### 6. Session End
+### 8. Session End
 
 The tutorial is complete. The user can `/exit` or continue chatting.
 
@@ -995,7 +1014,7 @@ Display after completing a part's capstone project:
 
 ### Victory Screen
 
-Display after completing the final capstone (Part III):
+Display at Tutorial Completion step 2, after the final review:
 
 ```
 ╔══════════════════════════════════════════════════════════════════════╗
@@ -1337,6 +1356,7 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | Lesson boundary       | `get_current_position` (route on `is_chapter_end`/`is_part_end`/`interview_resolved`/`capstone_resolved`)        |
 | After interview       | `log_interview_result`, then `get_chapter` for the Chapter Cleared Screen                                   |
 | After capstone        | `log_capstone_result`                                                                                       |
+| Tutorial end          | `get_tutorial_metadata` (not yet `completed`), `get_review_queue` for the final review, `get_stats` for the Victory Screen, then `advance_position` |
 | Move to next lesson   | `advance_position` (only once boundary work is logged, and mid-chapter once the learner chooses "Continue")  |
 | Before book save      | `get_preferences` (check `book`)                                                                            |
 | Progress check        | `get_stats`, `get_review_queue`                                                                             |
