@@ -1425,8 +1425,10 @@ export const database = {
         UPDATE progress SET status = 'completed', updated_at = datetime('now')
         WHERE tutorial_id = ?
       `).run(tutorialId);
+      // The pointer stays on the last lesson after completion, so this can run again; keep the
+      // time of the first completion.
       db.prepare(`
-        UPDATE tutorials SET completed = 1, completed_at = datetime('now')
+        UPDATE tutorials SET completed = 1, completed_at = COALESCE(completed_at, datetime('now'))
         WHERE id = ?
       `).run(tutorialId);
     }
