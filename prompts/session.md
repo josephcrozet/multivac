@@ -314,6 +314,7 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 
 **If a tutorial exists (call succeeded):**
 
+- **If it's already complete,** there's no lesson to resume. Call `get_tutorial_metadata`, and if its `status` is `completed`, read `~/.claude/commands/menu.md` and show its completed-tutorial menu, then follow that file from there. Skip the rest of this step.
 - You now have the current position (part, chapter, lesson, `is_chapter_start`), the boundary facts (`is_chapter_end`, `is_part_end`, `interview_resolved`, `capstone_resolved`), and the tutorial's `type` and `difficulty_level`
 - **Show where they left off:** when the learner is coming back to the tutorial at the start of a session, call `get_chapter_progress` with `current_chapter.id`, say "Welcome back — here's where you left off:", and display the result verbatim. Skip it when `is_chapter_start` is true and `current_section` is `theory`, because the Chapter Start Screen shows the same lessons. Skip it too after context was compacted mid-lesson: the learner never left, so there's nothing to come back to.
 - **Resume via Lesson Boundary Routing** (see Lesson Flow step 7): if the current lesson is **not** completed, teach it from its `current_section`; if it **is** completed, route to any pending Mock Interview or Capstone before advancing. This is what keeps a restart at a chapter/part boundary from skipping the interview/capstone
@@ -876,7 +877,7 @@ Use `WebSearch` to find authoritative resources for going deeper with {Topic}. P
 
 ### 8. Session End
 
-The tutorial is complete. The user can `/exit` or continue chatting.
+The tutorial is complete. Tell the user they can run `/menu` anytime to see their results, save their certificate, or keep reviewing. They can `/exit` or continue chatting.
 
 ---
 

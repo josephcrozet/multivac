@@ -38,7 +38,7 @@ Use `AskUserQuestion` to present options:
 
 1. **Review** — "Work through your spaced repetition queue"
 2. **View curriculum** — "See the full table of contents"
-3. **View progress** — "See your final stats, get certificate, and see suggested topics"
+3. **View results** — "Your Victory Screen, completion certificate, and suggested next topics"
 4. **More...** — "Credits, start over, or save & quit"
 
 **If "Review" selected:**
@@ -57,9 +57,9 @@ Start a review session using the same mechanics as midgame review:
 
 Display the Curriculum Tree (see format below). Then return to this menu.
 
-**If "View progress" selected (completed):**
+**If "View results" selected (completed):**
 
-1. Display the Progress Screen (see format below) — call `get_stats` for aggregate numbers and `get_part` (with `current_part.id`) for the current part's chapter breakdown
+1. Call `get_stats` and display the **Victory Screen** from `~/.claude/prompts/session.md` (ASCII Art section), filled in by its rules there
 2. Use `AskUserQuestion` to ask: "Would you like me to save a copy of your completion certificate?"
    - If yes: Generate and save the certificate following `session.md`'s "Offer Completion Certificate" step (same template and same `{difficulty}-{topic}-certificate.txt` filename), confirm save
    - If no: Continue
@@ -162,7 +162,7 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 
 **If "Save & Quit" selected:**
 
-Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
+Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. For a completed tutorial there's nothing left to pick up, so say "Run `/menu` anytime to come back to your results and reviews." instead.
 
 ---
 
