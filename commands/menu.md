@@ -193,7 +193,7 @@ Include the difficulty level (Beginner/Intermediate/Advanced).
 ║  CURRENT POSITION                                                    ║
 ║  ┌────────────────────────────────────────────────────────────────┐  ║
 ║  │  ► Chapter {C}: {chapter_name}                                 │  ║
-║  │    Lesson {L}: {lesson_name}                                   │  ║
+║  │    {current_item}                                              │  ║
 ║  └────────────────────────────────────────────────────────────────┘  ║
 ║                                                                      ║
 ║  PART PROGRESS                                                       ║
@@ -236,6 +236,8 @@ Chapter rows:
 - `CLEAR` — Chapter completed
 - `{X}%` — Chapter in progress (show percentage)
 - `LOCKED` — Chapter not yet started (previous not complete)
+
+`{current_item}` in CURRENT POSITION is what the learner is on, from `get_current_position`: "Lesson {L}: {lesson_name}" while the current lesson isn't completed. Once it is, it's the boundary work after it: "Mock Interview" if `is_chapter_end` is true and `interview_resolved` is false, or "Capstone Project" if `is_part_end` is true, the interview is resolved, and `capstone_resolved` is false.
 
 Capstone row, for the current part, using `capstone_resolved` from `get_current_position` and the part's `capstone_completed` from `get_stats`:
 

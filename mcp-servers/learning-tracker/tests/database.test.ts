@@ -291,6 +291,9 @@ test('curriculum tree lifecycle', async (t) => {
     assert.equal(refused.advanced, false);
     assert.match(refused.reason ?? '', /interview/);
     assert.equal(database.getChapter(ch11Id)!.chapter.completed, false); // chapter not complete w/o interview
+    // The tree shows the learner on the interview, not on a lesson they've finished.
+    const hereLines = database.getCurriculumTree()!.split('\n').filter((l) => l.includes('YOU ARE HERE'));
+    assert.deepEqual(hereLines, ['│  └─ ► Mock Interview  ◄── YOU ARE HERE']);
     database.logInterviewResult(ch11Id, 32, 40, 'ok');
     assert.equal(database.getChapter(ch11Id)!.chapter.completed, true);
     assert.equal(database.advancePosition()!.advanced, true); // now it advances
@@ -315,6 +318,9 @@ test('curriculum tree lifecycle', async (t) => {
     r = database.advancePosition()!;
     assert.equal(r.advanced, false);
     assert.match(r.reason ?? '', /capstone/); // then capstone gate
+    // With the interview logged, the tree shows the learner on the capstone.
+    const hereLines = database.getCurriculumTree()!.split('\n').filter((l) => l.includes('YOU ARE HERE'));
+    assert.deepEqual(hereLines, ['└─ ► Capstone Project  ◄── YOU ARE HERE']);
     database.logCapstoneResult(part1Id, false, 'skipped'); // a SKIP resolves the gate
     assert.equal(database.advancePosition()!.advanced, true); // now it advances
   });

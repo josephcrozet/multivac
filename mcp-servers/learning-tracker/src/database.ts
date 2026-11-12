@@ -354,24 +354,35 @@ function formatCurriculumTree(
   lines.push('═'.repeat(header.length));
   lines.push('');
 
+  const here = '  ◄── YOU ARE HERE';
+
   parts.forEach((part, partIdx) => {
     lines.push(`PART ${ROMAN_NUMERALS[partIdx]}: ${part.name}`);
+    let capstoneIsCurrent = false;
 
-    part.chapters.forEach((chapter) => {
+    part.chapters.forEach((chapter, chapterIdx) => {
       lines.push(`├─ Chapter ${chapter.sort_order}: ${chapter.name}`);
 
       chapter.lessons.forEach((lesson) => {
         const isCurrent = !lesson.completed && lesson.id === currentLessonId;
         const marker = lesson.completed ? '✓' : isCurrent ? '►' : '○';
-        const suffix = isCurrent ? '  ◄── YOU ARE HERE' : '';
-        lines.push(`│  ├─ ${marker} Lesson ${lesson.sort_order}: ${lesson.name}${suffix}`);
+        lines.push(`│  ├─ ${marker} Lesson ${lesson.sort_order}: ${lesson.name}${isCurrent ? here : ''}`);
       });
 
-      const interviewMarker = chapter.has_interview ? '✓' : '○';
-      lines.push(`│  └─ ${interviewMarker} Mock Interview`);
+      // Once the pointer's lesson is the chapter's last and it's done, the learner is on the
+      // boundary work after it: the chapter's interview, then, at the part's end, its capstone.
+      const lastLesson = chapter.lessons[chapter.lessons.length - 1];
+      const atBoundary = lastLesson?.id === currentLessonId && lastLesson.completed;
+      const interviewIsCurrent = atBoundary && !chapter.has_interview;
+      if (atBoundary && chapter.has_interview && chapterIdx === part.chapters.length - 1 && part.capstone === 'upcoming') {
+        capstoneIsCurrent = true;
+      }
+      const interviewMarker = chapter.has_interview ? '✓' : interviewIsCurrent ? '►' : '○';
+      lines.push(`│  └─ ${interviewMarker} Mock Interview${interviewIsCurrent ? here : ''}`);
     });
 
-    lines.push(`└─ ${CAPSTONE_MARKERS[part.capstone]} Capstone Project`);
+    const capstoneMarker = capstoneIsCurrent ? '►' : CAPSTONE_MARKERS[part.capstone];
+    lines.push(`└─ ${capstoneMarker} Capstone Project${capstoneIsCurrent ? here : ''}`);
     lines.push('');
   });
 

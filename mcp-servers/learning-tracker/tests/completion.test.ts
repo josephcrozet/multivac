@@ -38,8 +38,10 @@ test('completing a tutorial', async (t) => {
     assert.notStrictEqual(metadata.completed_at, null);
   });
 
-  await t.test('the tree marks a completed capstone ★', () => {
-    assert.ok(database.getCurriculumTree()!.includes('└─ ★ Capstone Project'));
+  await t.test('the tree marks a completed capstone ★, with nothing left marked current', () => {
+    const tree = database.getCurriculumTree()!;
+    assert.ok(tree.includes('└─ ★ Capstone Project'));
+    assert.ok(!tree.includes('YOU ARE HERE'));
   });
 
   await t.test('advancing again keeps the time of the first completion', async () => {
