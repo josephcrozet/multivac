@@ -947,10 +947,10 @@ Display at the start of each chapter (12 total across the tutorial):
 ║  │                                                                │  ║
 ║  │   {Brief chapter description}                                  │  ║
 ║  │                                                                │  ║
-║  │   ◆ Lesson 1: {name}                                           │  ║
-║  │   ◇ Lesson 2: {name}                                           │  ║
-║  │   ◇ Lesson 3: {name}                                           │  ║
-║  │   ◇ Lesson 4: {name}                                           │  ║
+║  │   ► Lesson 1: {name}                                           │  ║
+║  │   ○ Lesson 2: {name}                                           │  ║
+║  │   ○ Lesson 3: {name}                                           │  ║
+║  │   ○ Lesson 4: {name}                                           │  ║
 ║  │                                                                │  ║
 ║  └────────────────────────────────────────────────────────────────┘  ║
 ║                                                                      ║
@@ -958,7 +958,7 @@ Display at the start of each chapter (12 total across the tutorial):
 ╚══════════════════════════════════════════════════════════════════════╝
 ```
 
-Use ◆ for current lesson, ◇ for upcoming lessons, ✓ for completed.
+Use ► for the current lesson, ○ for upcoming lessons, and ✓ for completed ones, as in the curriculum tree.
 
 ### Chapter Cleared Screen
 
@@ -988,7 +988,7 @@ Display after completing a part's capstone project:
 ```
 ╔══════════════════════════════════════════════════════════════════════╗
 ║                                                                      ║
-║                ★ ★ ★  P A R T   C L E A R E D  ★ ★ ★                 ║
+║                ◆ ◆ ◆  P A R T   C L E A R E D  ◆ ◆ ◆                 ║
 ║                                                                      ║
 ║   ██████╗  █████╗ ██████╗ ████████╗    {N}                           ║
 ║   ██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝                                  ║

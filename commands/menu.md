@@ -245,7 +245,7 @@ Capstone row, for the current part, using `capstone_resolved` from `get_current_
 - `READY` — All four chapters cleared, capstone not resolved, and no `CAPSTONE.md` yet (empty bar)
 - `LOCKED` — Not all four chapters cleared yet (empty bar)
 
-`{marker}` is `◄── YOU` on the row the learner is on — the current chapter, or the Capstone row once all four chapters are cleared and the capstone isn't resolved — and blank on every other row.
+`{marker}` is `◄── YOU ARE HERE` on the row the learner is on — the current chapter, or the Capstone row once all four chapters are cleared and the capstone isn't resolved — and blank on every other row.
 
 `{capstone_stars}` in STATS shows one symbol per part, in part order (★ completed, ☆ skipped, ◇ not reached yet):
 
@@ -282,7 +282,7 @@ For each lesson in the queue:
 ║  ┌────────────────────────────────────────────────────────────────┐  ║
 ║  │  Chapter 1  ████████████████████  CLEAR                        │  ║
 ║  │  Chapter 2  ████████████████████  CLEAR                        │  ║
-║  │  Chapter 3  █████████░░░░░░░░░░░  45%    ◄── YOU               │  ║
+║  │  Chapter 3  █████████░░░░░░░░░░░  45%    ◄── YOU ARE HERE      │  ║
 ║  │  Chapter 4  ░░░░░░░░░░░░░░░░░░░░  LOCKED                       │  ║
 ║  │  Capstone   ░░░░░░░░░░░░░░░░░░░░  LOCKED                       │  ║
 ║  └────────────────────────────────────────────────────────────────┘  ║
