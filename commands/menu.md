@@ -239,7 +239,7 @@ Chapter rows:
 
 Capstone row, for the current part, using `capstone_resolved` from `get_current_position` and the part's `capstone_completed` from `get_stats`:
 
-- `COMPLETE ★` — Capstone resolved and completed (full bar)
+- `CLEAR ★` — Capstone resolved and cleared (full bar)
 - `SKIPPED ☆` — Capstone resolved and skipped (empty bar)
 - `IN PROGRESS` — All four chapters cleared, capstone not resolved, and `CAPSTONE.md` exists in the part's capstone directory (empty bar)
 - `READY` — All four chapters cleared, capstone not resolved, and no `CAPSTONE.md` yet (empty bar)
@@ -247,7 +247,7 @@ Capstone row, for the current part, using `capstone_resolved` from `get_current_
 
 `{marker}` is `◄── YOU ARE HERE` on the row the learner is on — the current chapter, or the Capstone row once all four chapters are cleared and the capstone isn't resolved — and blank on every other row.
 
-`{capstone_stars}` in STATS shows one symbol per part, in part order (★ completed, ☆ skipped, ◇ not reached yet):
+`{capstone_stars}` in STATS shows one symbol per part, in part order (★ cleared, ☆ skipped, ◇ upcoming):
 
 - Earlier parts: ★ if `capstone_completed` is true, otherwise ☆
 - The current part: ◇ until `capstone_resolved` is true, then ★ or ☆ the same way
@@ -337,5 +337,5 @@ PART II: ...
 PART III: ...
 
 ──────────────────────────
-Legend: ✓ completed  ► current  ○ upcoming  ·  Capstones: ★ cleared  ☆ skipped  ◇ not reached
+Legend: ✓ cleared  ► current  ○ upcoming  ·  Capstones: ★ cleared  ☆ skipped  ◇ upcoming
 ```
