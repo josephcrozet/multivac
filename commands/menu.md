@@ -331,11 +331,11 @@ PART I: {part_name}
 ├─ Chapter 2: {chapter_name}
 │  └─ ...
 ...
-└─ ◆ Capstone Project
+└─ ◇ Capstone Project
 
 PART II: ...
 PART III: ...
 
 ──────────────────────────
-Legend: ✓ completed  ► current  ○ upcoming  ◆ capstone
+Legend: ✓ completed  ► current  ○ upcoming  ·  Capstones: ★ cleared  ☆ skipped  ◇ not reached
 ```

@@ -93,7 +93,7 @@ test('curriculum tree lifecycle', async (t) => {
 
   await t.test('tree includes the legend line', () => {
     const tree = database.getCurriculumTree()!;
-    assert.ok(tree.includes('Legend: ✓ completed  ► current  ○ upcoming  ◆ capstone'));
+    assert.ok(tree.includes('Legend: ✓ completed  ► current  ○ upcoming  ·  Capstones: ★ cleared  ☆ skipped  ◇ not reached'));
   });
 
   await t.test('all 48 lessons are initially marked ○', () => {
@@ -108,10 +108,10 @@ test('curriculum tree lifecycle', async (t) => {
     assert.ok(interviewLines.every((l) => l.includes('○')));
   });
 
-  await t.test('all 3 capstones are initially marked ◆', () => {
+  await t.test('all 3 capstones are initially marked ◇', () => {
     const tree = database.getCurriculumTree()!;
     const capstoneLines = tree.split('\n').filter((l) => l.includes('Capstone Project'));
-    assert.ok(capstoneLines.every((l) => l.includes('◆')));
+    assert.ok(capstoneLines.every((l) => l.includes('◇')));
   });
 
   await t.test('after startTutorial, first lesson shows ► and YOU ARE HERE', () => {
@@ -317,6 +317,11 @@ test('curriculum tree lifecycle', async (t) => {
     assert.match(r.reason ?? '', /capstone/); // then capstone gate
     database.logCapstoneResult(part1Id, false, 'skipped'); // a SKIP resolves the gate
     assert.equal(database.advancePosition()!.advanced, true); // now it advances
+  });
+
+  await t.test('the tree marks a skipped capstone ☆ and the ones not reached ◇', () => {
+    const capstoneLines = database.getCurriculumTree()!.split('\n').filter((l) => l.includes('Capstone Project'));
+    assert.deepEqual(capstoneLines, ['└─ ☆ Capstone Project', '└─ ◇ Capstone Project', '└─ ◇ Capstone Project']);
   });
 
   await t.test('part completion = all chapters complete; a skipped capstone still counts (just unstarred)', () => {
