@@ -138,7 +138,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'get_stats',
-        description: 'Get aggregate stats for the tutorial: overall counts (lessons, concepts, interviews, capstones) and quiz/interview averages, plus the same breakdown per part. Lightweight — use for any screen that displays scores or progress (Part Complete Screen, Victory Screen, Progress Screen, Certificate) instead of get_tutorial.',
+        description: 'Get aggregate stats for the tutorial: overall counts (lessons, concepts, interviews, capstones) and quiz/interview averages, plus the same breakdown per part. Lightweight — use for any screen that displays scores or progress (Part Cleared Screen, Victory Screen, Progress Screen, Certificate) instead of get_tutorial.',
         inputSchema: {
           type: 'object',
           properties: {},

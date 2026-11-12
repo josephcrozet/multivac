@@ -93,7 +93,7 @@ test('curriculum tree lifecycle', async (t) => {
 
   await t.test('tree includes the legend line', () => {
     const tree = database.getCurriculumTree()!;
-    assert.ok(tree.includes('Legend: ✓ completed  ► current  ○ upcoming  ·  Capstones: ★ cleared  ☆ skipped  ◇ not reached'));
+    assert.ok(tree.includes('Legend: ✓ cleared  ► current  ○ upcoming  ·  Capstones: ★ cleared  ☆ skipped  ◇ upcoming'));
   });
 
   await t.test('all 48 lessons are initially marked ○', () => {
@@ -319,7 +319,7 @@ test('curriculum tree lifecycle', async (t) => {
     assert.equal(database.advancePosition()!.advanced, true); // now it advances
   });
 
-  await t.test('the tree marks a skipped capstone ☆ and the ones not reached ◇', () => {
+  await t.test('the tree marks a skipped capstone ☆ and the upcoming ones ◇', () => {
     const capstoneLines = database.getCurriculumTree()!.split('\n').filter((l) => l.includes('Capstone Project'));
     assert.deepEqual(capstoneLines, ['└─ ☆ Capstone Project', '└─ ◇ Capstone Project', '└─ ◇ Capstone Project']);
   });

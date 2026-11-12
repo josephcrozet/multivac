@@ -215,7 +215,7 @@ Long conversations accumulate context that gets re-sent with each message, accel
   > Great work completing this chapter!
   >
   > Tip: To keep things running smoothly, run `/clear` to reset context. Your progress is saved — you'll be prompted to continue automatically.
-- After completing a capstone (Part I or II), display the same tip once the Part Complete Screen is shown — a capstone is the heaviest unit in the curriculum, so it gets its own session rather than stacking on top of the next part's first chapter. See Part Completion step 7.
+- After completing a capstone (Part I or II), display the same tip once the Part Cleared Screen is shown — a capstone is the heaviest unit in the curriculum, so it gets its own session rather than stacking on top of the next part's first chapter. See Part Completion step 7.
 - The MCP server preserves all progress — clearing context or starting a new session both pick up from where you left off
 
 **Be selective with file reads:**
@@ -745,7 +745,7 @@ The student should never be permanently blocked by a flawed evaluation.
 
 ### 7. Display Completion Screen
 
-- If Part I or II: Call `get_stats` and display the **Part Complete Screen** (using the current part's slice of the `parts` array) (see ASCII Art section), then show the `/clear` tip from "Manage Token Usage" so the capstone gets its own session and the next part starts fresh. The pointer holds at this part's final lesson until the capstone is resolved, so the next session resumes cleanly into the next part.
+- If Part I or II: Call `get_stats` and display the **Part Cleared Screen** (using the current part's slice of the `parts` array) (see ASCII Art section), then show the `/clear` tip from "Manage Token Usage" so the capstone gets its own session and the next part starts fresh. The pointer holds at this part's final lesson until the capstone is resolved, so the next session resumes cleanly into the next part.
 - If Part III (final): Return to **Lesson Boundary Routing**. Its final-part rule runs **Tutorial Completion**: the final review, then the Victory Screen.
 
 ---
@@ -981,7 +981,7 @@ Display at the end of each chapter, once its interview is logged (12 total acros
 
 Keep every line exactly 72 characters wide. Names and numbers vary in length, so pad each line to fit rather than shifting the right border, and keep the progress bar in its column — if a long chapter name would run into it, shorten the name.
 
-### Part Complete Screen
+### Part Cleared Screen
 
 Display after completing a part's capstone project:
 
@@ -1011,7 +1011,7 @@ Display after completing a part's capstone project:
 ╚══════════════════════════════════════════════════════════════════════╝
 ```
 
-`{capstone_result}` depends on how the capstone was resolved: the project's title from `CAPSTONE.md` followed by `COMPLETE ★` if the learner completed it, or `SKIPPED ☆` if they skipped it. A skipped capstone was never designed and has no `CAPSTONE.md`, so it has no name to show.
+`{capstone_result}` depends on how the capstone was resolved: the project's title from `CAPSTONE.md` followed by `CLEAR ★` if the learner completed it, or `SKIPPED ☆` if they skipped it. A skipped capstone was never designed and has no `CAPSTONE.md`, so it has no name to show.
 
 ### Victory Screen
 
@@ -1035,7 +1035,7 @@ Display at Tutorial Completion step 2, after the final review:
 ║   │                                                              │   ║
 ║   │   {Difficulty} {Topic}                                       │   ║
 ║   │   ───────────────────────────────────────────────            │   ║
-║   │   Parts Completed:      3/3   ████████████████ 100%          │   ║
+║   │   Parts Cleared:        3/3   ████████████████ 100%          │   ║
 ║   │   Total Lessons:       48/48                                 │   ║
 ║   │   Capstones Cleared:   {capstone_stars}                      │   ║
 ║   │   Concepts Mastered:    {N}                                  │   ║
