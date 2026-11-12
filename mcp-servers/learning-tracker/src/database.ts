@@ -337,8 +337,11 @@ interface CurriculumTreeChapter {
 interface CurriculumTreePart {
   name: string;
   chapters: CurriculumTreeChapter[];
-  capstone_completed: boolean;
+  capstone: 'completed' | 'skipped' | 'pending';
 }
+
+// The same capstone symbols the Victory Screen, certificate, and progress screen use.
+const CAPSTONE_MARKERS = { completed: '★', skipped: '☆', pending: '◇' } as const;
 
 function formatCurriculumTree(
   tutorialName: string,
@@ -368,13 +371,12 @@ function formatCurriculumTree(
       lines.push(`│  └─ ${interviewMarker} Mock Interview`);
     });
 
-    const capstoneMarker = part.capstone_completed ? '✓' : '◆';
-    lines.push(`└─ ${capstoneMarker} Capstone Project`);
+    lines.push(`└─ ${CAPSTONE_MARKERS[part.capstone]} Capstone Project`);
     lines.push('');
   });
 
   lines.push('──────────────────────────');
-  lines.push('Legend: ✓ completed  ► current  ○ upcoming  ◆ capstone');
+  lines.push('Legend: ✓ completed  ► current  ○ upcoming  ·  Capstones: ★ cleared  ☆ skipped  ◇ not reached');
 
   return lines.join('\n');
 }
@@ -966,7 +968,7 @@ export const database = {
       return {
         name: part.name,
         chapters: treeChapters,
-        capstone_completed: capstoneResult ? !!capstoneResult.completed : false,
+        capstone: !capstoneResult ? 'pending' : capstoneResult.completed ? 'completed' : 'skipped',
       };
     });
 
