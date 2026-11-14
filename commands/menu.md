@@ -107,7 +107,7 @@ Use `AskUserQuestion` with the question "More options:" and these options:
 
 1. **Back to menu** — "Return to the main menu"
 2. **Credits** — "See who made this"
-3. **Start over** — "Clear all progress and restart"
+3. **Start over** — "Restart this tutorial, or begin a new topic"
 4. **Save & Quit** — "Return to normal Claude Code"
 
 **If "Back to menu" selected:**
@@ -143,7 +143,7 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 **Options:**
 
 1. **Restart this curriculum** — "Reset your progress but keep the same lesson structure"
-2. **New game** — "Delete everything and start fresh on a new topic"
+2. **New game** — "Start a new topic in a separate project"
 3. **Cancel** — "Go back without changing anything"
 
 **If "Cancel":** Return to the main menu.
@@ -156,9 +156,13 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 
 **If "New game":**
 
-- Delete the `.multivac/learning.db` file
-- Tell the user: "Tutorial deleted. Run `/clear` to reset the conversation context, then `/tutorial` to set up your new topic."
-- End the command (do not auto-start the tutorial)
+A new topic gets its own project directory, like any tutorial created with `multivac`. This project is left exactly as it is.
+
+- Ask in plain text which topic they'd like to learn next, and wait for their answer.
+- Using the Bash tool, run `multivac '{topic}' --new`. `--new` never prompts: if a project for that topic already exists, it creates a numbered one (e.g. `ruby-2`) rather than touching it. The output ends with the `cd {path} && claude` line for the new project.
+- Tell the user: "Your new {topic} tutorial is ready. This one stays as it is. A running session can't switch projects, so to start it, run `/exit`, then:" followed by that `cd {path} && claude` line.
+- If `multivac` isn't found, tell them to run `/exit`, then `multivac '{topic}'` in their terminal instead.
+- End the command (do not start the new tutorial here)
 
 **If "Save & Quit" selected:**
 
