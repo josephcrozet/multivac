@@ -596,6 +596,58 @@ function currentSection(lesson: { id: number; completed: number | boolean }): Se
   return currentLessonId === lesson.id ? progress.current_section : 'theory';
 }
 
+// The final score, out of 2000: 576 for quiz answers (one point each), 480 for interviews (the
+// raw score out of 40), 144 for clearing chapters (12 each), 600 for capstones (200 each,
+// completed only), and 200 for the review queue, less 4 for each lesson still in it. A full
+// queue of 48 leaves 8, so a finished tutorial scores at least 152.
+export const SCORE_MAX = 2000;
+const POINTS_PER_CHAPTER_CLEARED = 12;
+const POINTS_PER_CAPSTONE = 200;
+const REVIEW_POINTS = 200;
+const REVIEW_PENALTY_PER_LESSON = 4;
+
+export type Rank = 'S+' | 'S' | 'A' | 'B' | 'C' | 'D' | 'E';
+const RANK_THRESHOLDS: [Rank, number][] = [['S+', 2000], ['S', 1800], ['A', 1500], ['B', 1200], ['C', 900], ['D', 600]];
+
+export interface Score {
+  points: number;
+  max: number;
+  rank: Rank;
+  breakdown: { quizzes: number; interviews: number; chapters: number; capstones: number; review: number };
+}
+
+function rankFor(points: number): Rank {
+  return RANK_THRESHOLDS.find(([, min]) => points >= min)?.[0] ?? 'E';
+}
+
+function computeScore(tutorialId: number): Score {
+  const quizzes = (db.prepare(`
+    SELECT COALESCE(SUM(ROUND(qr.score * 12.0 / qr.total)), 0) as points FROM quiz_results qr
+    JOIN lessons l ON qr.lesson_id = l.id JOIN chapters c ON l.chapter_id = c.id JOIN parts p ON c.part_id = p.id
+    WHERE p.tutorial_id = ? AND qr.total > 0
+  `).get(tutorialId) as { points: number }).points;
+  const interviews = (db.prepare(`
+    SELECT COALESCE(SUM(best), 0) as points FROM (
+      SELECT MAX(ROUND(ir.score * 40.0 / ir.total)) as best FROM interview_results ir
+      JOIN chapters c ON ir.chapter_id = c.id JOIN parts p ON c.part_id = p.id
+      WHERE p.tutorial_id = ? AND ir.total > 0 GROUP BY ir.chapter_id
+    )
+  `).get(tutorialId) as { points: number }).points;
+  const chapterIds = db.prepare(`
+    SELECT c.id FROM chapters c JOIN parts p ON c.part_id = p.id WHERE p.tutorial_id = ?
+  `).all(tutorialId) as { id: number }[];
+  const chapters = chapterIds.filter(c => isChapterComplete(c.id)).length * POINTS_PER_CHAPTER_CLEARED;
+  const capstones = (db.prepare(`
+    SELECT COUNT(DISTINCT cr.part_id) as n FROM capstone_results cr JOIN parts p ON cr.part_id = p.id
+    WHERE p.tutorial_id = ? AND cr.completed = 1
+  `).get(tutorialId) as { n: number }).n * POINTS_PER_CAPSTONE;
+  const queued = (db.prepare('SELECT COUNT(*) as n FROM review_queue WHERE tutorial_id = ?').get(tutorialId) as { n: number }).n;
+  const review = Math.max(0, REVIEW_POINTS - REVIEW_PENALTY_PER_LESSON * queued);
+
+  const points = quizzes + interviews + chapters + capstones + review;
+  return { points, max: SCORE_MAX, rank: rankFor(points), breakdown: { quizzes, interviews, chapters, capstones, review } };
+}
+
 // Structural boundary facts: is this the last lesson of its chapter / last chapter of its part.
 function isLastLessonInChapter(chapterId: number, lessonSortOrder: number): boolean {
   const max = db.prepare('SELECT MAX(sort_order) as m FROM lessons WHERE chapter_id = ?').get(chapterId) as { m: number | null };
@@ -998,6 +1050,7 @@ export const database = {
       capstones_completed: number;
       total_capstones: number;
     };
+    score: Score;
     parts: Array<{
       part_id: number;
       name: string;
@@ -1121,6 +1174,7 @@ export const database = {
         capstones_completed: capstoneStats.completed ?? 0,
         total_capstones: capstoneStats.total,
       },
+      score: computeScore(tutorialId),
       parts: partStats,
     };
   },
