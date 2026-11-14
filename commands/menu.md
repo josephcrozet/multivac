@@ -143,7 +143,7 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 **Options:**
 
 1. **Restart this curriculum** — "Reset your progress but keep the same lesson structure"
-2. **New game** — "Start a new topic in its own project (this one stays as it is)"
+2. **New game** — "Start a new topic in a separate project"
 3. **Cancel** — "Go back without changing anything"
 
 **If "Cancel":** Return to the main menu.
