@@ -3,7 +3,6 @@ import assert from 'node:assert';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { setTimeout as sleep } from 'node:timers/promises';
 import type { Curriculum } from '../src/database.js';
 
 // The smallest whole tutorial: one part, one chapter, one lesson, so it can be finished quickly.
@@ -53,13 +52,15 @@ test('completing a tutorial', async (t) => {
     assert.deepEqual(database.getStats()!.score, frozen);
   });
 
-  await t.test('advancing again keeps the time and score of the first completion', async () => {
-    const first = database.getTutorialMetadata()!.completed_at;
+  await t.test('advancing again is refused, leaving the completion as it was', () => {
+    const metadata = database.getTutorialMetadata()!;
     const frozen = database.getStats()!.score;
-    await sleep(1100); // datetime('now') has one-second resolution
-    assert.equal(database.advancePosition()!.tutorial_completed, true);
-    assert.equal(database.getTutorialMetadata()!.completed_at, first);
-    // The queue emptied after completion, so re-freezing would raise the review points.
+    const result = database.advancePosition()!;
+    assert.equal(result.advanced, false);
+    assert.equal(result.tutorial_completed, true);
+    assert.match(result.reason ?? '', /already complete/);
+    assert.equal(database.getTutorialMetadata()!.completed_at, metadata.completed_at);
+    // The queue emptied after completion, so completing again would raise the review points.
     assert.deepEqual(database.getStats()!.score, frozen);
   });
 

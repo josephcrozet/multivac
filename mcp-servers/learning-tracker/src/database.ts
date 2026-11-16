@@ -1439,7 +1439,9 @@ export const database = {
   // the flow, and advancing would strand the work behind the forward-only pointer:
   // a permanent "hole" (skipped lesson/interview never re-offered, or a never-run
   // capstone). `advanced: false` signals the no-op. ("Resolved" allows a skipped
-  // capstone through — skip records a result row, so the gate is satisfied.)
+  // capstone through — skip records a result row, so the gate is satisfied.) It also refuses
+  // once the tutorial is complete: the pointer stays on the last lesson, where every other
+  // check passes, so without this a repeat call would complete the tutorial again.
   advancePosition(): {
     advanced: boolean;
     reason?: string;
@@ -1465,6 +1467,10 @@ export const database = {
       tutorial_completed: false
     });
 
+    const status = (db.prepare('SELECT status FROM progress WHERE tutorial_id = ?').get(tutorialId) as { status: string } | undefined)?.status;
+    if (status === 'completed') {
+      return { ...refuse('the tutorial is already complete — there is nothing left to advance to'), tutorial_completed: true };
+    }
     if (!previousLesson.completed) {
       return refuse('current lesson is not completed — call complete_lesson before advancing');
     }
@@ -1506,11 +1512,8 @@ export const database = {
         UPDATE progress SET status = 'completed', updated_at = datetime('now')
         WHERE tutorial_id = ?
       `).run(tutorialId);
-      // The pointer stays on the last lesson after completion, so this can run again; keep the
-      // time and the score of the first completion.
       db.prepare(`
-        UPDATE tutorials SET completed = 1, completed_at = COALESCE(completed_at, datetime('now')),
-          final_score = COALESCE(final_score, ?)
+        UPDATE tutorials SET completed = 1, completed_at = datetime('now'), final_score = ?
         WHERE id = ?
       `).run(JSON.stringify(computeScore(tutorialId)), tutorialId);
     }
