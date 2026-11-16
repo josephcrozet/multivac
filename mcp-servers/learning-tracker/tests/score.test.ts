@@ -48,10 +48,12 @@ test('the final score and rank', async (t) => {
       }
       if (pos.is_chapter_end && !pos.interview_resolved) database.logInterviewResult(pos.current_chapter!.id, interview, 40);
       if (pos.is_part_end && !pos.capstone_resolved) database.logCapstoneResult(pos.current_part!.id, capstones);
+      // The final review comes before the last advance, which completes the tutorial and freezes
+      // the score.
+      if (clearQueue && pos.is_part_end && pos.position!.part === 3) {
+        for (const item of database.getReviewQueue(48)!.queue) database.logReviewResult(item.lesson.id, true);
+      }
       if (database.advancePosition()!.tutorial_completed) break;
-    }
-    if (clearQueue) {
-      for (const item of database.getReviewQueue(48)!.queue) database.logReviewResult(item.lesson.id, true);
     }
     return database.getStats()!.score;
   };
