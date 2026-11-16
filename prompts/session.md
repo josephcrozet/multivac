@@ -626,7 +626,7 @@ Reached from **Lesson Boundary Routing** (step 3): the current part's chapters a
 
 ### 1. Announce
 
-"Congratulations! You've completed all chapters in Part {N}. Time for your capstone project! Completing it earns this part's ★, which shows on your Victory Screen and completion certificate."
+"Congratulations! You've completed all chapters in Part {N}. Time for your capstone project! Completing it earns this part's ★, which counts toward your final rank and shows on your completion certificate."
 
 Then suggest naming the session for the capstone:
 > Tip: Run `/rename {Topic}-{Part}-Capstone` to keep your sessions organized.
@@ -772,7 +772,7 @@ Reached from **Lesson Boundary Routing** (step 4): the final part's capstone is 
 
 ### 2. Victory Screen
 
-Call `get_stats` and display the **Victory Screen** (see ASCII Art section), using the `tutorial` object. Then call `advance_position`: there's no next lesson, so it marks the tutorial complete.
+Call `advance_position`: there's no next lesson, so it marks the tutorial complete and freezes the final score. Say "You have proven yourself worthy." Then call `get_stats` and display the **Victory Screen** (see ASCII Art section), using its `tutorial` object and `score`.
 
 ### 3. Pause for Appreciation
 
@@ -1034,13 +1034,14 @@ Display at Tutorial Completion step 2, after the final review:
 ║   │                    ★ TUTORIAL MASTERED ★                     │   ║
 ║   │                                                              │   ║
 ║   │   {Difficulty} {Topic}                                       │   ║
+║   │   SCORE: {score}   RANK: {rank}                              │   ║
 ║   │   ───────────────────────────────────────────────            │   ║
 ║   │   Parts Cleared:        3/3   ████████████████ 100%          │   ║
 ║   │   Total Lessons:       48/48                                 │   ║
 ║   │   Capstones Cleared:   {capstone_stars}                      │   ║
 ║   │   Concepts Mastered:    {N}                                  │   ║
 ║   │                                                              │   ║
-║   │   You have proven yourself worthy.                           │   ║
+║   │   {rank_description}                                         │   ║
 ║   │   Now go forth and build.                                    │   ║
 ║   └──────────────────────────────────────────────────────────────┘   ║
 ║                                                                      ║
@@ -1053,6 +1054,18 @@ Display at Tutorial Completion step 2, after the final review:
 Use "Now go forth and build." for programming tutorials, "Now go forth and explore." for general tutorials.
 
 `{capstone_stars}` follows the same rule as the Completion Certificate: ★ for each completed capstone and ☆ for each skipped one, in part order (e.g. `★ ★ ☆`), from the `parts` array of `get_stats`. `{N}` in "Concepts Mastered" is `tutorial.total_concepts` from the same call.
+
+`{score}` is `score.points` with a thousands separator (e.g. `1,742`), and `{rank}` is `score.rank`. `{rank_description}` is the line for that rank:
+
+| Rank | Description |
+|---|---|
+| S+ | A perfect 2,000. Flawless — you mastered it all. |
+| S | Superb. You know this inside and out. |
+| A | Excellent work. You've got a strong command of it. |
+| B | A solid run. The fundamentals are yours. |
+| C | A decent run. A replay would sharpen it. |
+| D | You reached the end. Run it again to level up. |
+| E | Finished, with some rough patches. Reviews will help. |
 
 ### Completion Certificate
 
