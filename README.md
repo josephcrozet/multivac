@@ -69,7 +69,7 @@ All capstones are skippable if you'd rather keep learning. Skipped capstones sho
 
 ### Progress Tracking
 
-Your progress persists across sessions via a local SQLite database. Pick up exactly where you left off, see your stats, and track your improvement over time. Complete the tutorial to earn a completion certificate with your quiz averages, interview scores, and capstone results.
+Your progress persists across sessions via a local SQLite database. Pick up exactly where you left off, see your stats, and track your improvement over time. Complete the tutorial to earn a final score and rank, from E up to a perfect S+, and a completion certificate with your quiz averages, interview scores, and capstone results.
 
 ```
 ╔══════════════════════════════════════════════════════════════════════╗
