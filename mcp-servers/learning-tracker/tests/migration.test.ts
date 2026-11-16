@@ -39,7 +39,7 @@ const VERSION_1_SCHEMA = `
   INSERT INTO progress (tutorial_id, current_lesson_id, status) VALUES (1, 1, 'in_progress');
 `;
 
-test('a schema version 1 database gains the section pointer', async (t) => {
+test('a schema version 1 database gains the section pointer and the final score', async (t) => {
   const tmpDir = mkdtempSync(join(tmpdir(), 'multivac-migration-test-'));
   t.after(() => rmSync(tmpDir, { recursive: true, force: true }));
 
@@ -57,10 +57,12 @@ test('a schema version 1 database gains the section pointer', async (t) => {
     assert.equal(pos.current_section, 'theory');
   });
 
-  await t.test('the pointer moves and is saved, at schema version 2', () => {
+  await t.test('the pointer moves and is saved, at schema version 3', () => {
     assert.equal(database.advanceSection()!.current_section, 'exercise');
     const saved = new SQL.Database(readFileSync(join(tmpDir, 'learning.db')));
     assert.deepEqual(saved.exec('SELECT current_section FROM progress')[0].values, [['exercise']]);
-    assert.deepEqual(saved.exec('SELECT version FROM schema_version')[0].values, [[2]]);
+    assert.deepEqual(saved.exec('SELECT version FROM schema_version')[0].values, [[3]]);
+    // Migration 2 -> 3 added the frozen final score, empty until the tutorial is completed.
+    assert.deepEqual(saved.exec('SELECT final_score FROM tutorials')[0].values, [[null]]);
   });
 });

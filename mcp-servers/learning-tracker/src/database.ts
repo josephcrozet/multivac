@@ -139,7 +139,7 @@ const db = await SqliteAdapter.open(DB_PATH);
 // 3. Use columnExists() helper for safe ALTER TABLE additions
 // ---------------------------------------------------------------------------
 
-const CURRENT_SCHEMA_VERSION = 2;
+const CURRENT_SCHEMA_VERSION = 3;
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS schema_version (
@@ -177,6 +177,11 @@ if (currentVersion < CURRENT_SCHEMA_VERSION) {
       db.exec(`ALTER TABLE progress ADD COLUMN ${CURRENT_SECTION_COLUMN}`);
     }
 
+    // Migration 2 -> 3: the final score, frozen when the tutorial is completed.
+    if (currentVersion < 3 && tableExists('tutorials') && !columnExists('tutorials', 'final_score')) {
+      db.exec('ALTER TABLE tutorials ADD COLUMN final_score TEXT');
+    }
+
     if (versionRow) {
       db.prepare('UPDATE schema_version SET version = ?').run(CURRENT_SCHEMA_VERSION);
     } else {
@@ -199,7 +204,8 @@ db.exec(`
     completed INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     completed_at TEXT,
-    preferences TEXT DEFAULT '{}'
+    preferences TEXT DEFAULT '{}',
+    final_score TEXT
   );
 
   CREATE TABLE IF NOT EXISTS parts (
@@ -646,6 +652,14 @@ function computeScore(tutorialId: number): Score {
 
   const points = quizzes + interviews + chapters + capstones + review;
   return { points, max: SCORE_MAX, rank: rankFor(points), breakdown: { quizzes, interviews, chapters, capstones, review } };
+}
+
+// The score frozen when the tutorial was completed, or null before then. After completion the
+// review queue keeps changing (post-game reviews, and a refill once it empties), so the score
+// the learner earned is the one recorded at that moment.
+function finalScore(tutorialId: number): Score | null {
+  const row = db.prepare('SELECT final_score FROM tutorials WHERE id = ?').get(tutorialId) as { final_score: string | null } | undefined;
+  return row?.final_score ? JSON.parse(row.final_score) as Score : null;
 }
 
 // Structural boundary facts: is this the last lesson of its chapter / last chapter of its part.
@@ -1174,7 +1188,7 @@ export const database = {
         capstones_completed: capstoneStats.completed ?? 0,
         total_capstones: capstoneStats.total,
       },
-      score: computeScore(tutorialId),
+      score: finalScore(tutorialId) ?? computeScore(tutorialId),
       parts: partStats,
     };
   },
@@ -1493,11 +1507,12 @@ export const database = {
         WHERE tutorial_id = ?
       `).run(tutorialId);
       // The pointer stays on the last lesson after completion, so this can run again; keep the
-      // time of the first completion.
+      // time and the score of the first completion.
       db.prepare(`
-        UPDATE tutorials SET completed = 1, completed_at = COALESCE(completed_at, datetime('now'))
+        UPDATE tutorials SET completed = 1, completed_at = COALESCE(completed_at, datetime('now')),
+          final_score = COALESCE(final_score, ?)
         WHERE id = ?
-      `).run(tutorialId);
+      `).run(JSON.stringify(computeScore(tutorialId)), tutorialId);
     }
 
     return {
@@ -1681,7 +1696,7 @@ export const database = {
       `).run(tutorialId);
 
       // Clear tutorial completion
-      db.prepare('UPDATE tutorials SET completed = 0, completed_at = NULL WHERE id = ?').run(tutorialId);
+      db.prepare('UPDATE tutorials SET completed = 0, completed_at = NULL, final_score = NULL WHERE id = ?').run(tutorialId);
 
       // Clear part completion
       db.prepare('UPDATE parts SET completed = 0 WHERE tutorial_id = ?').run(tutorialId);

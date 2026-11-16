@@ -44,10 +44,28 @@ test('completing a tutorial', async (t) => {
     assert.ok(!tree.includes('YOU ARE HERE'));
   });
 
-  await t.test('advancing again keeps the time of the first completion', async () => {
+  await t.test('the score is frozen at completion, so later reviews do not change it', () => {
+    const frozen = database.getStats()!.score;
+    assert.equal(frozen.breakdown.review, 196); // the one lesson is still in the queue: 200 - 4
+    // A post-game review empties the queue, which would raise a live score by 4.
+    const [item] = database.getReviewQueue(4)!.queue;
+    database.logReviewResult(item.lesson.id, true);
+    assert.deepEqual(database.getStats()!.score, frozen);
+  });
+
+  await t.test('advancing again keeps the time and score of the first completion', async () => {
     const first = database.getTutorialMetadata()!.completed_at;
+    const frozen = database.getStats()!.score;
     await sleep(1100); // datetime('now') has one-second resolution
     assert.equal(database.advancePosition()!.tutorial_completed, true);
     assert.equal(database.getTutorialMetadata()!.completed_at, first);
+    // The queue emptied after completion, so re-freezing would raise the review points.
+    assert.deepEqual(database.getStats()!.score, frozen);
+  });
+
+  await t.test('resetting progress clears the frozen score', () => {
+    database.resetProgress();
+    // Back to a live score: nothing earned yet, and full review points for an empty queue.
+    assert.deepEqual(database.getStats()!.score.breakdown, { quizzes: 0, interviews: 0, chapters: 0, capstones: 0, review: 200 });
   });
 });
