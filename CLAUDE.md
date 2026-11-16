@@ -104,7 +104,7 @@ Two formats based on tutorial type:
 | `get_current_position` | Current lesson/chapter/part, the lesson's `current_section`, type, difficulty_level, and boundary facts (is_chapter_start/is_chapter_end/is_part_end/interview_resolved/capstone_resolved) |
 | `complete_lesson` | Mark current lesson done + add to review queue; finishes the Socratic review, so refused until the lesson reaches it; does NOT move the pointer |
 | `advance_section` | Move the current lesson to its next section (theory → exercise → quiz → socratic) — guarded: refuses to leave the quiz before its result is logged, or to pass the Socratic review |
-| `advance_position` | Move the pointer to the next lesson — guarded: refuses unless the lesson is completed and any chapter/part boundary work is resolved |
+| `advance_position` | Move the pointer to the next lesson — guarded: refuses unless the lesson is completed and any chapter/part boundary work is resolved, and once the tutorial is complete |
 | `log_quiz_result` | Record the current lesson's quiz and move on to its Socratic review — refused unless the lesson is on its quiz |
 | `log_interview_result` | Record interview performance |
 | `log_capstone_result` | Record a capstone result (completed or skipped) |
