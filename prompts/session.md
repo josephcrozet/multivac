@@ -529,17 +529,25 @@ Once they choose "Continue", call `advance_section` to record that the exercise 
 ### 5. Quiz
 
 - Call `get_lesson` for this lesson's concepts — the same list theory taught from. Call it again here rather than trusting what's left in context: the exercise sits in between, and the quiz should be built from the recorded list, not from your memory of teaching it.
-- If `current_section` is `socratic`, this lesson's quiz is already recorded: skip the rest of this step and go straight to the Socratic Review.
+- If `quiz` is set, this lesson's quiz is already recorded: the learner stopped before moving on. Don't give it again: go straight to the post-quiz pause below, opening it with "You scored {score}/{total} on this lesson's quiz." in place of "That's the quiz."
 - Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it, and hand it those concepts as the material to quiz on. Spread the 12 questions across them so each is tested at least once — the concepts are what the lesson promised to teach, so a quiz that skips one leaves it unassessed. Build the questions from what the theory and the exercise covered, not from side questions or tangents the learner raised along the way. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
 - As you write each question, note which of the concepts it tests.
 - After the quiz completes, get the results and call `log_quiz_result` with:
   - `score`: Number correct
   - `total`: 12
   - `missed_concept_ids`: The `id` from `get_lesson` of each concept the learner got at least one question wrong on — empty if they got everything right. The review queue uses these to revisit the concepts they missed.
-- `log_quiz_result` records the quiz for the current lesson and moves it on to the Socratic review itself, so don't call `advance_section` after it.
 - Only the quiz given here is recorded. A `/quiz` the learner runs on their own is practice — don't log it.
 
 **Save to book (if enabled):** Once the quiz is finished, call `get_preferences` — if `book` is true, append the quiz to the lesson file (see Stage 3 under Book Format): each question with its options in the order shown, the user's answer, the correct answer, and your explanation, then the score and the concepts to review. Write it in one go after the last question. Do this silently before continuing.
+
+**After the quiz:** Say "That's the quiz." Then use `AskUserQuestion` with the question "On to the discussion?" and these options:
+
+- "Continue" — Start the Socratic review
+- "Save & Quit" — Return to normal Claude Code
+
+Once they choose "Continue", call `advance_section` to record that the quiz is done, then start the Socratic Review (step 6).
+
+**If they choose "Save & Quit":** the quiz is already recorded. Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. They'll come back to this question.
 
 ### 6. Socratic Review
 
@@ -1365,7 +1373,7 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | After theory          | `advance_section`                                                                                           |
 | After exercise        | `advance_section`                                                                                           |
 | Quiz                  | `get_lesson` — the concepts to quiz on, spread across the 12 questions                                      |
-| After quiz            | `log_quiz_result` (also moves the lesson on to the Socratic review)                                         |
+| After quiz            | `log_quiz_result`, then `advance_section` once the learner chooses "Continue"                               |
 | After Socratic review | `complete_lesson`, `get_chapter_progress` (shown verbatim), then Lesson Boundary Routing                    |
 | Lesson boundary       | `get_current_position` (route on `is_chapter_end`/`is_part_end`/`interview_resolved`/`capstone_resolved`)        |
 | After interview       | `log_interview_result`, then `get_chapter` for the Chapter Cleared Screen                                   |

@@ -40,6 +40,7 @@ test('chapter progress view', async (t) => {
     database.advanceSection();
     database.advanceSection();
     database.logQuizResult(12, 12, []);
+    database.advanceSection();
     database.completeLesson();
   };
 
@@ -75,7 +76,9 @@ test('chapter progress view', async (t) => {
     assert.equal(lineFor('Lesson 3:'), '  ► Lesson 3: Variables and Data Types    ███░░░░░░░  25%  ◄── in progress');
     database.advanceSection(); // exercise done: 2 of 4
     assert.match(lineFor('Lesson 3:'), /█████░░░░░  50%  ◄── in progress$/);
-    database.logQuizResult(12, 12, []); // quiz done: 3 of 4
+    database.logQuizResult(12, 12, []); // the quiz is recorded, but the learner hasn't moved on
+    assert.match(lineFor('Lesson 3:'), /█████░░░░░  50%  ◄── in progress$/);
+    database.advanceSection(); // quiz done: 3 of 4
     assert.match(lineFor('Lesson 3:'), /████████░░  75%  ◄── in progress$/);
   });
 

@@ -662,6 +662,13 @@ function finalScore(tutorialId: number): Score | null {
   return row?.final_score ? JSON.parse(row.final_score) as Score : null;
 }
 
+// A lesson's recorded quiz score, or null if it hasn't been taken.
+function quizResult(lessonId: number): { score: number; total: number } | null {
+  const row = db.prepare('SELECT score, total FROM quiz_results WHERE lesson_id = ? LIMIT 1').get(lessonId) as
+    { score: number; total: number } | undefined;
+  return row ? { score: row.score, total: row.total } : null;
+}
+
 // Structural boundary facts: is this the last lesson of its chapter / last chapter of its part.
 function isLastLessonInChapter(chapterId: number, lessonSortOrder: number): boolean {
   const max = db.prepare('SELECT MAX(sort_order) as m FROM lessons WHERE chapter_id = ?').get(chapterId) as { m: number | null };
@@ -1266,7 +1273,7 @@ export const database = {
   },
 
   getLesson(lessonId: number): {
-    lesson: Lesson & { concepts: Concept[]; current_section: Section | null };
+    lesson: Lesson & { concepts: Concept[]; current_section: Section | null; quiz: { score: number; total: number } | null };
   } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
@@ -1285,7 +1292,7 @@ export const database = {
     ).all(lessonId) as Concept[];
 
     return {
-      lesson: { ...lesson, completed: !!lesson.completed, current_section: currentSection(lesson), concepts },
+      lesson: { ...lesson, completed: !!lesson.completed, current_section: currentSection(lesson), quiz: quizResult(lessonId), concepts },
     };
   },
 
@@ -1396,9 +1403,8 @@ export const database = {
     return { completed: true, lesson };
   },
 
-  // Move the section pointer to the current lesson's next section. The one place the
-  // pointer moves forward within a lesson: log_quiz_result calls this too, so recording
-  // the quiz and leaving it are a single write.
+  // Move the section pointer to the current lesson's next section. Each move follows the
+  // learner's choice to go on, including leaving the quiz once its result is recorded.
   //
   // Guard: refuses to leave the quiz until its result is recorded, and to move past the
   // Socratic review, which complete_lesson finishes. `advanced: false` signals the no-op.
@@ -1754,8 +1760,9 @@ export const database = {
     return true;
   },
 
-  // Record the current lesson's quiz and move the section pointer on to the Socratic review,
-  // in one transaction, so a recorded quiz is never left behind a pointer still on it.
+  // Record the current lesson's quiz. The pointer stays on the quiz until the learner chooses
+  // to go on, so a recorded quiz with the pointer still on it is a normal state: the quiz is
+  // done and the learner hasn't moved on yet.
   logQuizResult(score: number, total: number, missedConceptIds: number[]): QuizResult {
     const currentPos = this.getCurrentPosition();
     const lesson = currentPos?.current_lesson;
@@ -1770,14 +1777,11 @@ export const database = {
       throw new Error(`The lesson is on its ${currentPos.current_section} section; the quiz comes after the exercise.`);
     }
 
-    return db.transaction(() => {
-      const result = db.prepare(`
-        INSERT INTO quiz_results (lesson_id, score, total, missed_concepts)
-        VALUES (?, ?, ?, ?)
-      `).run(lesson.id, score, total, JSON.stringify(missedConceptIds));
-      this.advanceSection();
-      return db.prepare('SELECT * FROM quiz_results WHERE id = ?').get(result.lastInsertRowid) as QuizResult;
-    })();
+    const result = db.prepare(`
+      INSERT INTO quiz_results (lesson_id, score, total, missed_concepts)
+      VALUES (?, ?, ?, ?)
+    `).run(lesson.id, score, total, JSON.stringify(missedConceptIds));
+    return db.prepare('SELECT * FROM quiz_results WHERE id = ?').get(result.lastInsertRowid) as QuizResult;
   },
 
   logInterviewResult(chapterId: number, score: number, total: number, notes?: string): InterviewResult {
