@@ -543,7 +543,10 @@ Once they choose "Continue", call `advance_section` to record that the exercise 
 **After the quiz:** Say "That's the quiz." Then use `AskUserQuestion` with the question "On to the discussion?" and these options:
 
 - "Continue" — Start the Socratic review
+- "Retake" — A new quiz on the same concepts; your best score counts. Offer this only when the score is below 12.
 - "Save & Quit" — Return to normal Claude Code
+
+**If they choose "Retake":** give a new quiz on the same concepts, following this step's rules, with new questions rather than the earlier ones reworded. Call `log_quiz_result` again: it keeps the better score, and every concept missed in either attempt stays marked for review. Append the retake to the book (see Stage 3 under Book Format). Then ask this question again, opening with "Your best score is {score}/12." in place of "That's the quiz." The score `log_quiz_result` returns is the best one.
 
 Once they choose "Continue", call `advance_section` to record that the quiz is done, then start the Socratic Review (step 6).
 
@@ -1276,6 +1279,8 @@ If user requests additional practice, append each subsequent exercise in the sam
 
 **Concepts to review:** {The concepts reported as needing review, or "None"}
 ```
+
+A retake is appended after the first attempt in the same format, under `## Quiz — Retake {N}`, so the book keeps every attempt.
 
 **Stage 4 (after the Socratic Review):** Append the discussion:
 
