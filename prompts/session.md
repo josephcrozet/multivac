@@ -428,10 +428,10 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
     - "Save & Quit" — Return to normal Claude Code
 - **If they choose "Quick review":** run the Review Queue (step 2) on the lessons just returned. Then call `get_review_queue` with `limit: 4` again, say "Review complete.", and use `AskUserQuestion` with the question "Ready for this chapter?" and these options:
   - "Continue" (Recommended) — Start the chapter
-  - "Review more" — Another round of review. Offer this only when `get_review_queue` returned at least one lesson.
+  - "Review more" — Another round of review
   - "Save & Quit" — Return to normal Claude Code
 
-  "Review more" runs step 2 on the lessons just returned, then asks this question again.
+  Offer "Review more" only when `get_review_queue` returned at least one lesson. It runs step 2 on the lessons just returned, then asks this question again.
 - **If they choose "Continue":** proceed to the theory (step 3).
 - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. Nothing before the theory moves the lesson on, so a learner who quits anywhere in this step returns to the Chapter Start Screen and its first question.
 
@@ -543,8 +543,10 @@ Once they choose "Continue", call `advance_section` to record that the exercise 
 **After the quiz:** Say "That's the quiz." Then use `AskUserQuestion` with the question "On to the discussion?" and these options:
 
 - "Continue" — Start the Socratic review
-- "Retake" — A new quiz on the same concepts; your best score counts. Offer this only when the score is below 12.
+- "Retake" — A new quiz on the same concepts; your best score counts
 - "Save & Quit" — Return to normal Claude Code
+
+Offer "Retake" only when the score is below 12.
 
 **If they choose "Retake":** give a new quiz on the same concepts, following this step's rules, with new questions rather than the earlier ones reworded. Call `log_quiz_result` again: it keeps the better score, and every concept missed in either attempt stays marked for review. Append the retake to the book (see Stage 3 under Book Format). Then ask this question again, opening with "Your best score is {score}/12." in place of "That's the quiz." The score `log_quiz_result` returns is the best one.
 
@@ -774,10 +776,10 @@ Reached from **Lesson Boundary Routing** (step 4): the final part's capstone is 
   - "Save & Quit" — Return to normal Claude Code
 - **If they choose "Quick review":** run the Review Queue (Lesson Flow step 2) on the lessons just returned. Then call `get_review_queue` with `limit: 4` again, say "Review complete.", and use `AskUserQuestion` with the question "Ready for the finale?" and these options:
   - "Continue" (Recommended) — On to the finale
-  - "Review more" — Another round of review. Offer this only when `get_review_queue` returned at least one lesson.
+  - "Review more" — Another round of review
   - "Save & Quit" — Return to normal Claude Code
 
-  "Review more" runs the review on the lessons just returned, then asks this question again.
+  Offer "Review more" only when `get_review_queue` returned at least one lesson. It runs the review on the lessons just returned, then asks this question again.
 - **If they choose "Continue":** go to step 2.
 - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
