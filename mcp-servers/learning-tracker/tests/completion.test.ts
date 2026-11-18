@@ -25,6 +25,7 @@ test('completing a tutorial', async (t) => {
   database.advanceSection();
   database.advanceSection();
   database.logQuizResult(12, 12, []);
+  database.advanceSection();
   database.completeLesson();
   const position = database.getCurrentPosition()!;
   database.logInterviewResult(position.current_chapter!.id, 40, 40);

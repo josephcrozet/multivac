@@ -174,7 +174,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'get_lesson',
-        description: "Get a single lesson with its concepts, and current_section: the section it's on (theory, exercise, quiz, or socratic), or null once it's completed. The narrowest getter — use it at the start of each lesson to ground teaching in the concepts the quiz and review queue draw on. The lesson_id comes from current_lesson.id returned by get_current_position.",
+        description: "Get a single lesson with its concepts, and current_section: the section it's on (theory, exercise, quiz, or socratic), or null once it's completed; and quiz: its recorded score and total, or null if the quiz hasn't been taken. The narrowest getter — use it at the start of each lesson to ground teaching in the concepts the quiz and review queue draw on. The lesson_id comes from current_lesson.id returned by get_current_position.",
         inputSchema: {
           type: 'object',
           properties: {
@@ -242,7 +242,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'advance_section',
-        description: "Move the current lesson on to its next section: theory → exercise → quiz → socratic. Call it when the learner finishes theory and when they finish the exercise. log_quiz_result moves past the quiz itself, and complete_lesson finishes the Socratic review. Guarded: refuses (advanced=false, with a reason) to leave the quiz before its result is recorded or to move past the Socratic review. Returns the new current_section.",
+        description: "Move the current lesson on to its next section: theory → exercise → quiz → socratic. Call it when the learner chooses to go on after the theory, the exercise, and the quiz; complete_lesson finishes the Socratic review. Guarded: refuses (advanced=false, with a reason) to leave the quiz before its result is recorded or to move past the Socratic review. Returns the new current_section.",
         inputSchema: {
           type: 'object',
           properties: {},
@@ -258,7 +258,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'log_quiz_result',
-        description: "Record the current lesson's quiz result and move the lesson on to its Socratic review. Guarded: refuses unless the lesson is on its quiz section (current_section from get_current_position), so it also refuses a second result for the same lesson.",
+        description: "Record the current lesson's quiz result. The lesson stays on its quiz until the learner chooses to go on, when advance_section moves it to the Socratic review. Guarded: refuses unless the lesson is on its quiz section (current_section from get_current_position), and refuses a second result for the same lesson.",
         inputSchema: {
           type: 'object',
           properties: {

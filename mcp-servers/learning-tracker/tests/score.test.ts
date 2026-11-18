@@ -42,6 +42,7 @@ test('the final score and rank', async (t) => {
         database.advanceSection();
         database.advanceSection();
         database.logQuizResult(typeof quiz === 'number' ? quiz : quiz(lesson), 12, []);
+        database.advanceSection();
         database.completeLesson();
         lesson++;
         continue;

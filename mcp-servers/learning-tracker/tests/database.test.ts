@@ -141,7 +141,8 @@ test('curriculum tree lifecycle', async (t) => {
   const finishLesson = (score = 12, missedConceptIds: number[] = []) => {
     assert.equal(database.advanceSection()!.advanced, true); // theory → exercise
     assert.equal(database.advanceSection()!.advanced, true); // exercise → quiz
-    database.logQuizResult(score, 12, missedConceptIds); // quiz → socratic
+    database.logQuizResult(score, 12, missedConceptIds);
+    assert.equal(database.advanceSection()!.advanced, true); // quiz → socratic
     assert.equal(database.completeLesson()!.completed, true);
   };
 
@@ -201,10 +202,13 @@ test('curriculum tree lifecycle', async (t) => {
     assert.equal(section(), 'quiz');
   });
 
-  await t.test('logQuizResult records the quiz and moves on to the Socratic review in one step', () => {
+  await t.test('logQuizResult records the quiz without moving on', () => {
+    assert.strictEqual(database.getLesson(lesson112().id)!.lesson.quiz, null);
     const missed = database.getLesson(lesson112().id)!.lesson.concepts[1];
     database.logQuizResult(9, 12, [missed.id]);
-    assert.equal(section(), 'socratic');
+    // The pointer waits on the quiz until the learner chooses to go on.
+    assert.equal(section(), 'quiz');
+    assert.deepEqual(database.getLesson(lesson112().id)!.lesson.quiz, { score: 9, total: 12 });
   });
 
   await t.test('logQuizResult refuses a second result for the same lesson', () => {
@@ -212,6 +216,10 @@ test('curriculum tree lifecycle', async (t) => {
     assert.throws(() => database.logQuizResult(0, 12, []), /already has a recorded quiz result/);
     // The refused 0/12 must not have dragged the average down.
     assert.equal(database.getStats()!.tutorial.average_quiz_score, before);
+  });
+
+  await t.test('once the quiz is recorded, advanceSection moves on to the Socratic review', () => {
+    assert.equal(database.advanceSection()!.current_section, 'socratic');
   });
 
   await t.test('advanceSection refuses to move past the Socratic review', () => {
@@ -514,6 +522,7 @@ test('curriculum tree lifecycle', async (t) => {
     database.advanceSection();
     database.advanceSection();
     database.logQuizResult(0, 12, []);
+    database.advanceSection();
     chapter = database.getChapter(ch21.id)!;
     assert.equal(chapter.average_quiz_score, 0);
   });
