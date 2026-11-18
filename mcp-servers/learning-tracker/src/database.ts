@@ -575,9 +575,8 @@ function interviewResolved(chapterId: number): boolean {
 function capstoneResolved(partId: number): boolean {
   return !!db.prepare('SELECT 1 FROM capstone_results WHERE part_id = ? LIMIT 1').get(partId);
 }
-// A lesson holds one quiz result at a time; this is the fact that gates a second one. It's
-// enforced here rather than as a UNIQUE constraint so that clearing a single lesson's row
-// is all it takes to reopen the quiz.
+// A lesson holds one quiz result: a retake updates that row rather than adding one, so quiz
+// averages and the score count each lesson once.
 function quizResolved(lessonId: number): boolean {
   return !!db.prepare('SELECT 1 FROM quiz_results WHERE lesson_id = ? LIMIT 1').get(lessonId);
 }
@@ -1762,26 +1761,34 @@ export const database = {
 
   // Record the current lesson's quiz. The pointer stays on the quiz until the learner chooses
   // to go on, so a recorded quiz with the pointer still on it is a normal state: the quiz is
-  // done and the learner hasn't moved on yet.
-  logQuizResult(score: number, total: number, missedConceptIds: number[]): QuizResult {
+  // done and the learner hasn't moved on yet. A result logged then is a retake: the lesson
+  // keeps its better score, and every concept missed in any attempt stays marked for review.
+  // Once the learner has moved on, the quiz is closed.
+  logQuizResult(score: number, total: number, missedConceptIds: number[]): QuizResult & { retake: boolean } {
     const currentPos = this.getCurrentPosition();
     const lesson = currentPos?.current_lesson;
     if (!lesson) throw new Error('No current lesson to record a quiz for.');
-    // Quiz averages count every row, so a second result for the same lesson would count twice.
-    if (quizResolved(lesson.id)) {
-      throw new Error(
-        `Lesson ${lesson.id} already has a recorded quiz result. A lesson holds one quiz result at a time.`
-      );
-    }
     if (currentPos.current_section !== 'quiz') {
-      throw new Error(`The lesson is on its ${currentPos.current_section} section; the quiz comes after the exercise.`);
+      throw new Error(quizResolved(lesson.id)
+        ? `Lesson ${lesson.id} has moved on from its quiz. A retake is only possible before the learner continues.`
+        : `The lesson is on its ${currentPos.current_section} section; the quiz comes after the exercise.`);
+    }
+
+    const existing = db.prepare('SELECT * FROM quiz_results WHERE lesson_id = ? LIMIT 1').get(lesson.id) as QuizResult | undefined;
+    if (existing) {
+      const missed = new Set<number>([...(existing.missed_concepts ? JSON.parse(existing.missed_concepts) : []), ...missedConceptIds]);
+      const better = score / total > existing.score / existing.total;
+      db.prepare('UPDATE quiz_results SET score = ?, total = ?, missed_concepts = ? WHERE id = ?').run(
+        better ? score : existing.score, better ? total : existing.total, JSON.stringify([...missed]), existing.id,
+      );
+      return { ...(db.prepare('SELECT * FROM quiz_results WHERE id = ?').get(existing.id) as QuizResult), retake: true };
     }
 
     const result = db.prepare(`
       INSERT INTO quiz_results (lesson_id, score, total, missed_concepts)
       VALUES (?, ?, ?, ?)
     `).run(lesson.id, score, total, JSON.stringify(missedConceptIds));
-    return db.prepare('SELECT * FROM quiz_results WHERE id = ?').get(result.lastInsertRowid) as QuizResult;
+    return { ...(db.prepare('SELECT * FROM quiz_results WHERE id = ?').get(result.lastInsertRowid) as QuizResult), retake: false };
   },
 
   logInterviewResult(chapterId: number, score: number, total: number, notes?: string): InterviewResult {

@@ -258,7 +258,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'log_quiz_result',
-        description: "Record the current lesson's quiz result. The lesson stays on its quiz until the learner chooses to go on, when advance_section moves it to the Socratic review. Guarded: refuses unless the lesson is on its quiz section (current_section from get_current_position), and refuses a second result for the same lesson.",
+        description: "Record the current lesson's quiz result. The lesson stays on its quiz until the learner chooses to go on, when advance_section moves it to the Socratic review. Calling it again before the learner continues records a retake: the lesson keeps its better score, and concepts missed in any attempt stay marked for review (retake: true in the result). Guarded: refuses unless the lesson is on its quiz section (current_section from get_current_position), so once the learner has moved on the quiz is closed.",
         inputSchema: {
           type: 'object',
           properties: {
@@ -490,7 +490,10 @@ async function callTool(request: CallToolRequest) {
           missed_concept_ids: number[];
         };
         const result = database.logQuizResult(score, total, missed_concept_ids);
-        return jsonResponse({ success: true, message: `Quiz result logged: ${score}/${total}`, result });
+        const message = result.retake
+          ? `Retake logged: ${score}/${total}. Best score: ${result.score}/${result.total}`
+          : `Quiz result logged: ${score}/${total}`;
+        return jsonResponse({ success: true, message, result });
       }
 
       case 'log_interview_result': {

@@ -211,15 +211,21 @@ test('curriculum tree lifecycle', async (t) => {
     assert.deepEqual(database.getLesson(lesson112().id)!.lesson.quiz, { score: 9, total: 12 });
   });
 
-  await t.test('logQuizResult refuses a second result for the same lesson', () => {
+  await t.test('a second result before moving on is a retake that keeps the better score', () => {
     const before = database.getStats()!.tutorial.average_quiz_score;
-    assert.throws(() => database.logQuizResult(0, 12, []), /already has a recorded quiz result/);
-    // The refused 0/12 must not have dragged the average down.
+    assert.equal(database.logQuizResult(0, 12, []).retake, true);
+    // The lower 0/12 must not replace the 9/12 or drag the average down.
+    assert.deepEqual(database.getLesson(lesson112().id)!.lesson.quiz, { score: 9, total: 12 });
     assert.equal(database.getStats()!.tutorial.average_quiz_score, before);
   });
 
   await t.test('once the quiz is recorded, advanceSection moves on to the Socratic review', () => {
     assert.equal(database.advanceSection()!.current_section, 'socratic');
+  });
+
+  await t.test('after moving on, the quiz is closed to retakes', () => {
+    assert.throws(() => database.logQuizResult(12, 12, []), /moved on from its quiz/);
+    assert.deepEqual(database.getLesson(lesson112().id)!.lesson.quiz, { score: 9, total: 12 });
   });
 
   await t.test('advanceSection refuses to move past the Socratic review', () => {
