@@ -31,6 +31,19 @@ test('completing a tutorial', async (t) => {
   database.logInterviewResult(position.current_chapter!.id, 40, 40);
   database.logCapstoneResult(position.current_part!.id, true);
 
+  await t.test('a part holds one capstone result', () => {
+    assert.throws(() => database.logCapstoneResult(position.current_part!.id, true), /already has a capstone result/);
+    assert.equal(database.getStats()!.tutorial.capstones_completed, 1);
+  });
+
+  await t.test('completing a lesson again is refused and leaves the review queue alone', () => {
+    const queued = database.getReviewQueue()!.total_in_queue;
+    const result = database.completeLesson()!;
+    assert.equal(result.completed, false);
+    assert.match(result.reason ?? '', /already completed/);
+    assert.equal(database.getReviewQueue()!.total_in_queue, queued);
+  });
+
   await t.test('advancing past the last lesson marks the tutorial completed', () => {
     assert.equal(database.advancePosition()!.tutorial_completed, true);
     const metadata = database.getTutorialMetadata()!;
