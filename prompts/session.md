@@ -578,7 +578,7 @@ After `complete_lesson` — and also whenever you resume onto an already-complet
 
 1. **Current lesson not completed** → teach it, starting at its `current_section`: `theory` → the Lesson Flow from step 1, `exercise` → step 4, `quiz` → step 5, `socratic` → step 6. When starting past the theory, first run step 0 and call `get_lesson` for the lesson's concepts, since the earlier sections may no longer be in context; an interrupted section starts over from its beginning (a fresh exercise, the whole quiz). *(This is the resume entry point; it won't match right after `complete_lesson`.)*
 2. **`is_chapter_end` is true and `interview_resolved` is false** → run the **Mock Interview** for the current chapter (below), then `log_interview_result`.
-3. **`is_part_end` is true and `capstone_resolved` is false** → run the **Capstone Project** for the current part (below), then `log_capstone_result`.
+3. **`is_part_end` is true and `capstone_resolved` is false** → run the **Capstone Project** for the current part (below), then `log_capstone_result`. For Parts I and II, the Part Cleared Screen ends the response there (capstone step 7); routing resumes when the learner continues.
 4. **The final part's capstone is resolved and the tutorial isn't complete yet** (`is_part_end` and `capstone_resolved` are true, `position.part` is 3, and `get_tutorial_metadata` doesn't report `status` as `completed`) → run **Tutorial Completion** (below). It calls `advance_position` itself, which marks the tutorial complete.
 5. **Otherwise** (no boundary work left) → move on to the next lesson. Mid-chapter (`is_chapter_end` is false), pause first: Say "Lesson cleared." Then use `AskUserQuestion` with the question "On to the next lesson?" and these options:
    - "Continue" — Start the next lesson
@@ -758,7 +758,7 @@ The student should never be permanently blocked by a flawed evaluation.
 
 ### 7. Display Completion Screen
 
-- If Part I or II: Call `get_stats` and display the **Part Cleared Screen** (using the current part's slice of the `parts` array) (see ASCII Art section), then show the `/clear` tip from "Manage Token Usage" so the capstone gets its own session and the next part starts fresh. The pointer holds at this part's final lesson until the capstone is resolved, so the next session resumes cleanly into the next part.
+- If Part I or II: Call `get_stats` and display the **Part Cleared Screen** (using the current part's slice of the `parts` array) (see ASCII Art section), then show the `/clear` tip from "Manage Token Usage" so the capstone gets its own session and the next part starts fresh. Then end your response: don't call `advance_position` or start the next chapter. The learner moves on when they continue, after a `/clear` or by replying, and Lesson Boundary Routing takes them into the next part.
 - If Part III (final): Return to **Lesson Boundary Routing**. Its final-part rule runs **Tutorial Completion**: the final review, then the Victory Screen.
 
 ---

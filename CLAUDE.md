@@ -102,12 +102,12 @@ Two formats based on tutorial type:
 | `update_preferences` | Update one or more preferences. Merges with existing values |
 | `start_tutorial` | Begin a tutorial |
 | `get_current_position` | Current lesson/chapter/part, the lesson's `current_section`, type, difficulty_level, and boundary facts (is_chapter_start/is_chapter_end/is_part_end/interview_resolved/capstone_resolved) |
-| `complete_lesson` | Mark current lesson done + add to review queue; finishes the Socratic review, so refused until the lesson reaches it; does NOT move the pointer |
+| `complete_lesson` | Mark current lesson done + add to review queue; finishes the Socratic review, so refused until the lesson reaches it, and for a lesson already done; does NOT move the pointer |
 | `advance_section` | Move the current lesson to its next section (theory → exercise → quiz → socratic), after the learner chooses to go on — guarded: refuses to leave the quiz before its result is logged, or to pass the Socratic review |
 | `advance_position` | Move the pointer to the next lesson — guarded: refuses unless the lesson is completed and any chapter/part boundary work is resolved, and once the tutorial is complete |
 | `log_quiz_result` | Record the current lesson's quiz (the pointer stays on the quiz until `advance_section`). Called again before then, it's a retake: the better score is kept and missed concepts merge — refused unless the lesson is on its quiz |
 | `log_interview_result` | Record interview performance |
-| `log_capstone_result` | Record a capstone result (completed or skipped) |
+| `log_capstone_result` | Record a capstone result (completed or skipped) — one per part; a second is refused |
 | `get_review_queue` | Get lessons pending review, each with the `review_concept` to ask about and a `missed` flag per concept |
 | `log_review_result` | Correct removes from queue, incorrect moves to end |
 | `reset_progress` | Reset progress while keeping curriculum structure |

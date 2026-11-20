@@ -1393,7 +1393,11 @@ export const database = {
 
     const lesson = currentPos.current_lesson;
     const section = currentPos.current_section;
-    if (section !== null && section !== 'socratic') {
+    // Completing a lesson again would put it back in the review queue after it was reviewed.
+    if (section === null) {
+      return { completed: false, reason: 'the lesson is already completed', lesson };
+    }
+    if (section !== 'socratic') {
       return { completed: false, reason: `the lesson is on its ${section} section — the Socratic review comes last`, lesson };
     }
     db.prepare('UPDATE lessons SET completed = 1 WHERE id = ?').run(lesson.id);
@@ -1800,7 +1804,12 @@ export const database = {
     return db.prepare('SELECT * FROM interview_results WHERE id = ?').get(result.lastInsertRowid) as InterviewResult;
   },
 
+  // A part holds one capstone result: completed or skipped, it's final. Counts of completed
+  // capstones add up rows, so a second result for a part would count it twice.
   logCapstoneResult(partId: number, completed: boolean, notes?: string): CapstoneResult {
+    if (capstoneResolved(partId)) {
+      throw new Error(`Part ${partId} already has a capstone result. A part holds one capstone result.`);
+    }
     const result = db.prepare(`
       INSERT INTO capstone_results (part_id, completed, notes)
       VALUES (?, ?, ?)

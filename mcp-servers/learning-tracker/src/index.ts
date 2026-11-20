@@ -234,7 +234,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'complete_lesson',
-        description: "Mark the current lesson complete and add it to the review queue. This finishes the Socratic review, the lesson's last section. Guarded: refuses (completed=false, with a reason) until the lesson reaches that section. Does NOT move the pointer — any boundary work (mock interview at a chapter end, capstone at a part end) happens next, and only then is advance_position called to move on.",
+        description: "Mark the current lesson complete and add it to the review queue. This finishes the Socratic review, the lesson's last section. Guarded: refuses (completed=false, with a reason) until the lesson reaches that section, and for a lesson already completed, which would otherwise be queued for review again. Does NOT move the pointer — any boundary work (mock interview at a chapter end, capstone at a part end) happens next, and only then is advance_position called to move on.",
         inputSchema: {
           type: 'object',
           properties: {},
@@ -307,7 +307,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'log_capstone_result',
-        description: 'Record the completion of a part capstone project.',
+        description: 'Record a part capstone\'s result: completed, or skipped. A part holds one result, so a second one is refused.',
         inputSchema: {
           type: 'object',
           properties: {
