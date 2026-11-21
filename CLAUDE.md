@@ -56,7 +56,7 @@ multivac/
 **Learning Flow**
 11. **Separated Commands** — /tutorial starts new tutorials; /menu is the pause menu for existing tutorials (view progress, curriculum, restart, exit); single responsibility per command
 12. **Batched Quizzes** — 3 prompts of 4 questions, not 12 individual prompts
-13. **Queue-Based Spaced Repetition** — Completed lessons added to review queue; offered as an optional review at each chapter start (recommended, and only when the queue has lessons), and repeatable before the chapter begins; correct answers remove from queue, incorrect answers move to end. Each lesson is reviewed on one concept, which the server picks at random from those missed on the lesson's quiz (or from all its concepts if none were) — not the model, which doesn't choose randomly when asked to
+13. **Queue-Based Spaced Repetition** — The review queue holds concepts. A completed lesson queues every concept missed on its quiz (across retakes), or, if none were, one the server picks at random — not the model, which doesn't choose randomly when asked to. A review is offered at each chapter start (recommended, and only when the queue isn't empty) and at the tutorial's end, in rounds of 4: a first round takes one item per lesson so it spreads across them, later rounds ("Review more") take items in queue order. Correct answers remove a concept; incorrect ones move it to the end. The final score's review points are 4 for each item under 50 left in the queue
 14. **Incremental Capstone Evaluation** — Programming: tests written per-milestone. General: criteria checked per-milestone. Both followed by qualitative review, both skippable. The capstone's spec + milestone progress live in a write-once `CAPSTONE.md` in the capstone dir (the agent's record), so a mid-build restart re-grounds and resumes the *same* project instead of designing a new one. The learner's deliverable (code files / `capstone.txt`) is theirs — the agent reads it to evaluate, never overwrites it.
 15. **Single Source of Truth** — Every behavior has exactly one authoritative definition. /tutorial is a thin entry point that checks state and delegates; session.md is the engine that owns the complete flow. If two files both define the same behavior, the model will reconcile them inconsistently
 16. **MCP-First for Tutorial Data** — All tutorial data flows through the MCP server, never through reads of Claude Code internal state files (`~/.claude/projects/...`). When adding features or fixing bugs, the answer to "how do I get this data?" is to add an MCP tool, not a workaround. See session.md's "MCP-First for Tutorial Data" section for the runtime behavior this enforces.
@@ -108,8 +108,8 @@ Two formats based on tutorial type:
 | `log_quiz_result` | Record the current lesson's quiz (the pointer stays on the quiz until `advance_section`). Called again before then, it's a retake: the better score is kept and missed concepts merge — refused unless the lesson is on its quiz |
 | `log_interview_result` | Record interview performance |
 | `log_capstone_result` | Record a capstone result (completed or skipped) — one per part; a second is refused |
-| `get_review_queue` | Get lessons pending review, each with the `review_concept` to ask about and a `missed` flag per concept |
-| `log_review_result` | Correct removes from queue, incorrect moves to end |
+| `get_review_queue` | Get concepts waiting for review, in queue order, each with its lesson; `one_per_lesson` spreads a first round across lessons |
+| `log_review_result` | For one concept: correct removes it from the queue, incorrect moves it to the end |
 | `reset_progress` | Reset progress while keeping curriculum structure |
 
 ## Installation Target

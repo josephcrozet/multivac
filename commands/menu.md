@@ -46,11 +46,11 @@ Use `AskUserQuestion` to present options:
 Start a review session using the same mechanics as midgame review:
 
 1. Call `get_review_queue` with `limit: 4`
-2. If `queue_replenished` is true, tell the user: "Starting a fresh review cycle with all 48 lessons!"
+2. If `queue_replenished` is true, tell the user: "Starting a fresh review cycle: one concept from every lesson!"
 3. Follow the "Review Queue" instructions in `~/.claude/prompts/session.md` to review the returned lessons (ask questions, log results)
 4. After reviewing, report progress using `total_in_queue` from the response:
    - If 0: "Review complete! Your queue is empty. Come back anytime to start a fresh cycle."
-   - Otherwise: "Session complete! {N} lessons remaining in your queue."
+   - Otherwise: "Session complete! {N} concepts remaining in your queue."
 5. Return to this menu.
 
 **If "View curriculum" selected (completed):**
@@ -211,7 +211,7 @@ Include the difficulty level (Beginner/Intermediate/Advanced).
 ║                                                                      ║
 ║  STATS                            │  REVIEW QUEUE                    ║
 ║  ─────────────────────────────────│───────────────────────────────── ║
-║  Lessons:     {X}/{Y} ({Z}%)      │  {N} lessons pending             ║
+║  Lessons:     {X}/{Y} ({Z}%)      │  {N} concepts to review          ║
 ║  Quizzes Avg: {Q}%                │  ┌─────────────────────────────┐ ║
 ║  Interviews:  {I}/{J}             │  │ • {concept_1}               │ ║
 ║  Capstones:   {capstone_stars}    │  │ • {concept_2}               │ ║
@@ -261,9 +261,8 @@ Capstone row, for the current part, using `capstone_resolved` from `get_current_
 
 ### Review Queue Display
 
-For each lesson in the queue:
+Each queue item is one concept: list its name.
 
-- Pick one representative concept name to display
 - If queue is empty, show "Queue empty - great work!"
 - If queue has more than 4 items, show first 4 with "+ N more"
 
@@ -295,7 +294,7 @@ For each lesson in the queue:
 ║                                                                      ║
 ║  STATS                            │  REVIEW QUEUE                    ║
 ║  ─────────────────────────────────│───────────────────────────────── ║
-║  Lessons:     22/48  (46%)        │  4 lessons pending               ║
+║  Lessons:     22/48  (46%)        │  4 concepts to review            ║
 ║  Quizzes Avg: 88%                 │  ┌─────────────────────────────┐ ║
 ║  Interviews:  6/12                │  │ • list comprehensions       │ ║
 ║  Capstones:   ★ ◇ ◇               │  │ • dictionary methods        │ ║
