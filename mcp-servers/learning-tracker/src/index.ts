@@ -329,33 +329,37 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'get_review_queue',
-        description: "Get lessons in the review queue. Each lesson comes with review_concept: the concept to ask a review question about, chosen at random from the ones the learner missed on that lesson's most recent quiz, or from all its concepts if none were missed. Each concept also carries missed. Use at the start of chapters to review previous material. For completed tutorials, auto-replenishes with all 48 lessons if queue is empty.",
+        description: "Get concepts waiting in the review queue, in queue order. Each item is one concept to ask a review question about, with the lesson it belongs to. A completed lesson queues every concept missed on its quiz, or one picked at random if none were. Use one_per_lesson for a review's first round, so it spreads across lessons. Once a completed tutorial's queue is empty, it refills with one concept from every lesson (queue_replenished).",
         inputSchema: {
           type: 'object',
           properties: {
             limit: {
               type: 'number',
-              description: 'Maximum number of lessons to return. Use 4 for standard review sessions.',
+              description: 'Maximum number of items to return. Use 4 for a review round.',
+            },
+            one_per_lesson: {
+              type: 'boolean',
+              description: "Take at most one item from each lesson: its first in queue order. Use it for a review's first round; leave it out for later rounds.",
             },
           },
         },
       },
       {
         name: 'log_review_result',
-        description: 'Record the result of reviewing a lesson. If correct, removes from queue. If incorrect, moves to end of queue for later review.',
+        description: 'Record the result of reviewing a concept. If correct, removes it from the queue. If incorrect, moves it to the end of the queue for later review.',
         inputSchema: {
           type: 'object',
           properties: {
-            lesson_id: {
+            concept_id: {
               type: 'number',
-              description: 'ID of the lesson being reviewed',
+              description: 'ID of the concept reviewed, from the get_review_queue item',
             },
             correct: {
               type: 'boolean',
               description: 'Whether the user answered correctly',
             },
           },
-          required: ['lesson_id', 'correct'],
+          required: ['concept_id', 'correct'],
         },
       },
       {
@@ -522,8 +526,8 @@ async function callTool(request: CallToolRequest) {
       }
 
       case 'get_review_queue': {
-        const { limit } = args as { limit?: number };
-        const result = database.getReviewQueue(limit);
+        const { limit, one_per_lesson } = args as { limit?: number; one_per_lesson?: boolean };
+        const result = database.getReviewQueue(limit, one_per_lesson);
         if (!result) return noTutorialError();
         return jsonResponse({
           success: true,
@@ -536,11 +540,11 @@ async function callTool(request: CallToolRequest) {
       }
 
       case 'log_review_result': {
-        const { lesson_id, correct } = args as {
-          lesson_id: number;
+        const { concept_id, correct } = args as {
+          concept_id: number;
           correct: boolean;
         };
-        const result = database.logReviewResult(lesson_id, correct);
+        const result = database.logReviewResult(concept_id, correct);
         if (!result) return noTutorialError();
         return jsonResponse({
           success: true,

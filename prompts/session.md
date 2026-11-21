@@ -417,21 +417,21 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
   > Tip: Run `/rename {Topic}-{Part}-{Chapter}` to keep your sessions organized.
 
   e.g. `/rename Python-II-1`.
-- Call `get_review_queue` with `limit: 4`. The lessons it returns, if any, are what a review would cover.
+- Call `get_review_queue` with `limit: 4` and `one_per_lesson: true`, so a first round spreads across lessons. The items it returns, if any, are what a review would cover.
 - **PAUSE:** Say "Here's what we'll cover." Then use `AskUserQuestion`:
-  - If `get_review_queue` returned at least one lesson, ask "Warm up first?" with these options:
+  - If `get_review_queue` returned at least one item, ask "Warm up first?" with these options:
     - "Quick review" (Recommended) — A few questions on earlier lessons
     - "Continue" — Start the chapter
     - "Save & Quit" — Return to normal Claude Code
   - Otherwise, ask "Ready for this chapter?" with these options:
     - "Continue" — Start the chapter
     - "Save & Quit" — Return to normal Claude Code
-- **If they choose "Quick review":** run the Review Queue (step 2) on the lessons just returned. Then call `get_review_queue` with `limit: 4` again, say "Review complete.", and use `AskUserQuestion` with the question "Ready for this chapter?" and these options:
+- **If they choose "Quick review":** run the Review Queue (step 2) on the items just returned. Then call `get_review_queue` with `limit: 4` again, this time without `one_per_lesson`, so later rounds take items in queue order, say "Review complete.", and use `AskUserQuestion` with the question "Ready for this chapter?" and these options:
   - "Continue" (Recommended) — Start the chapter
   - "Review more" — Another round of review
   - "Save & Quit" — Return to normal Claude Code
 
-  Offer "Review more" only when `get_review_queue` returned at least one lesson. It runs step 2 on the lessons just returned, then asks this question again.
+  Offer "Review more" only when `get_review_queue` returned at least one item. It runs step 2 on the items just returned, then asks this question again.
 - **If they choose "Continue":** proceed to the theory (step 3).
 - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow. Nothing before the theory moves the lesson on, so a learner who quits anywhere in this step returns to the Chapter Start Screen and its first question.
 
@@ -439,14 +439,14 @@ Before starting the lesson, follow the verification workflow (see "Always Use Cu
 
 Run when the learner chooses a review: at a chapter start (step 1), or from `/menu`.
 
-- The queue contains lessons (not individual concepts)—each lesson has multiple concepts
+- The queue holds concepts: each item is one concept, with the lesson it comes from. A completed lesson queues every concept missed on its quiz, or one the server picked if nothing was missed.
 - Ask the questions **one at a time** — present a single question, wait for the answer, react briefly, then move to the next. Do **not** present all of them at once: these are open-ended recall questions (unlike the multiple-choice quiz), so a batch is harder to answer and defeats the per-question feedback that makes review worthwhile.
-- For EACH lesson returned, **in turn**:
-  - Ask a single review question about the lesson's `review_concept` (use that one rather than choosing your own), and **wait for the answer** before continuing. If you already asked about this lesson earlier in this session, ask something new about its concept — a different angle, not the earlier question reworded.
-  - After the user answers, give brief feedback, then call `log_review_result` with `correct: true/false`
-  - Correct answers remove the lesson from the queue; incorrect answers move it to the end
+- For EACH item returned, **in turn**:
+  - Ask a single review question about the item's `concept`, and **wait for the answer** before continuing. If you already asked about this concept earlier in this session, ask something new about it — a different angle, not the earlier question reworded.
+  - After the user answers, give brief feedback, then call `log_review_result` with the item's `concept.id` and `correct: true/false`
+  - Correct answers remove the concept from the queue; incorrect answers move it to the end
 
-**Note:** The queue typically has 4 items (from the previous chapter). If the user aces all reviews, the queue empties. If they get some wrong, those lessons move to the back and accumulate. The `limit: 4` caps each review session, so if the queue grows large (many wrong answers), users won't be stuck reviewing 20+ items at once.
+**Note:** A round takes 4 items, so a long queue never means a long review. If the learner gets some wrong, those concepts move to the back and wait for a later round.
 
 ### 3. Theory Introduction
 
@@ -769,17 +769,17 @@ Reached from **Lesson Boundary Routing** (step 4): the final part's capstone is 
 
 ### 1. Final Review
 
-- Call `get_review_queue` with `limit: 4`. If it returns no lessons, go straight to step 2.
+- Call `get_review_queue` with `limit: 4` and `one_per_lesson: true`. If it returns no items, go straight to step 2.
 - Otherwise, say "Before the finale, there's time for one last review." Then use `AskUserQuestion` with the question "One last review?" and these options:
   - "Quick review" (Recommended) — A few questions on earlier lessons
   - "Continue" — On to the finale
   - "Save & Quit" — Return to normal Claude Code
-- **If they choose "Quick review":** run the Review Queue (Lesson Flow step 2) on the lessons just returned. Then call `get_review_queue` with `limit: 4` again, say "Review complete.", and use `AskUserQuestion` with the question "Ready for the finale?" and these options:
+- **If they choose "Quick review":** run the Review Queue (Lesson Flow step 2) on the items just returned. Then call `get_review_queue` with `limit: 4` again, without `one_per_lesson`, say "Review complete.", and use `AskUserQuestion` with the question "Ready for the finale?" and these options:
   - "Continue" (Recommended) — On to the finale
   - "Review more" — Another round of review
   - "Save & Quit" — Return to normal Claude Code
 
-  Offer "Review more" only when `get_review_queue` returned at least one lesson. It runs the review on the lessons just returned, then asks this question again.
+  Offer "Review more" only when `get_review_queue` returned at least one item. It runs the review on the items just returned, then asks this question again.
 - **If they choose "Continue":** go to step 2.
 - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
@@ -1374,7 +1374,7 @@ If the book preference is not enabled (no saved files), re-teach the lesson norm
 | Session start         | `get_current_position` (lightweight), then `create_tutorial` + `start_tutorial` if no tutorial exists       |
 | Resuming mid-chapter  | `get_chapter_progress` (shown verbatim), unless at an unbegun chapter start or recovering from a compaction |
 | Resuming a lesson     | `get_current_position` (start at `current_section`), `get_lesson` if past the theory                        |
-| Chapter start         | `get_current_position` (`is_chapter_start` and `current_section` is `theory`), `get_chapter`, `get_review_queue` (offer a review if it returns lessons) |
+| Chapter start         | `get_current_position` (`is_chapter_start` and `current_section` is `theory`), `get_chapter`, `get_review_queue` with `one_per_lesson` (offer a review if it returns items) |
 | After review question | `log_review_result`                                                                                         |
 | Theory (every lesson) | `get_lesson` — its concepts are what theory teaches, one section each                                       |
 | After theory          | `advance_section`                                                                                           |

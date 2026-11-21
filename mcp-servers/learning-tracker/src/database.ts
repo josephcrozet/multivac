@@ -139,7 +139,7 @@ const db = await SqliteAdapter.open(DB_PATH);
 // 3. Use columnExists() helper for safe ALTER TABLE additions
 // ---------------------------------------------------------------------------
 
-const CURRENT_SCHEMA_VERSION = 3;
+const CURRENT_SCHEMA_VERSION = 4;
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS schema_version (
@@ -159,6 +159,33 @@ export type Section = 'theory' | 'exercise' | 'quiz' | 'socratic';
 const SECTIONS: Section[] = ['theory', 'exercise', 'quiz', 'socratic'];
 const CURRENT_SECTION_COLUMN =
   "current_section TEXT NOT NULL DEFAULT 'theory' CHECK (current_section IN ('theory', 'exercise', 'quiz', 'socratic'))";
+
+// One row per concept to review. lesson_id is kept so a round can take one item per lesson.
+const REVIEW_QUEUE_COLUMNS = `
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tutorial_id INTEGER NOT NULL,
+    lesson_id INTEGER NOT NULL,
+    concept_id INTEGER NOT NULL,
+    position INTEGER NOT NULL,
+    added_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (tutorial_id) REFERENCES tutorials(id) ON DELETE CASCADE,
+    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE,
+    FOREIGN KEY (concept_id) REFERENCES concepts(id) ON DELETE CASCADE,
+    UNIQUE(tutorial_id, concept_id)
+  `;
+
+// The concepts a completed lesson puts in the review queue: every concept missed on its quiz,
+// across all attempts, or, if none were, one picked at random. The server picks rather than the
+// model, which doesn't choose randomly when asked to.
+function reviewItemsFor(lessonId: number): number[] {
+  const conceptIds = (db.prepare('SELECT id FROM concepts WHERE lesson_id = ? ORDER BY id').all(lessonId) as { id: number }[]).map(c => c.id);
+  const quiz = db.prepare('SELECT missed_concepts FROM quiz_results WHERE lesson_id = ? LIMIT 1').get(lessonId) as
+    { missed_concepts: string | null } | undefined;
+  const missed = new Set<number>(quiz?.missed_concepts ? JSON.parse(quiz.missed_concepts) : []);
+  const missedHere = conceptIds.filter(id => missed.has(id));
+  if (missedHere.length > 0) return missedHere;
+  return conceptIds.length > 0 ? [conceptIds[Math.floor(Math.random() * conceptIds.length)]] : [];
+}
 
 function columnExists(table: string, column: string): boolean {
   const columns = db.pragma(`table_info(${table})`) as { name: string }[];
@@ -180,6 +207,21 @@ if (currentVersion < CURRENT_SCHEMA_VERSION) {
     // Migration 2 -> 3: the final score, frozen when the tutorial is completed.
     if (currentVersion < 3 && tableExists('tutorials') && !columnExists('tutorials', 'final_score')) {
       db.exec('ALTER TABLE tutorials ADD COLUMN final_score TEXT');
+    }
+
+    // Migration 3 -> 4: the review queue holds concepts, not lessons. Each queued lesson becomes
+    // its review items, in the same queue order. SQLite can't change a UNIQUE constraint in
+    // place, so the table is rebuilt.
+    if (currentVersion < 4 && tableExists('review_queue') && !columnExists('review_queue', 'concept_id')) {
+      const queued = db.prepare('SELECT tutorial_id, lesson_id, added_at FROM review_queue ORDER BY position').all() as
+        { tutorial_id: number; lesson_id: number; added_at: string }[];
+      db.exec(`ALTER TABLE review_queue RENAME TO review_queue_v3; CREATE TABLE review_queue (${REVIEW_QUEUE_COLUMNS});`);
+      const insert = db.prepare('INSERT INTO review_queue (tutorial_id, lesson_id, concept_id, position, added_at) VALUES (?, ?, ?, ?, ?)');
+      let position = 0;
+      for (const row of queued) {
+        for (const conceptId of reviewItemsFor(row.lesson_id)) insert.run(row.tutorial_id, row.lesson_id, conceptId, ++position, row.added_at);
+      }
+      db.exec('DROP TABLE review_queue_v3');
     }
 
     if (versionRow) {
@@ -246,16 +288,7 @@ db.exec(`
     FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
   );
 
-  CREATE TABLE IF NOT EXISTS review_queue (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tutorial_id INTEGER NOT NULL,
-    lesson_id INTEGER NOT NULL,
-    position INTEGER NOT NULL,
-    added_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (tutorial_id) REFERENCES tutorials(id) ON DELETE CASCADE,
-    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE,
-    UNIQUE(tutorial_id, lesson_id)
-  );
+  CREATE TABLE IF NOT EXISTS review_queue (${REVIEW_QUEUE_COLUMNS});
 
   CREATE TABLE IF NOT EXISTS quiz_results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -491,6 +524,7 @@ export interface ReviewQueueItem {
   id: number;
   tutorial_id: number;
   lesson_id: number;
+  concept_id: number;
   position: number;
   added_at: string;
 }
@@ -603,13 +637,13 @@ function currentSection(lesson: { id: number; completed: number | boolean }): Se
 
 // The final score, out of 2000: 576 for quiz answers (one point each), 480 for interviews (the
 // raw score out of 40), 144 for clearing chapters (12 each), 600 for capstones (200 each,
-// completed only), and 200 for the review queue, less 4 for each lesson still in it. A full
-// queue of 48 leaves 8, so a finished tutorial scores at least 152.
+// completed only), and up to 200 for the review queue: 4 for each item under 50 left in it. So a
+// finished tutorial scores at least 144.
 export const SCORE_MAX = 2000;
 const POINTS_PER_CHAPTER_CLEARED = 12;
 const POINTS_PER_CAPSTONE = 200;
-const REVIEW_POINTS = 200;
-const REVIEW_PENALTY_PER_LESSON = 4;
+const REVIEW_POINTS_PER_ITEM = 4;
+const REVIEW_ITEMS_FOR_NO_POINTS = 50;
 
 export type Rank = 'S+' | 'S' | 'A' | 'B' | 'C' | 'D' | 'E';
 const RANK_THRESHOLDS: [Rank, number][] = [['S+', 2000], ['S', 1800], ['A', 1500], ['B', 1200], ['C', 900], ['D', 600]];
@@ -647,7 +681,7 @@ function computeScore(tutorialId: number): Score {
     WHERE p.tutorial_id = ? AND cr.completed = 1
   `).get(tutorialId) as { n: number }).n * POINTS_PER_CAPSTONE;
   const queued = (db.prepare('SELECT COUNT(*) as n FROM review_queue WHERE tutorial_id = ?').get(tutorialId) as { n: number }).n;
-  const review = Math.max(0, REVIEW_POINTS - REVIEW_PENALTY_PER_LESSON * queued);
+  const review = REVIEW_POINTS_PER_ITEM * Math.max(0, REVIEW_ITEMS_FOR_NO_POINTS - queued);
 
   const points = quizzes + interviews + chapters + capstones + review;
   return { points, max: SCORE_MAX, rank: rankFor(points), breakdown: { quizzes, interviews, chapters, capstones, review } };
@@ -1536,29 +1570,25 @@ export const database = {
   },
 
   // Review queue operations
+  // Queue the completed lesson's review items at the end, or move them there if already queued.
   addToReviewQueue(tutorialId: number, lessonId: number): void {
-    // Get the max position
-    const maxPos = db.prepare(
-      'SELECT MAX(position) as max_pos FROM review_queue WHERE tutorial_id = ?'
-    ).get(tutorialId) as { max_pos: number | null };
-
-    const newPosition = (maxPos.max_pos ?? 0) + 1;
-
-    // Insert or update (in case lesson is already in queue, move to end)
-    db.prepare(`
-      INSERT INTO review_queue (tutorial_id, lesson_id, position, added_at)
-      VALUES (?, ?, ?, datetime('now'))
-      ON CONFLICT(tutorial_id, lesson_id) DO UPDATE SET
+    const insert = db.prepare(`
+      INSERT INTO review_queue (tutorial_id, lesson_id, concept_id, position, added_at)
+      VALUES (?, ?, ?, (SELECT COALESCE(MAX(position), 0) + 1 FROM review_queue WHERE tutorial_id = ?), datetime('now'))
+      ON CONFLICT(tutorial_id, concept_id) DO UPDATE SET
         position = excluded.position,
         added_at = excluded.added_at
-    `).run(tutorialId, lessonId, newPosition);
+    `);
+    for (const conceptId of reviewItemsFor(lessonId)) insert.run(tutorialId, lessonId, conceptId, tutorialId);
   },
 
-  getReviewQueue(limit?: number): {
+  // The concepts waiting for review, in queue order. With onePerLesson, a round takes each
+  // lesson's first item until it has `limit` of them, so it spreads across lessons; without it,
+  // items come in plain queue order.
+  getReviewQueue(limit?: number, onePerLesson = false): {
     queue: {
-      lesson: Lesson;
-      concepts: (Concept & { missed: boolean })[];
-      review_concept: (Concept & { missed: boolean }) | null;
+      concept: Concept;
+      lesson: { id: number; chapter_id: number; name: string; sort_order: number };
       queue_position: number;
     }[];
     total_in_queue: number;
@@ -1567,90 +1597,51 @@ export const database = {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
 
-    // Check if queue is empty - if so, auto-replenish for completed tutorials
+    // A completed tutorial's queue refills once it's empty, for a fresh review cycle.
     let queueReplenished = false;
-    const countResult = db.prepare(
-      'SELECT COUNT(*) as count FROM review_queue WHERE tutorial_id = ?'
-    ).get(tutorialId) as { count: number };
-
-    if (countResult.count === 0) {
-      // Safety check: only replenish if tutorial is completed
-      // (During tutorial, queue should never be empty at review time since
-      // review only happens at chapter starts, after 4 lessons added)
-      const progress = db.prepare(
-        'SELECT status FROM progress WHERE tutorial_id = ?'
-      ).get(tutorialId) as { status: string } | undefined;
-
+    const count = () => (db.prepare('SELECT COUNT(*) as count FROM review_queue WHERE tutorial_id = ?').get(tutorialId) as { count: number }).count;
+    if (count() === 0) {
+      const progress = db.prepare('SELECT status FROM progress WHERE tutorial_id = ?').get(tutorialId) as { status: string } | undefined;
       if (progress?.status === 'completed') {
         this.replenishReviewQueue(tutorialId);
         queueReplenished = true;
       }
     }
 
-    // Get total count (after potential replenishment)
-    const totalResult = db.prepare(
-      'SELECT COUNT(*) as count FROM review_queue WHERE tutorial_id = ?'
-    ).get(tutorialId) as { count: number };
-    const totalInQueue = totalResult.count;
-
-    // Build query with optional limit
-    let query = `
-      SELECT rq.*, l.name as lesson_name, l.description as lesson_description,
-             l.chapter_id, l.sort_order as lesson_sort_order, l.completed as lesson_completed
+    const rows = db.prepare(`
+      SELECT rq.position, rq.lesson_id, c.id as concept_id, c.name as concept_name, c.description as concept_description,
+             l.chapter_id, l.name as lesson_name, l.sort_order as lesson_sort_order
       FROM review_queue rq
+      JOIN concepts c ON rq.concept_id = c.id
       JOIN lessons l ON rq.lesson_id = l.id
       WHERE rq.tutorial_id = ?
       ORDER BY rq.position ASC
-    `;
-    if (limit !== undefined) {
-      query += ` LIMIT ${limit}`;
-    }
+    `).all(tutorialId) as {
+      position: number; lesson_id: number; concept_id: number; concept_name: string; concept_description: string | null;
+      chapter_id: number; lesson_name: string; lesson_sort_order: number;
+    }[];
 
-    const queueItems = db.prepare(query).all(tutorialId) as (ReviewQueueItem & {
-      lesson_name: string;
-      lesson_description: string | null;
-      chapter_id: number;
-      lesson_sort_order: number;
-      lesson_completed: number;
-    })[];
-
-    const queue = queueItems.map(item => {
-      const concepts = db.prepare('SELECT * FROM concepts WHERE lesson_id = ?').all(item.lesson_id) as Concept[];
-      // Mark the concepts missed on the lesson's most recent quiz, so a review can go to the weak
-      // spot first. Only ids that belong to this lesson can match.
-      const latestQuiz = db.prepare(
-        'SELECT missed_concepts FROM quiz_results WHERE lesson_id = ? ORDER BY completed_at DESC LIMIT 1'
-      ).get(item.lesson_id) as { missed_concepts: string | null } | undefined;
-      const missedIds = new Set<number>(latestQuiz?.missed_concepts ? JSON.parse(latestQuiz.missed_concepts) : []);
-      const marked = concepts.map(concept => ({ ...concept, missed: missedIds.has(concept.id) }));
-      // Pick the concept to review here rather than leaving it to the model, which doesn't
-      // choose randomly when asked to and would favor the same position every time.
-      const pool = marked.some(c => c.missed) ? marked.filter(c => c.missed) : marked;
-      const reviewConcept = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
-      return {
-        lesson: {
-          id: item.lesson_id,
-          chapter_id: item.chapter_id,
-          name: item.lesson_name,
-          description: item.lesson_description,
-          completed: !!item.lesson_completed,
-          sort_order: item.lesson_sort_order
-        },
-        concepts: marked,
-        review_concept: reviewConcept,
-        queue_position: item.position
-      };
-    });
+    const seenLessons = new Set<number>();
+    const picked = rows.filter(row => {
+      if (!onePerLesson) return true;
+      if (seenLessons.has(row.lesson_id)) return false;
+      seenLessons.add(row.lesson_id);
+      return true;
+    }).slice(0, limit);
 
     return {
-      queue,
-      total_in_queue: totalInQueue,
-      queue_replenished: queueReplenished
+      queue: picked.map(row => ({
+        concept: { id: row.concept_id, lesson_id: row.lesson_id, name: row.concept_name, description: row.concept_description } as Concept,
+        lesson: { id: row.lesson_id, chapter_id: row.chapter_id, name: row.lesson_name, sort_order: row.lesson_sort_order },
+        queue_position: row.position,
+      })),
+      total_in_queue: count(),
+      queue_replenished: queueReplenished,
     };
   },
 
+  // A fresh cycle: one concept from every lesson, picked at random, in curriculum order.
   replenishReviewQueue(tutorialId: number): void {
-    // Get all lessons for this tutorial
     const lessons = db.prepare(`
       SELECT l.id
       FROM lessons l
@@ -1660,24 +1651,23 @@ export const database = {
       ORDER BY p.sort_order, c.sort_order, l.sort_order
     `).all(tutorialId) as { id: number }[];
 
-    // Add all lessons to the queue
-    const insertStmt = db.prepare(`
-      INSERT INTO review_queue (tutorial_id, lesson_id, position, added_at)
-      VALUES (?, ?, ?, datetime('now'))
+    const insert = db.prepare(`
+      INSERT INTO review_queue (tutorial_id, lesson_id, concept_id, position, added_at)
+      VALUES (?, ?, ?, ?, datetime('now'))
     `);
-
-    for (let i = 0; i < lessons.length; i++) {
-      insertStmt.run(tutorialId, lessons[i].id, i + 1);
-    }
+    lessons.forEach((lesson, i) => {
+      const conceptIds = (db.prepare('SELECT id FROM concepts WHERE lesson_id = ?').all(lesson.id) as { id: number }[]).map(c => c.id);
+      if (conceptIds.length > 0) insert.run(tutorialId, lesson.id, conceptIds[Math.floor(Math.random() * conceptIds.length)], i + 1);
+    });
   },
 
-  logReviewResult(lessonId: number, correct: boolean): { removed: boolean; new_position: number | null } | null {
+  logReviewResult(conceptId: number, correct: boolean): { removed: boolean; new_position: number | null } | null {
     const tutorialId = getTutorialId();
     if (!tutorialId) return null;
 
     if (correct) {
       // Remove from queue
-      db.prepare('DELETE FROM review_queue WHERE tutorial_id = ? AND lesson_id = ?').run(tutorialId, lessonId);
+      db.prepare('DELETE FROM review_queue WHERE tutorial_id = ? AND concept_id = ?').run(tutorialId, conceptId);
       return { removed: true, new_position: null };
     } else {
       // Move to end of queue
@@ -1687,8 +1677,8 @@ export const database = {
 
       const newPosition = (maxPos.max_pos ?? 0) + 1;
 
-      db.prepare('UPDATE review_queue SET position = ? WHERE tutorial_id = ? AND lesson_id = ?')
-        .run(newPosition, tutorialId, lessonId);
+      db.prepare('UPDATE review_queue SET position = ? WHERE tutorial_id = ? AND concept_id = ?')
+        .run(newPosition, tutorialId, conceptId);
 
       return { removed: false, new_position: newPosition };
     }

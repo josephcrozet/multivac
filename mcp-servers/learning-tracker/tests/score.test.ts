@@ -16,7 +16,7 @@ const curriculum: Curriculum = {
     difficulty: pn as 1 | 2 | 3,
     chapters: [1, 2, 3, 4].map((cn) => ({
       name: `Chapter ${pn}.${cn}`,
-      lessons: [1, 2, 3, 4].map((ln) => ({ name: `Lesson ${pn}.${cn}.${ln}`, concepts: [{ name: `Concept ${pn}.${cn}.${ln}` }] })),
+      lessons: [1, 2, 3, 4].map((ln) => ({ name: `Lesson ${pn}.${cn}.${ln}`, concepts: [{ name: `Concept ${pn}.${cn}.${ln}.1` }, { name: `Concept ${pn}.${cn}.${ln}.2` }] })),
     })),
   })),
 };
@@ -32,8 +32,8 @@ test('the final score and rank', async (t) => {
 
   // Play the whole tutorial through the real flow with the given results, from the start. `quiz`
   // is the score out of 12 for every lesson, or a function of the lesson's index (0–47).
-  type Results = { quiz: number | ((lesson: number) => number); interview: number; capstones: boolean; clearQueue: boolean };
-  const playThrough = ({ quiz, interview, capstones, clearQueue }: Results) => {
+  type Results = { quiz: number | ((lesson: number) => number); interview: number; capstones: boolean; clearQueue: boolean; missEverything?: boolean };
+  const playThrough = ({ quiz, interview, capstones, clearQueue, missEverything = false }: Results) => {
     database.resetProgress();
     let lesson = 0;
     for (let guard = 0; guard < 200; guard++) {
@@ -41,7 +41,8 @@ test('the final score and rank', async (t) => {
       if (!pos.current_lesson!.completed) {
         database.advanceSection();
         database.advanceSection();
-        database.logQuizResult(typeof quiz === 'number' ? quiz : quiz(lesson), 12, []);
+        const missed = missEverything ? database.getLesson(pos.current_lesson!.id)!.lesson.concepts.map((c) => c.id) : [];
+        database.logQuizResult(typeof quiz === 'number' ? quiz : quiz(lesson), 12, missed);
         database.advanceSection();
         database.completeLesson();
         lesson++;
@@ -52,7 +53,7 @@ test('the final score and rank', async (t) => {
       // The final review comes before the last advance, which completes the tutorial and freezes
       // the score.
       if (clearQueue && pos.is_part_end && pos.position!.part === 3) {
-        for (const item of database.getReviewQueue(48)!.queue) database.logReviewResult(item.lesson.id, true);
+        for (const item of database.getReviewQueue()!.queue) database.logReviewResult(item.concept.id, true);
       }
       if (database.advancePosition()!.tutorial_completed) break;
     }
@@ -81,10 +82,12 @@ test('the final score and rank', async (t) => {
     assert.equal(score.rank, 'B');
   });
 
-  await t.test('the lowest score for a finished tutorial is 152, an E', () => {
-    const score = playThrough({ quiz: 0, interview: 0, capstones: false, clearQueue: false });
-    assert.deepEqual(score.breakdown, { quizzes: 0, interviews: 0, chapters: 144, capstones: 0, review: 8 });
-    assert.equal(score.points, 152);
+  await t.test('the lowest score for a finished tutorial is 144, an E', () => {
+    // Missing both concepts in every lesson queues 96 items, past the 50 that leave no review
+    // points; extra items don't push the score below zero.
+    const score = playThrough({ quiz: 0, interview: 0, capstones: false, clearQueue: false, missEverything: true });
+    assert.deepEqual(score.breakdown, { quizzes: 0, interviews: 0, chapters: 144, capstones: 0, review: 0 });
+    assert.equal(score.points, 144);
     assert.equal(score.rank, 'E');
   });
 

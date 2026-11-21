@@ -75,7 +75,7 @@ Your progress persists across sessions via a local SQLite database. Pick up exac
 ╔══════════════════════════════════════════════════════════════════════╗
 ║  STATS                            │  REVIEW QUEUE                    ║
 ║  ─────────────────────────────────│───────────────────────────────── ║
-║  Lessons:     22/48  (46%)        │  4 lessons pending               ║
+║  Lessons:     22/48  (46%)        │  4 concepts to review            ║
 ║  Quizzes Avg: 88%                 │  • list comprehensions           ║
 ║  Interviews:  6/12                │  • dictionary methods            ║
 ║  Capstones:   1/3                 │  • exception handling            ║
@@ -242,7 +242,7 @@ This project demonstrates Claude Code's extensibility:
 | `log_quiz_result`      | Record quiz scores                       |
 | `log_interview_result` | Record interview performance             |
 | `log_capstone_result`  | Record capstone result (done/skipped)    |
-| `get_review_queue`     | Get lessons pending review               |
+| `get_review_queue`     | Get concepts waiting for review          |
 | `log_review_result`    | Mark review correct/incorrect            |
 | `reset_progress`       | Reset progress while keeping curriculum  |
 

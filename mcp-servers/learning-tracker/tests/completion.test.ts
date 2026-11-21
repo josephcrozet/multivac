@@ -62,7 +62,7 @@ test('completing a tutorial', async (t) => {
     assert.equal(frozen.breakdown.review, 196); // the one lesson is still in the queue: 200 - 4
     // A post-game review empties the queue, which would raise a live score by 4.
     const [item] = database.getReviewQueue(4)!.queue;
-    database.logReviewResult(item.lesson.id, true);
+    database.logReviewResult(item.concept.id, true);
     assert.deepEqual(database.getStats()!.score, frozen);
   });
 

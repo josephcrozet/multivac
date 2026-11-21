@@ -380,17 +380,17 @@ test('curriculum tree lifecycle', async (t) => {
     assert.equal(database.getLesson(999999), null);
   });
 
-  await t.test('getReviewQueue returns every concept of a queued lesson', () => {
-    // Part I is finished, so its 16 lessons are queued for review.
-    const { queue } = database.getReviewQueue(4)!;
-    assert.equal(queue.length, 4);
-    for (const item of queue) {
-      const suffix = item.lesson.name.replace('Lesson ', '');
-      assert.deepEqual(
-        item.concepts.map((c) => c.name),
-        [1, 2, 3].map((kn) => `Concept ${suffix}.${kn}`)
-      );
-    }
+  await t.test('the review queue holds one item per concept to review, in lesson order', () => {
+    // Part I is finished. Chapter 1.1's quizzes missed one concept in Lesson 1.1.2 and two in
+    // Lesson 1.1.4; every other lesson missed nothing and queues one concept. 16 + 1 = 17.
+    const { queue, total_in_queue } = database.getReviewQueue()!;
+    assert.equal(total_in_queue, 17);
+    assert.deepEqual(
+      queue.slice(0, 6).map((item) => item.lesson.name),
+      ['Lesson 1.1.1', 'Lesson 1.1.2', 'Lesson 1.1.3', 'Lesson 1.1.4', 'Lesson 1.1.4', 'Lesson 1.2.1']
+    );
+    // Each item's concept belongs to its lesson.
+    for (const item of queue) assert.ok(item.concept.name.startsWith(`Concept ${item.lesson.name.replace('Lesson ', '')}.`));
   });
 
   await t.test('createTutorial refuses a second tutorial and leaves the first untouched', () => {
@@ -466,44 +466,58 @@ test('curriculum tree lifecycle', async (t) => {
 
   // --- Review queue targets concepts missed on the quiz ---
 
-  const queuedLesson = (lessonId: number) =>
-    database.getReviewQueue()!.queue.find((q) => q.lesson.id === lessonId)!;
+  const itemsFor = (lessonId: number) =>
+    database.getReviewQueue()!.queue.filter((q) => q.lesson.id === lessonId).map((q) => q.concept.id);
 
-  await t.test('getReviewQueue marks the concepts missed on the lesson\'s quiz and reviews one of them', () => {
-    const lesson = database.getPart(part1Id)!.chapters[0].lessons[1]; // Lesson 1.1.2, quizzed above
-    const missed = lesson.concepts[1];
-    const item = queuedLesson(lesson.id);
-    assert.deepEqual(item.concepts.map((c) => c.missed), [false, true, false]);
-    // With a single missed concept there's only one choice, so this is deterministic.
-    assert.equal(item.review_concept!.id, missed.id);
+  await t.test('a lesson queues every concept missed on its quiz', () => {
+    const lessons = database.getPart(part1Id)!.chapters[0].lessons;
+    assert.deepEqual(itemsFor(lessons[1].id), [lessons[1].concepts[1].id]); // Lesson 1.1.2
+    assert.deepEqual(itemsFor(lessons[3].id), [lessons[3].concepts[0].id, lessons[3].concepts[2].id]); // Lesson 1.1.4
   });
 
-  await t.test('review_concept is always drawn from the missed concepts when there are several', () => {
-    const lesson = database.getPart(part1Id)!.chapters[0].lessons[3]; // Lesson 1.1.4, quizzed above
-    const missedIds = [lesson.concepts[0].id, lesson.concepts[2].id];
-    for (let i = 0; i < 25; i++) {
-      assert.ok(missedIds.includes(queuedLesson(lesson.id).review_concept!.id));
-    }
-  });
-
-  await t.test('with nothing missed, review_concept falls back to any of the lesson\'s concepts', () => {
-    // Lesson 1.1.1 was quizzed with no misses; Lesson 1.1.3 was logged with an id belonging
-    // to another lesson, which must not mark anything here.
+  await t.test('a lesson with nothing missed queues one of its concepts', () => {
+    // Lesson 1.1.1 missed nothing; Lesson 1.1.3 was logged with an id belonging to another
+    // lesson, which must not count as a miss here.
     const lessons = database.getPart(part1Id)!.chapters[0].lessons;
     for (const lesson of [lessons[0], lessons[2]]) {
-      const item = queuedLesson(lesson.id);
-      assert.ok(item.concepts.every((c) => !c.missed));
-      assert.ok(lesson.concepts.some((c) => c.id === item.review_concept!.id));
+      const items = itemsFor(lesson.id);
+      assert.equal(items.length, 1);
+      assert.ok(lesson.concepts.some((c) => c.id === items[0]));
     }
   });
 
-  await t.test('review_concept varies between calls rather than favoring one position', () => {
-    // The pick is made here precisely so it isn't always the first concept. With three
-    // concepts, 60 identical draws in a row has odds around 1e-28, so this won't flake.
-    const lessonId = database.getPart(part1Id)!.chapters[0].lessons[0].id; // nothing missed
-    const picked = new Set<number>();
-    for (let i = 0; i < 60; i++) picked.add(queuedLesson(lessonId).review_concept!.id);
-    assert.ok(picked.size > 1);
+  await t.test('the concept picked for a lesson with nothing missed varies between lessons', () => {
+    // The server picks at random so the model doesn't favor one position. Chapters 1.2–1.4
+    // missed nothing: twelve lessons all landing on the same position of three has odds around
+    // 1 in 180,000.
+    const positions = new Set<number>();
+    for (const chapter of database.getPart(part1Id)!.chapters.slice(1)) {
+      for (const lesson of chapter.lessons) positions.add(lesson.concepts.findIndex((c) => c.id === itemsFor(lesson.id)[0]));
+    }
+    assert.ok(positions.size > 1);
+  });
+
+  await t.test('one_per_lesson takes each lesson\'s first item; without it, items come in queue order', () => {
+    // Lesson 1.1.4 holds the 4th and 5th items, so five items tell the two modes apart.
+    const lessons = database.getPart(part1Id)!.chapters[0].lessons;
+    const nextChapterFirst = database.getPart(part1Id)!.chapters[1].lessons[0];
+    const spread = database.getReviewQueue(5, true)!.queue;
+    assert.deepEqual(spread.map((q) => q.lesson.id), [...lessons.map((l) => l.id), nextChapterFirst.id]);
+    assert.equal(spread[3].concept.id, lessons[3].concepts[0].id);
+    const plain = database.getReviewQueue(5)!.queue;
+    assert.deepEqual(plain.slice(3).map((q) => q.concept.id), [lessons[3].concepts[0].id, lessons[3].concepts[2].id]);
+  });
+
+  await t.test('logReviewResult removes or moves back one concept, not its whole lesson', () => {
+    const lesson = database.getPart(part1Id)!.chapters[0].lessons[3]; // Lesson 1.1.4, two items
+    const [first, second] = lesson.concepts.filter((c) => itemsFor(lesson.id).includes(c.id));
+    assert.equal(database.logReviewResult(first.id, true)!.removed, true);
+    assert.deepEqual(itemsFor(lesson.id), [second.id]);
+    const before = database.getReviewQueue()!.total_in_queue;
+    assert.equal(database.logReviewResult(second.id, false)!.removed, false);
+    const queue = database.getReviewQueue()!.queue;
+    assert.equal(queue[queue.length - 1].concept.id, second.id); // moved to the end
+    assert.equal(database.getReviewQueue()!.total_in_queue, before);
   });
 
   // --- Chapter results ---

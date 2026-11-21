@@ -37,9 +37,22 @@ const VERSION_1_SCHEMA = `
   INSERT INTO chapters (part_id, name, sort_order) VALUES (1, 'Chapter', 1);
   INSERT INTO lessons (chapter_id, name, sort_order) VALUES (1, 'Lesson', 1);
   INSERT INTO progress (tutorial_id, current_lesson_id, status) VALUES (1, 1, 'in_progress');
+  CREATE TABLE concepts (id INTEGER PRIMARY KEY AUTOINCREMENT, lesson_id INTEGER NOT NULL, name TEXT NOT NULL, description TEXT);
+  INSERT INTO concepts (lesson_id, name) VALUES (1, 'A'), (1, 'B'), (1, 'C');
+  CREATE TABLE quiz_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, lesson_id INTEGER NOT NULL, score INTEGER NOT NULL, total INTEGER NOT NULL,
+    missed_concepts TEXT, completed_at TEXT DEFAULT (datetime('now'))
+  );
+  INSERT INTO quiz_results (lesson_id, score, total, missed_concepts) VALUES (1, 9, 12, '[2]');
+  -- The version 1 review queue: one row per lesson.
+  CREATE TABLE review_queue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, tutorial_id INTEGER NOT NULL, lesson_id INTEGER NOT NULL,
+    position INTEGER NOT NULL, added_at TEXT DEFAULT (datetime('now')), UNIQUE(tutorial_id, lesson_id)
+  );
+  INSERT INTO review_queue (tutorial_id, lesson_id, position) VALUES (1, 1, 1);
 `;
 
-test('a schema version 1 database gains the section pointer and the final score', async (t) => {
+test('a schema version 1 database gains the section pointer, the final score, and a per-concept review queue', async (t) => {
   const tmpDir = mkdtempSync(join(tmpdir(), 'multivac-migration-test-'));
   t.after(() => rmSync(tmpDir, { recursive: true, force: true }));
 
@@ -57,12 +70,19 @@ test('a schema version 1 database gains the section pointer and the final score'
     assert.equal(pos.current_section, 'theory');
   });
 
-  await t.test('the pointer moves and is saved, at schema version 3', () => {
+  await t.test('the pointer moves and is saved, at schema version 4', () => {
     assert.equal(database.advanceSection()!.current_section, 'exercise');
     const saved = new SQL.Database(readFileSync(join(tmpDir, 'learning.db')));
     assert.deepEqual(saved.exec('SELECT current_section FROM progress')[0].values, [['exercise']]);
-    assert.deepEqual(saved.exec('SELECT version FROM schema_version')[0].values, [[3]]);
+    assert.deepEqual(saved.exec('SELECT version FROM schema_version')[0].values, [[4]]);
     // Migration 2 -> 3 added the frozen final score, empty until the tutorial is completed.
     assert.deepEqual(saved.exec('SELECT final_score FROM tutorials')[0].values, [[null]]);
+  });
+
+  await t.test('the queued lesson becomes its missed concept', () => {
+    // Migration 3 -> 4: Lesson's quiz missed concept B, so B is what it queues for review.
+    const { queue } = database.getReviewQueue()!;
+    assert.deepEqual(queue.map((q) => q.concept.name), ['B']);
+    assert.equal(queue[0].lesson.name, 'Lesson');
   });
 });

@@ -43,11 +43,10 @@ test('quiz retakes', async (t) => {
     assert.deepEqual(quiz(), { score: 10, total: 12 });
   });
 
-  await t.test('concepts missed in any attempt stay marked for review', () => {
+  await t.test('concepts missed in any attempt are each queued for review', () => {
     database.advanceSection();
     database.completeLesson();
-    const item = database.getReviewQueue()!.queue.find((q) => q.lesson.id === lessonId)!;
-    assert.deepEqual(item.concepts.map((c) => c.missed), [true, true, false]);
+    assert.deepEqual(database.getReviewQueue()!.queue.map((q) => q.concept.id), [a.id, b.id]);
   });
 
   await t.test('the lesson counts once, at its best score', () => {
