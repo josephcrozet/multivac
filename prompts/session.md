@@ -600,11 +600,11 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
    - "Save & Quit" — Return to normal Claude Code
    - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
-2. Run the mock interview as its **Orchestrator**. Read `~/.claude/agents/interview-agent.md` and follow the **Orchestrator** section: it spawns an **Authoring Worker** subagent (via the Task tool) that returns a verified question set, then it conducts the interview one question at a time and grades each answer. You only orchestrate — the worker authors and verifies the questions; you never write them yourself.
+2. Run the mock interview as its **Orchestrator**. Read `~/.claude/agents/interview-agent.md` and follow the **Orchestrator** section: it spawns the `interview-author` subagent, which returns a verified question set, then it conducts the interview one question at a time and grades each answer. You only orchestrate — the author writes and verifies the questions; you never write them yourself.
 
    Call `get_chapter` with the current chapter's id for the lesson names and concepts below — don't rely on what's still in context, since the interview runs at a chapter end, after four lessons and often a compaction.
 
-   Hand the Orchestrator this context (it passes the relevant parts to the worker):
+   Hand the Orchestrator this context (it passes the relevant parts to the author):
    - **Topic:** The tutorial name (e.g., "Python", "French")
    - **Difficulty:** The difficulty level (e.g., "Beginner", "Intermediate", "Advanced")
    - **Part:** Current part (e.g., "Part I", "Part II")
@@ -612,8 +612,8 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
    - **Lessons covered:** All 4 lesson names, from `get_chapter`
    - **Key concepts:** Every lesson's concepts, from `get_chapter` — this is what the questions are built from, so pass the recorded list rather than recalling what you taught
    - **Type:** The tutorial type (`programming` or `general`)
-   - **Current information (if any applies):** Quickly check `.multivac/current-info.md` for anything relevant to this chapter's concepts (version/API changes, corrected facts that differ from training data). Usually nothing will apply — but if something does, pass just that relevant part, so the questions and answers match what the lessons taught rather than stale training data. The worker can't see this cache; it only knows what you hand it.
-   - **Scratch directory:** `.multivac/tmp/` — the hidden location for the worker's verification scratch. The agent stays generic about the path; you supply this Multivac-specific one so its scratch lands in the known hidden location, never the learner's workspace.
+   - **Current information (if any applies):** Quickly check `.multivac/current-info.md` for anything relevant to this chapter's concepts (version/API changes, corrected facts that differ from training data). Usually nothing will apply — but if something does, pass just that relevant part, so the questions and answers match what the lessons taught rather than stale training data. The author can't see this cache; it only knows what you hand it.
+   - **Scratch directory:** `.multivac/tmp/` — the hidden location for the author's verification scratch. The agent stays generic about the path; you supply this Multivac-specific one so its scratch lands in the known hidden location, never the learner's workspace.
 
    Example context: "Interview on Beginner Python — Part I, Chapter 3: Functions. Lessons covered: Basic Functions, Parameters, Return Values, Scope. Key concepts: [list]. Tutorial type: programming. Scratch dir: .multivac/tmp/"
 
@@ -627,7 +627,7 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
 
 4. Call `get_chapter` with the current chapter's id and display the **Chapter Cleared Screen** (see ASCII Art section).
 
-5. Sweep the scratch directory: clear out `.multivac/tmp/`. The worker deletes its own scratch, so this is just the chapter-end backstop — it keeps any stray verification artifacts from this chapter's lessons or interview from accumulating.
+5. Sweep the scratch directory: clear out `.multivac/tmp/`. The author deletes its own scratch, so this is just the chapter-end backstop — it keeps any stray verification artifacts from this chapter's lessons or interview from accumulating.
 
 ---
 
@@ -1338,7 +1338,7 @@ Each chapter's mock interview is saved to `interview.md` in that chapter's folde
 {Your feedback, verbatim — including the ideal answer if you showed one}
 ```
 
-Format the answer the same way as an exercise solution (see "Formatting the solution" above). Record a skipped question too, with "Skipped" as its answer. Save only what the user saw — never the worker's scoring guidance, or a model answer you didn't show.
+Format the answer the same way as an exercise solution (see "Formatting the solution" above). Record a skipped question too, with "Skipped" as its answer. Save only what the user saw — never the author's scoring guidance, or a model answer you didn't show.
 
 **When the interview ends:** Append the overall result:
 

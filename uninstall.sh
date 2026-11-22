@@ -13,6 +13,7 @@ echo "Multivac Uninstaller"
 echo ""
 echo "This will remove:"
 echo "  - ~/.claude/agents/interview-agent.md"
+echo "  - ~/.claude/agents/interview-author.md"
 echo "  - ~/.claude/commands/quiz.md"
 echo "  - ~/.claude/commands/tutorial.md"
 echo "  - ~/.claude/commands/menu.md"
@@ -42,6 +43,10 @@ echo "Removing Multivac components..."
 if [ -f "$CLAUDE_DIR/agents/interview-agent.md" ]; then
     rm "$CLAUDE_DIR/agents/interview-agent.md"
     echo "  Removed: agents/interview-agent.md"
+fi
+if [ -f "$CLAUDE_DIR/agents/interview-author.md" ]; then
+    rm "$CLAUDE_DIR/agents/interview-author.md"
+    echo "  Removed: agents/interview-author.md"
 fi
 
 # Remove commands

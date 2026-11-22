@@ -134,6 +134,8 @@ echo ""
 echo "Installing agents..."
 cp "$SCRIPT_DIR/agents/interview-agent.md" "$CLAUDE_DIR/agents/interview-agent.md"
 echo "  interview-agent.md"
+cp "$SCRIPT_DIR/agents/interview-author.md" "$CLAUDE_DIR/agents/interview-author.md"
+echo "  interview-author.md"
 
 # Copy commands
 echo ""
