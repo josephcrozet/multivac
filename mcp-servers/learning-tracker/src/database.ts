@@ -637,13 +637,13 @@ function currentSection(lesson: { id: number; completed: number | boolean }): Se
 
 // The final score, out of 2000: 576 for quiz answers (one point each), 480 for interviews (the
 // raw score out of 40), 144 for clearing chapters (12 each), 600 for capstones (200 each,
-// completed only), and up to 200 for the review queue: 4 for each item under 50 left in it. So a
-// finished tutorial scores at least 144.
+// completed only), and 200 for the review queue, minus 4 for each item still left in it, never
+// below 0. So a finished tutorial scores at least 144.
 export const SCORE_MAX = 2000;
 const POINTS_PER_CHAPTER_CLEARED = 12;
 const POINTS_PER_CAPSTONE = 200;
-const REVIEW_POINTS_PER_ITEM = 4;
-const REVIEW_ITEMS_FOR_NO_POINTS = 50;
+const REVIEW_POINTS = 200;
+const REVIEW_PENALTY_PER_ITEM = 4;
 
 export type Rank = 'S+' | 'S' | 'A' | 'B' | 'C' | 'D' | 'E';
 const RANK_THRESHOLDS: [Rank, number][] = [['S+', 2000], ['S', 1800], ['A', 1500], ['B', 1200], ['C', 900], ['D', 600]];
@@ -681,7 +681,7 @@ function computeScore(tutorialId: number): Score {
     WHERE p.tutorial_id = ? AND cr.completed = 1
   `).get(tutorialId) as { n: number }).n * POINTS_PER_CAPSTONE;
   const queued = (db.prepare('SELECT COUNT(*) as n FROM review_queue WHERE tutorial_id = ?').get(tutorialId) as { n: number }).n;
-  const review = REVIEW_POINTS_PER_ITEM * Math.max(0, REVIEW_ITEMS_FOR_NO_POINTS - queued);
+  const review = Math.max(0, REVIEW_POINTS - REVIEW_PENALTY_PER_ITEM * queued);
 
   const points = quizzes + interviews + chapters + capstones + review;
   return { points, max: SCORE_MAX, rank: rankFor(points), breakdown: { quizzes, interviews, chapters, capstones, review } };
