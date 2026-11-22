@@ -11,7 +11,9 @@ This is a Claude Code extension toolkit project. When working in this directory,
 
 ```
 multivac/
-├── agents/interview-agent.md     # Mock interview agent (8 questions, dual format)
+├── agents/
+│   ├── interview-agent.md        # Mock interview: conducts and grades (8 questions, dual format)
+│   └── interview-author.md       # Subagent that writes and verifies the questions
 ├── bin/multivac                  # CLI command to create tutorial projects
 ├── commands/
 │   ├── menu.md                   # /menu - pause menu (progress, curriculum, restart options)
@@ -50,7 +52,7 @@ multivac/
 **Curriculum & Content**
 7. **Tutorial Types** — `programming` (code interviews + test-driven capstones) vs `general` (knowledge interviews + criteria-based capstones); type auto-detected from topic
 8. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache persists across context compaction and is checked before each lesson to short-circuit redundant searches and prevent fallback to stale training data. For programming tutorials, research is scoped to the version the learner chose at setup (the `teaching_target` preference), not the latest release. The choice itself lives in the server, not the cache: the cache holds research results, and the target is a decision
-9. **Verify Before Asserting** — Two halves of the same principle. *General topics* have no safety net: for specific technical claims (terminology, formulas, linguistic rules), verify against authoritative sources rather than relying on training data. *Programming* has a natural safety net (code runs or it doesn't), but it only works if the agent actually runs the code instead of pattern-matching — so claims about code behavior must be verified by execution, graduated by stakes (interview questions always, owned by the interview agent; exercises with a definite right answer; theory by judgment; quiz left light since /quiz already guards quality). Verification is done at design time, silently (narrating what you tested leaks the answer), and cleaned up after. See session.md "Verify Code by Running It" and interview-agent.md "Verify every question before returning it"
+9. **Verify Before Asserting** — Two halves of the same principle. *General topics* have no safety net: for specific technical claims (terminology, formulas, linguistic rules), verify against authoritative sources rather than relying on training data. *Programming* has a natural safety net (code runs or it doesn't), but it only works if the agent actually runs the code instead of pattern-matching — so claims about code behavior must be verified by execution, graduated by stakes (interview questions always, owned by the interview agent; exercises with a definite right answer; theory by judgment; quiz left light since /quiz already guards quality). Verification is done at design time, silently (narrating what you tested leaks the answer), and cleaned up after. See session.md "Verify Code by Running It" and interview-author.md "Verify every question before returning it"
 10. **Generic Commands** — /quiz and interview-agent work outside tutorials; session.md adds MCP integration
 
 **Learning Flow**
@@ -64,7 +66,7 @@ multivac/
 
 ## Interview Agent Details
 
-**Architecture (two roles, one file).** `interview-agent.md` defines two roles, split by role not by context. The **Orchestrator** is always the main agent talking to the user: it conducts the interview and grades. The **Authoring Worker** is a subagent (spawned via Task) that does one thing — generate the 8 questions, verify them (run code / check sources), and return a structured set (question text + model answer + scoring guidance) — then exits. The orchestrator presents each question **verbatim** (the worker verified it as written; rewording risks reintroducing the error verification removed) and grades against the returned rubric. This makes the worker's verification a true information barrier: its scratch work stays in its own context and never leaks into the conversation. The split is identical in a tutorial or standalone — session.md only triggers it and supplies tutorial context; the agent file carries no Multivac coupling.
+**Architecture (two roles, two files).** An interview is split by role, not by context. The **Orchestrator** (`interview-agent.md`) is always the main agent talking to the user: it conducts the interview and grades. It has to be the main agent, since subagents can't use AskUserQuestion. The **Author** (`interview-author.md`) is a registered subagent, `interview-author`, that does one thing — generate the 8 questions, verify them (run code / check sources), and return a structured set (question text + model answer + scoring guidance) — then exits. Its frontmatter registers it; Claude Code skips an agent file with missing or malformed frontmatter without an error, so a test in the MCP server's suite checks it. Its description limits it to an interview's question set, since its output holds the answers. The orchestrator presents each question **verbatim** (the author verified it as written; rewording risks reintroducing the error verification removed) and grades against the returned rubric. This makes the author's verification a true information barrier: its scratch work stays in its own context and never leaks into the conversation. If the author isn't installed, the orchestrator stops rather than writing questions itself. The split is identical in a tutorial or standalone — session.md only triggers it and supplies tutorial context; neither file carries Multivac coupling.
 
 Two formats based on tutorial type:
 
@@ -149,7 +151,7 @@ Most tests call `database.ts` directly. `tests/server.test.ts` instead starts th
 - **MCP Server**: `cd ~/.claude/mcp-servers/learning-tracker && npm install && npm run build && npm start`
 - **Hook**: Echo mock JSON to the hook script
 - **Commands**: Run `/quiz`, `/tutorial`, or `/menu` in Claude Code
-- **Interview Agent**: Use Task tool to spawn with agent instructions
+- **Interview**: Follow `interview-agent.md` as the orchestrator; it spawns the `interview-author` subagent
 
 ## Secret Feature
 
