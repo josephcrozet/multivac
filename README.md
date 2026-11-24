@@ -176,7 +176,7 @@ This project demonstrates Claude Code's extensibility:
 | Progress tracking   | MCP server with SQLite database                    |
 | `/tutorial` command | Slash command that loads session.md       |
 | `/quiz` command     | Batched multiple-choice questions (3 prompts of 4) |
-| Mock interviews     | Main agent conducts; the `interview-author` subagent writes and verifies the questions |
+| `/interview` command | Mock interview: the main agent conducts; the `interview-author` subagent writes and verifies the questions |
 | Capstone tests      | PreToolUse hook that runs your test suite          |
 | Auto-prompt         | SessionStart hook offers to start/continue         |
 | `/menu` command     | Pause menu for progress, curriculum, restart       |
@@ -188,11 +188,11 @@ This project demonstrates Claude Code's extensibility:
 ```
 ~/.claude/
 ├── agents/
-│   ├── interview-agent.md      # Mock interview (8 questions, scratch file)
-│   └── interview-author.md     # Subagent that writes and verifies the questions
+│   └── interview-author.md     # Subagent that writes and verifies interview questions
 ├── commands/
 │   ├── quiz.md                 # /quiz - 12 MC questions in 3 batches
 │   ├── menu.md                 # /menu - pause menu (progress, curriculum, restart)
+│   ├── interview.md            # /interview - mock interview (8 questions, scratch file)
 │   └── tutorial.md             # /tutorial - start or resume a tutorial
 ├── hooks/
 │   ├── capstone-test-runner.sh # Runs tests on capstone todo completion
