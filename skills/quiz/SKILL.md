@@ -1,4 +1,9 @@
-# Quiz Command
+---
+name: quiz
+description: Give a 12-question multiple-choice quiz on what's being learned, in three rounds of four from easy to hard, then a scored summary. Use when the user asks to be quizzed or tested on the material.
+---
+
+# Quiz
 
 Generate and administer a quiz based on the current learning context.
 

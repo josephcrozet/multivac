@@ -13,10 +13,10 @@ echo "Multivac Uninstaller"
 echo ""
 echo "This will remove:"
 echo "  - ~/.claude/agents/interview-author.md"
-echo "  - ~/.claude/commands/quiz.md"
-echo "  - ~/.claude/commands/tutorial.md"
-echo "  - ~/.claude/commands/menu.md"
-echo "  - ~/.claude/commands/interview.md"
+echo "  - ~/.claude/skills/quiz/"
+echo "  - ~/.claude/skills/tutorial/"
+echo "  - ~/.claude/skills/menu/"
+echo "  - ~/.claude/skills/interview/"
 echo "  - ~/.claude/hooks/capstone-test-runner.sh"
 echo "  - ~/.claude/hooks/session-greeting.sh"
 echo "  - ~/.claude/hooks/compact-recovery.sh"
@@ -45,26 +45,14 @@ if [ -f "$CLAUDE_DIR/agents/interview-author.md" ]; then
     echo "  Removed: agents/interview-author.md"
 fi
 
-# Remove commands
-if [ -f "$CLAUDE_DIR/commands/quiz.md" ]; then
-    rm "$CLAUDE_DIR/commands/quiz.md"
-    echo "  Removed: commands/quiz.md"
-fi
-
-if [ -f "$CLAUDE_DIR/commands/tutorial.md" ]; then
-    rm "$CLAUDE_DIR/commands/tutorial.md"
-    echo "  Removed: commands/tutorial.md"
-fi
-
-if [ -f "$CLAUDE_DIR/commands/interview.md" ]; then
-    rm "$CLAUDE_DIR/commands/interview.md"
-    echo "  Removed: commands/interview.md"
-fi
-
-if [ -f "$CLAUDE_DIR/commands/menu.md" ]; then
-    rm "$CLAUDE_DIR/commands/menu.md"
-    echo "  Removed: commands/menu.md"
-fi
+# Remove skills
+for skill in quiz tutorial menu interview; do
+    if [ -f "$CLAUDE_DIR/skills/$skill/SKILL.md" ]; then
+        rm "$CLAUDE_DIR/skills/$skill/SKILL.md"
+        rmdir "$CLAUDE_DIR/skills/$skill" 2>/dev/null || true
+        echo "  Removed: skills/$skill/"
+    fi
+done
 
 # Remove hooks
 if [ -f "$CLAUDE_DIR/hooks/capstone-test-runner.sh" ]; then

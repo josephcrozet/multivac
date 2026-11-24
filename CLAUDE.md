@@ -13,11 +13,11 @@ This is a Claude Code extension toolkit project. When working in this directory,
 multivac/
 ├── agents/interview-author.md    # Subagent that writes and verifies interview questions
 ├── bin/multivac                  # CLI command to create tutorial projects
-├── commands/
-│   ├── interview.md              # /interview - mock interview: conducts and grades (8 questions, dual format)
-│   ├── menu.md                   # /menu - pause menu (progress, curriculum, restart options)
-│   ├── quiz.md                   # /quiz - 12 MC questions in 3 batches
-│   └── tutorial.md               # /tutorial - start or resume a tutorial
+├── skills/                       # Each skill is <name>/SKILL.md, typed as /<name>
+│   ├── interview/                # /interview - mock interview: conducts and grades (8 questions, dual format)
+│   ├── menu/                     # /menu - pause menu (progress, curriculum, restart options)
+│   ├── quiz/                     # /quiz - 12 MC questions in 3 batches
+│   └── tutorial/                 # /tutorial - start or resume a tutorial
 ├── hooks/
 │   ├── capstone-test-runner.sh   # PreToolUse hook on TodoWrite
 │   ├── compact-recovery.sh       # SessionStart (compact) to recover after compaction
@@ -52,10 +52,10 @@ multivac/
 7. **Tutorial Types** — `programming` (code interviews + test-driven capstones) vs `general` (knowledge interviews + criteria-based capstones); type auto-detected from topic
 8. **Current Information Verification** — Before curriculum creation, Claude searches for current versions/best practices and caches findings in `.multivac/current-info.md`; cache persists across context compaction and is checked before each lesson to short-circuit redundant searches and prevent fallback to stale training data. For programming tutorials, research is scoped to the version the learner chose at setup (the `teaching_target` preference), not the latest release. The choice itself lives in the server, not the cache: the cache holds research results, and the target is a decision
 9. **Verify Before Asserting** — Two halves of the same principle. *General topics* have no safety net: for specific technical claims (terminology, formulas, linguistic rules), verify against authoritative sources rather than relying on training data. *Programming* has a natural safety net (code runs or it doesn't), but it only works if the agent actually runs the code instead of pattern-matching — so claims about code behavior must be verified by execution, graduated by stakes (interview questions always, owned by the interview agent; exercises with a definite right answer; theory by judgment; quiz left light since /quiz already guards quality). Verification is done at design time, silently (narrating what you tested leaks the answer), and cleaned up after. See session.md "Verify Code by Running It" and interview-author.md "Verify every question before returning it"
-10. **Generic Commands** — /quiz and /interview work outside tutorials; session.md adds MCP integration
+10. **Generic Skills** — /quiz and /interview work outside tutorials; session.md adds MCP integration. All four skills (quiz, interview, tutorial, menu) are skills rather than the older command files, with frontmatter: a `name` matching the folder, and a `description` saying when to use it, since Claude may also invoke a skill on its own — which the session-greeting hook relies on for `tutorial`
 
 **Learning Flow**
-11. **Separated Commands** — /tutorial starts new tutorials; /menu is the pause menu for existing tutorials (view progress, curriculum, restart, exit); single responsibility per command
+11. **Separated Skills** — /tutorial starts new tutorials; /menu is the pause menu for existing tutorials (view progress, curriculum, restart, exit); single responsibility per skill
 12. **Batched Quizzes** — 3 prompts of 4 questions, not 12 individual prompts
 13. **Queue-Based Spaced Repetition** — The review queue holds concepts. A completed lesson queues every concept missed on its quiz (across retakes), or, if none were, one the server picks at random — not the model, which doesn't choose randomly when asked to. A review is offered at each chapter start (recommended, and only when the queue isn't empty) and at the tutorial's end, in rounds of 4: a first round takes one item per lesson so it spreads across them, later rounds ("Review more") take items in queue order. Correct answers remove a concept; incorrect ones move it to the end. The final score's review points are 200, minus 4 for each item still in the queue, never below 0
 14. **Incremental Capstone Evaluation** — Programming: tests written per-milestone. General: criteria checked per-milestone. Both followed by qualitative review, both skippable. The capstone's spec + milestone progress live in a write-once `CAPSTONE.md` in the capstone dir (the agent's record), so a mid-build restart re-grounds and resumes the *same* project instead of designing a new one. The learner's deliverable (code files / `capstone.txt`) is theirs — the agent reads it to evaluate, never overwrites it.
@@ -65,7 +65,7 @@ multivac/
 
 ## Interview Agent Details
 
-**Architecture (two roles, two files).** An interview is split by role, not by context. The **Orchestrator** (`commands/interview.md`, also `/interview`) is always the main agent talking to the user: it conducts the interview and grades. It has to be the main agent, since subagents can't use AskUserQuestion. The **Author** (`agents/interview-author.md`) is a registered subagent, `interview-author`, that does one thing — generate the 8 questions, verify them (run code / check sources), and return a structured set (question text + model answer + scoring guidance) — then exits. Its frontmatter registers it; Claude Code skips an agent file with missing or malformed frontmatter without an error, so a test in the MCP server's suite checks it. Its description limits it to an interview's question set, since its output holds the answers. The orchestrator presents each question **verbatim** (the author verified it as written; rewording risks reintroducing the error verification removed) and grades against the returned rubric. This makes the author's verification a true information barrier: its scratch work stays in its own context and never leaks into the conversation. If the author isn't installed, the orchestrator stops rather than writing questions itself. The split is identical in a tutorial or standalone — session.md only triggers it and supplies tutorial context; neither file carries Multivac coupling.
+**Architecture (two roles, two files).** An interview is split by role, not by context. The **Orchestrator** (`skills/interview/SKILL.md`, also `/interview`) is always the main agent talking to the user: it conducts the interview and grades. It has to be the main agent, since subagents can't use AskUserQuestion. The **Author** (`agents/interview-author.md`) is a registered subagent, `interview-author`, that does one thing — generate the 8 questions, verify them (run code / check sources), and return a structured set (question text + model answer + scoring guidance) — then exits. Its frontmatter registers it; Claude Code skips an agent file with missing or malformed frontmatter without an error, so a test in the MCP server's suite checks it. Its description limits it to an interview's question set, since its output holds the answers. The orchestrator presents each question **verbatim** (the author verified it as written; rewording risks reintroducing the error verification removed) and grades against the returned rubric. This makes the author's verification a true information barrier: its scratch work stays in its own context and never leaks into the conversation. If the author isn't installed, the orchestrator stops rather than writing questions itself. The split is identical in a tutorial or standalone — session.md only triggers it and supplies tutorial context; neither file carries Multivac coupling.
 
 Two formats based on tutorial type:
 
@@ -116,7 +116,7 @@ Two formats based on tutorial type:
 ## Installation Target
 
 Files install to `~/.claude/`:
-- Agents, commands, hooks, prompts go to their respective directories
+- Agents, skills, hooks, prompts go to their respective directories
 - MCP server goes to `~/.claude/mcp-servers/learning-tracker/`
 - `multivac` command goes to `~/.local/bin/`
 
@@ -149,7 +149,7 @@ Most tests call `database.ts` directly. `tests/server.test.ts` instead starts th
 
 - **MCP Server**: `cd ~/.claude/mcp-servers/learning-tracker && npm install && npm run build && npm start`
 - **Hook**: Echo mock JSON to the hook script
-- **Commands**: Run `/quiz`, `/interview`, `/tutorial`, or `/menu` in Claude Code
+- **Skills**: Run `/quiz`, `/interview`, `/tutorial`, or `/menu` in Claude Code
 
 ## Secret Feature
 

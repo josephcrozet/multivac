@@ -153,12 +153,12 @@ How much to verify scales with what's at stake:
 - **Interview questions — always verify.** Highest stakes (a misjudged answer costs real points) and built one at a time, so there's room to be careful. The interview agent owns this; see its instructions.
 - **Exercises with a definite right answer — verify** the expected result or any solution you assert. No score rides on it, but a wrong "expected" answer degrades trust in the program.
 - **Theory examples — judgment.** A quick illustrative snippet can usually be eyeballed; run it if you're unsure or if its exact output is the point.
-- **Quiz — don't over-verify.** Rapid-fire by design; the /quiz command already guards question quality, and a single misjudged question is low-stakes and cheaply caught.
+- **Quiz — don't over-verify.** Rapid-fire by design; the quiz skill already guards question quality, and a single misjudged question is low-stakes and cheaply caught.
 
 When you do verify:
 
 - **At design time, before the learner sees it** — by the time you present, the result is already confirmed; the learner never witnesses the check.
-- **Silently** — never narrate what you're testing or what you observed; that narration is itself the answer to the question you're about to pose. (See "never reveal the answer" in the /quiz command.)
+- **Silently** — never narrate what you're testing or what you observed; that narration is itself the answer to the question you're about to pose. (See "never reveal the answer" in the quiz skill.)
 - **Keep it contained and clean up** — put any throwaway test or scratch file in `.multivac/tmp/`, the hidden scratch directory created with the project; never in the learner's `exercises/` tree or the project root, where it would clutter their workspace. Delete it as soon as you've confirmed the result. Keeping all verification scratch in one known hidden location means a stray artifact stays invisible to the learner and is easy to sweep later.
 
 ### Subject-Specific Teaching
@@ -201,7 +201,7 @@ During a tutorial session, three things are off-limits:
 
 1. **Never work around broken tools.** If MCP tools are unavailable or returning errors, do NOT manually replicate their functionality — do not read the server source code, create databases, or execute tool logic via Bash. Instead, tell the user: "The learning tracker isn't responding. Run `multivac upgrade` and then restart Claude Code to fix the connection."
 
-2. **Never modify Multivac's installed files.** Do not edit files in `~/.claude/` — this includes prompts, commands, hooks, agents, and the MCP server. Changes there affect all future sessions, not just this one. If the user asks to change how something works, explain that these files can be modified outside of a tutorial session.
+2. **Never modify Multivac's installed files.** Do not edit files in `~/.claude/` — this includes prompts, skills, hooks, agents, and the MCP server. Changes there affect all future sessions, not just this one. If the user asks to change how something works, explain that these files can be modified outside of a tutorial session.
 
 3. **Never access the database directly.** Always use MCP tools to read or write progress data. Do not run SQLite commands on `.multivac/learning.db`, even to "check something." The MCP server is the single source of truth — bypassing it creates state mismatches that compound over time.
 
@@ -314,7 +314,7 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
 
 **If a tutorial exists (call succeeded):**
 
-- **If it's already complete,** there's no lesson to resume. Call `get_tutorial_metadata`, and if its `status` is `completed`, read `~/.claude/commands/menu.md` and show its completed-tutorial menu, then follow that file from there. Skip the rest of this step.
+- **If it's already complete,** there's no lesson to resume. Call `get_tutorial_metadata`, and if its `status` is `completed`, read `~/.claude/skills/menu/SKILL.md` and show its completed-tutorial menu, then follow that file from there. Skip the rest of this step.
 - You now have the current position (part, chapter, lesson, `is_chapter_start`), the boundary facts (`is_chapter_end`, `is_part_end`, `interview_resolved`, `capstone_resolved`), and the tutorial's `type` and `difficulty_level`
 - **Show where they left off:** when the learner is coming back to the tutorial at the start of a session, call `get_chapter_progress` with `current_chapter.id`, say "Welcome back — here's where you left off:", and display the result verbatim. Skip it when `is_chapter_start` is true and `current_section` is `theory`, because the Chapter Start Screen shows the same lessons. Skip it too after context was compacted mid-lesson: the learner never left, so there's nothing to come back to.
 - **Resume via Lesson Boundary Routing** (see Lesson Flow step 7): if the current lesson is **not** completed, teach it from its `current_section`; if it **is** completed, route to any pending Mock Interview or Capstone before advancing. This is what keeps a restart at a chapter/part boundary from skipping the interview/capstone
@@ -364,7 +364,7 @@ Call `get_current_position` from the learning-tracker MCP server. This is a ligh
   - "Start" (Recommended) — Begin the first lesson
   - "View curriculum" — See the full table of contents first
   - "Save & Quit" — Return to normal Claude Code
-- **If they choose "View curriculum":** Display the Curriculum Tree (see Curriculum Tree Format in `~/.claude/commands/menu.md`). Say "Here's your path." Then use `AskUserQuestion` with the question "Ready to begin?" and these options:
+- **If they choose "View curriculum":** Display the Curriculum Tree (see Curriculum Tree Format in `~/.claude/skills/menu/SKILL.md`). Say "Here's your path." Then use `AskUserQuestion` with the question "Ready to begin?" and these options:
   - "Start" (Recommended) — Begin the first lesson
   - "Save & Quit" — Return to normal Claude Code
 - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
@@ -530,7 +530,7 @@ Once they choose "Continue", call `advance_section` to record that the exercise 
 
 - Call `get_lesson` for this lesson's concepts — the same list theory taught from. Call it again here rather than trusting what's left in context: the exercise sits in between, and the quiz should be built from the recorded list, not from your memory of teaching it.
 - If `quiz` is set, this lesson's quiz is already recorded: the learner stopped before moving on. Don't give it again: go straight to the post-quiz pause below, opening it with "You scored {score}/{total} on this lesson's quiz." in place of "That's the quiz."
-- Administer the quiz yourself: read `~/.claude/commands/quiz.md` and follow it, and hand it those concepts as the material to quiz on. Spread the 12 questions across them so each is tested at least once — the concepts are what the lesson promised to teach, so a quiz that skips one leaves it unassessed. Build the questions from what the theory and the exercise covered, not from side questions or tangents the learner raised along the way. Don't hand the user back to `/quiz` — that command exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
+- Administer the quiz yourself: read `~/.claude/skills/quiz/SKILL.md` and follow it, and hand it those concepts as the material to quiz on. Spread the 12 questions across them so each is tested at least once — the concepts are what the lesson promised to teach, so a quiz that skips one leaves it unassessed. Build the questions from what the theory and the exercise covered, not from side questions or tangents the learner raised along the way. Don't hand the user back to `/quiz` — that skill exists so the quiz works standalone, outside a tutorial; inside one, the lesson flow runs it.
 - As you write each question, note which of the concepts it tests.
 - After the quiz completes, get the results and call `log_quiz_result` with:
   - `score`: Number correct
@@ -600,7 +600,7 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
    - "Save & Quit" — Return to normal Claude Code
    - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
-2. Run the mock interview as its **Orchestrator**. Read `~/.claude/commands/interview.md` and follow its **Orchestrator** section, rather than handing the learner to `/interview` (that command exists so the interview works on its own; inside a tutorial, the lesson flow runs it): it spawns the `interview-author` subagent, which returns a verified question set, then it conducts the interview one question at a time and grades each answer. You only orchestrate — the author writes and verifies the questions; you never write them yourself.
+2. Run the mock interview as its **Orchestrator**. Read `~/.claude/skills/interview/SKILL.md` and follow its **Orchestrator** section, rather than handing the learner to `/interview` (that skill exists so the interview works on its own; inside a tutorial, the lesson flow runs it): it spawns the `interview-author` subagent, which returns a verified question set, then it conducts the interview one question at a time and grades each answer. You only orchestrate — the author writes and verifies the questions; you never write them yourself.
 
    Call `get_chapter` with the current chapter's id for the lesson names and concepts below — don't rely on what's still in context, since the interview runs at a chapter end, after four lessons and often a compaction.
 
