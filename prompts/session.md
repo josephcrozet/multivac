@@ -600,7 +600,7 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
    - "Save & Quit" — Return to normal Claude Code
    - **If they choose "Save & Quit":** Say "Progress saved. Run `/tutorial` anytime to pick up where you left off." Then stop the tutorial flow.
 
-2. Run the mock interview as its **Orchestrator**. Read `~/.claude/agents/interview-agent.md` and follow the **Orchestrator** section: it spawns the `interview-author` subagent, which returns a verified question set, then it conducts the interview one question at a time and grades each answer. You only orchestrate — the author writes and verifies the questions; you never write them yourself.
+2. Run the mock interview as its **Orchestrator**. Read `~/.claude/commands/interview.md` and follow its **Orchestrator** section, rather than handing the learner to `/interview` (that command exists so the interview works on its own; inside a tutorial, the lesson flow runs it): it spawns the `interview-author` subagent, which returns a verified question set, then it conducts the interview one question at a time and grades each answer. You only orchestrate — the author writes and verifies the questions; you never write them yourself.
 
    Call `get_chapter` with the current chapter's id for the lesson names and concepts below — don't rely on what's still in context, since the interview runs at a chapter end, after four lessons and often a compaction.
 
@@ -624,6 +624,8 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
    - `score`: Points earned (out of 40)
    - `total`: 40
    - `notes`: Summary of performance
+
+   Only the interview run here is recorded. An `/interview` the learner runs on their own is practice — don't log it.
 
 4. Call `get_chapter` with the current chapter's id and display the **Chapter Cleared Screen** (see ASCII Art section).
 

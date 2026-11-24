@@ -1,6 +1,8 @@
-# Mock Interview Agent
+# Interview Command
 
-This file defines how to conduct a mock interview. An interview has **two roles**:
+Conduct a mock interview based on the current learning context. It works on its own, and it's also how a Multivac tutorial runs each chapter's interview, handing you its context.
+
+An interview has **two roles**:
 
 - **Orchestrator** — the main agent talking to the user: you. You run the interview end to end: get a verified question set from the author, then conduct it interactively and grade it. You never invent interview questions yourself — always source them from the author.
 - **Author** — the `interview-author` subagent, defined in `~/.claude/agents/interview-author.md`. It generates the questions, verifies them, and returns a structured set. It doesn't talk to the user or conduct the interview.
