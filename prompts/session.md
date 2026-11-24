@@ -625,6 +625,8 @@ Reached from **Lesson Boundary Routing** (step 2): the current chapter's lessons
    - `total`: 40
    - `notes`: Summary of performance
 
+   Only the interview run here is recorded. An `/interview` the learner runs on their own is practice — don't log it.
+
 4. Call `get_chapter` with the current chapter's id and display the **Chapter Cleared Screen** (see ASCII Art section).
 
 5. Sweep the scratch directory: clear out `.multivac/tmp/`. The author deletes its own scratch, so this is just the chapter-end backstop — it keeps any stray verification artifacts from this chapter's lessons or interview from accumulating.
