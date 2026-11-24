@@ -12,11 +12,11 @@ BIN_DIR="$HOME/.local/bin"
 echo "Multivac Uninstaller"
 echo ""
 echo "This will remove:"
-echo "  - ~/.claude/agents/interview-agent.md"
 echo "  - ~/.claude/agents/interview-author.md"
 echo "  - ~/.claude/commands/quiz.md"
 echo "  - ~/.claude/commands/tutorial.md"
 echo "  - ~/.claude/commands/menu.md"
+echo "  - ~/.claude/commands/interview.md"
 echo "  - ~/.claude/hooks/capstone-test-runner.sh"
 echo "  - ~/.claude/hooks/session-greeting.sh"
 echo "  - ~/.claude/hooks/compact-recovery.sh"
@@ -40,10 +40,6 @@ echo ""
 echo "Removing Multivac components..."
 
 # Remove agents
-if [ -f "$CLAUDE_DIR/agents/interview-agent.md" ]; then
-    rm "$CLAUDE_DIR/agents/interview-agent.md"
-    echo "  Removed: agents/interview-agent.md"
-fi
 if [ -f "$CLAUDE_DIR/agents/interview-author.md" ]; then
     rm "$CLAUDE_DIR/agents/interview-author.md"
     echo "  Removed: agents/interview-author.md"
@@ -58,6 +54,11 @@ fi
 if [ -f "$CLAUDE_DIR/commands/tutorial.md" ]; then
     rm "$CLAUDE_DIR/commands/tutorial.md"
     echo "  Removed: commands/tutorial.md"
+fi
+
+if [ -f "$CLAUDE_DIR/commands/interview.md" ]; then
+    rm "$CLAUDE_DIR/commands/interview.md"
+    echo "  Removed: commands/interview.md"
 fi
 
 if [ -f "$CLAUDE_DIR/commands/menu.md" ]; then

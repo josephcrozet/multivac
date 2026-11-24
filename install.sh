@@ -34,7 +34,7 @@ CLEANUP_TEMP=""
 
 # Check for existing installation (any Multivac file)
 EXISTING_INSTALL=""
-[ -f "$CLAUDE_DIR/agents/interview-agent.md" ] && EXISTING_INSTALL="yes"
+[ -f "$CLAUDE_DIR/commands/interview.md" ] && EXISTING_INSTALL="yes"
 [ -f "$CLAUDE_DIR/commands/quiz.md" ] && EXISTING_INSTALL="yes"
 [ -f "$CLAUDE_DIR/commands/tutorial.md" ] && EXISTING_INSTALL="yes"
 [ -f "$CLAUDE_DIR/commands/menu.md" ] && EXISTING_INSTALL="yes"
@@ -132,8 +132,6 @@ mkdir -p "$BIN_DIR"
 # Copy agents
 echo ""
 echo "Installing agents..."
-cp "$SCRIPT_DIR/agents/interview-agent.md" "$CLAUDE_DIR/agents/interview-agent.md"
-echo "  interview-agent.md"
 cp "$SCRIPT_DIR/agents/interview-author.md" "$CLAUDE_DIR/agents/interview-author.md"
 echo "  interview-author.md"
 
@@ -146,6 +144,8 @@ cp "$SCRIPT_DIR/commands/tutorial.md" "$CLAUDE_DIR/commands/tutorial.md"
 echo "  tutorial.md"
 cp "$SCRIPT_DIR/commands/menu.md" "$CLAUDE_DIR/commands/menu.md"
 echo "  menu.md"
+cp "$SCRIPT_DIR/commands/interview.md" "$CLAUDE_DIR/commands/interview.md"
+echo "  interview.md"
 
 # Copy hooks
 echo ""
