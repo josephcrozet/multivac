@@ -1,4 +1,9 @@
-# Interview Command
+---
+name: interview
+description: Run an 8-question mock interview on what's being learned, graded 0–5 per question: code writing and analysis for programming topics, knowledge and analysis otherwise. Use when the user asks for a mock interview or to be interviewed on a topic.
+---
+
+# Interview
 
 Conduct a mock interview based on the current learning context. It works on its own, and it's also how a Multivac tutorial runs each chapter's interview, handing you its context.
 

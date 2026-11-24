@@ -1,4 +1,9 @@
-# Menu Command
+---
+name: menu
+description: Open the Multivac tutorial menu: progress, curriculum, review, credits, restarting, or quitting. Use when the user asks for the menu, their progress, or the curriculum in a Multivac tutorial project.
+---
+
+# Menu
 
 Show navigation options for an in-progress or completed tutorial.
 
@@ -10,7 +15,7 @@ Call `get_tutorial_metadata` from the learning-tracker MCP server.
 
 This isn't a Multivac tutorial project. Tell the user:
 
-"The `/menu` command only works in Multivac tutorial projects. To create one:
+"The `/menu` skill only works in Multivac tutorial projects. To create one:
 
 1. Exit Claude Code (`/exit`)
 2. Run: `multivac <topic> --launch` (e.g., `multivac python --launch`)
@@ -152,7 +157,7 @@ Use `AskUserQuestion` to ask: "How would you like to restart?"
 
 - Call `reset_progress` from the MCP server
 - Tell the user: "Progress reset. For a fresh learning experience, run `/clear` to reset the conversation context, then `/tutorial` to begin."
-- End the command (do not auto-start the tutorial)
+- End the skill (do not auto-start the tutorial)
 
 **If "New game":**
 
@@ -162,7 +167,7 @@ A new topic gets its own project directory, like any tutorial created with `mult
 - Using the Bash tool, run `multivac '{topic}' --new`. `--new` never prompts: if a project for that topic already exists, it creates a numbered one (e.g. `ruby-2`) rather than touching it. The output ends with the `cd {path} && claude` line for the new project.
 - Tell the user: "Your new {topic} tutorial is ready. This one stays as it is. A running session can't switch projects, so to start it, run `/exit`, then:" followed by that `cd {path} && claude` line.
 - If `multivac` isn't found, tell them to run `/exit`, then `multivac '{topic}'` in their terminal instead.
-- End the command (do not start the new tutorial here)
+- End the skill (do not start the new tutorial here)
 
 **If "Save & Quit" selected:**
 

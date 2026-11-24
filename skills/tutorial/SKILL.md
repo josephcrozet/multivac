@@ -1,4 +1,9 @@
-# Tutorial Command
+---
+name: tutorial
+description: Start or resume a Multivac tutorial in this project: set up a new curriculum, or continue from where the learner left off. Use when the user wants to start, continue, or resume their tutorial.
+---
+
+# Tutorial
 
 Start, continue, or manage a structured tutorial.
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Multivac Installer
-# Installs the MCP server, commands, and multivac CLI tool
+# Installs the MCP server, skills, agents, hooks, and the multivac CLI tool
 #
 # Usage:
 #   Local:  ./install.sh
@@ -34,10 +34,10 @@ CLEANUP_TEMP=""
 
 # Check for existing installation (any Multivac file)
 EXISTING_INSTALL=""
-[ -f "$CLAUDE_DIR/commands/interview.md" ] && EXISTING_INSTALL="yes"
-[ -f "$CLAUDE_DIR/commands/quiz.md" ] && EXISTING_INSTALL="yes"
-[ -f "$CLAUDE_DIR/commands/tutorial.md" ] && EXISTING_INSTALL="yes"
-[ -f "$CLAUDE_DIR/commands/menu.md" ] && EXISTING_INSTALL="yes"
+[ -f "$CLAUDE_DIR/skills/interview/SKILL.md" ] && EXISTING_INSTALL="yes"
+[ -f "$CLAUDE_DIR/skills/quiz/SKILL.md" ] && EXISTING_INSTALL="yes"
+[ -f "$CLAUDE_DIR/skills/tutorial/SKILL.md" ] && EXISTING_INSTALL="yes"
+[ -f "$CLAUDE_DIR/skills/menu/SKILL.md" ] && EXISTING_INSTALL="yes"
 [ -f "$CLAUDE_DIR/hooks/capstone-test-runner.sh" ] && EXISTING_INSTALL="yes"
 [ -f "$CLAUDE_DIR/hooks/session-greeting.sh" ] && EXISTING_INSTALL="yes"
 [ -f "$CLAUDE_DIR/hooks/compact-recovery.sh" ] && EXISTING_INSTALL="yes"
@@ -123,7 +123,7 @@ echo ""
 # Create directories
 echo "Creating directories..."
 mkdir -p "$CLAUDE_DIR/agents"
-mkdir -p "$CLAUDE_DIR/commands"
+mkdir -p "$CLAUDE_DIR/skills"
 mkdir -p "$CLAUDE_DIR/hooks"
 mkdir -p "$CLAUDE_DIR/prompts"
 mkdir -p "$CLAUDE_DIR/mcp-servers/learning-tracker"
@@ -135,17 +135,14 @@ echo "Installing agents..."
 cp "$SCRIPT_DIR/agents/interview-author.md" "$CLAUDE_DIR/agents/interview-author.md"
 echo "  interview-author.md"
 
-# Copy commands
+# Copy skills
 echo ""
-echo "Installing commands..."
-cp "$SCRIPT_DIR/commands/quiz.md" "$CLAUDE_DIR/commands/quiz.md"
-echo "  quiz.md"
-cp "$SCRIPT_DIR/commands/tutorial.md" "$CLAUDE_DIR/commands/tutorial.md"
-echo "  tutorial.md"
-cp "$SCRIPT_DIR/commands/menu.md" "$CLAUDE_DIR/commands/menu.md"
-echo "  menu.md"
-cp "$SCRIPT_DIR/commands/interview.md" "$CLAUDE_DIR/commands/interview.md"
-echo "  interview.md"
+echo "Installing skills..."
+for skill in quiz tutorial menu interview; do
+    mkdir -p "$CLAUDE_DIR/skills/$skill"
+    cp "$SCRIPT_DIR/skills/$skill/SKILL.md" "$CLAUDE_DIR/skills/$skill/SKILL.md"
+    echo "  $skill"
+done
 
 # Copy hooks
 echo ""

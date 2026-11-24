@@ -117,7 +117,7 @@ cd multivac
 
 The installer will:
 - Install the MCP server and build it
-- Install commands, prompts, agents, and hooks to `~/.claude/`
+- Install skills, prompts, agents, and hooks to `~/.claude/`
 - Install the `multivac` command to `~/.local/bin/`
 
 If `~/.local/bin` isn't in your PATH, the installer will show you how to add it.
@@ -174,12 +174,12 @@ This project demonstrates Claude Code's extensibility:
 | Feature             | Implementation                                     |
 | ------------------- | -------------------------------------------------- |
 | Progress tracking   | MCP server with SQLite database                    |
-| `/tutorial` command | Slash command that loads session.md       |
-| `/quiz` command     | Batched multiple-choice questions (3 prompts of 4) |
-| `/interview` command | Mock interview: the main agent conducts; the `interview-author` subagent writes and verifies the questions |
+| `/tutorial` skill   | Skill that loads session.md                        |
+| `/quiz` skill       | Batched multiple-choice questions (3 prompts of 4) |
+| `/interview` skill  | Mock interview: the main agent conducts; the `interview-author` subagent writes and verifies the questions |
 | Capstone tests      | PreToolUse hook that runs your test suite          |
 | Auto-prompt         | SessionStart hook offers to start/continue         |
-| `/menu` command     | Pause menu for progress, curriculum, restart       |
+| `/menu` skill       | Pause menu for progress, curriculum, restart       |
 | Token management    | Run `/clear` at chapter boundaries to reset context|
 | Project upgrades    | Version stamp in CLAUDE.md, auto-detected on start |
 
@@ -189,11 +189,11 @@ This project demonstrates Claude Code's extensibility:
 ~/.claude/
 ├── agents/
 │   └── interview-author.md     # Subagent that writes and verifies interview questions
-├── commands/
-│   ├── quiz.md                 # /quiz - 12 MC questions in 3 batches
-│   ├── menu.md                 # /menu - pause menu (progress, curriculum, restart)
-│   ├── interview.md            # /interview - mock interview (8 questions, scratch file)
-│   └── tutorial.md             # /tutorial - start or resume a tutorial
+├── skills/                     # Each is <name>/SKILL.md, typed as /<name>
+│   ├── quiz/                   # /quiz - 12 MC questions in 3 batches
+│   ├── menu/                   # /menu - pause menu (progress, curriculum, restart)
+│   ├── interview/              # /interview - mock interview (8 questions, scratch file)
+│   └── tutorial/               # /tutorial - start or resume a tutorial
 ├── hooks/
 │   ├── capstone-test-runner.sh # Runs tests on capstone todo completion
 │   ├── compact-recovery.sh     # Recovers state after context compaction
