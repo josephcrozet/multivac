@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parse } from 'yaml';
 
 // Claude Code registers subagents and skills from their files' frontmatter. A subagent whose
 // frontmatter is missing or malformed is skipped without an error: the agent just isn't there. A
@@ -10,19 +11,20 @@ import { fileURLToPath } from 'node:url';
 // fields each one needs, so a typo fails CI instead of breaking a tutorial silently.
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
-// The frontmatter block's `key: value` fields, or null when the file doesn't open with one.
-function frontmatter(path: string): Record<string, string> | null {
+// The frontmatter block's fields, or null when the file doesn't open with one. It's parsed as
+// strict YAML, which throws on errors that a lenient reader passes over, such as an unquoted
+// value containing ": ". GitHub won't render a file like that, and other tools may misread it.
+function frontmatter(path: string): Record<string, unknown> | null {
   const match = readFileSync(path, 'utf-8').match(/^---\n([\s\S]*?)\n---\n/);
   if (!match) return null;
-  return Object.fromEntries(
-    match[1].split('\n').map((line) => line.match(/^([a-zA-Z-]+):\s*(.*)$/)).filter(Boolean).map((m) => [m![1], m![2].trim()])
-  );
+  return parse(match[1], { strict: true, uniqueKeys: true });
 }
 
 test('the interview-author subagent is registered', async (t) => {
-  const fields = frontmatter(join(repoRoot, 'agents', 'interview-author.md'));
+  let fields: Record<string, unknown> | null = null;
 
-  await t.test('the file opens with a frontmatter block', () => {
+  await t.test('the file opens with a frontmatter block that parses as YAML', () => {
+    fields = frontmatter(join(repoRoot, 'agents', 'interview-author.md'));
     assert.ok(fields, 'frontmatter must start on the first line and close with ---');
   });
 
@@ -32,11 +34,11 @@ test('the interview-author subagent is registered', async (t) => {
   });
 
   await t.test('it has a description', () => {
-    assert.ok(fields!.description && fields!.description.length > 0);
+    assert.ok(typeof fields!.description === 'string' && fields!.description.length > 0);
   });
 
   await t.test('its tools let it run code, use files, and check sources', () => {
-    const tools = (fields!.tools ?? '').split(',').map((tool) => tool.trim());
+    const tools = String(fields!.tools ?? '').split(',').map((tool) => tool.trim());
     for (const tool of ['Bash', 'Read', 'Write', 'WebSearch']) assert.ok(tools.includes(tool), `missing ${tool}`);
   });
 });
@@ -44,9 +46,10 @@ test('the interview-author subagent is registered', async (t) => {
 // The skills install.sh copies to ~/.claude/skills/.
 for (const skill of ['quiz', 'interview', 'tutorial', 'menu']) {
   test(`the ${skill} skill is registered`, async (t) => {
-    const fields = frontmatter(join(repoRoot, 'skills', skill, 'SKILL.md'));
+    let fields: Record<string, unknown> | null = null;
 
-    await t.test('the file opens with a frontmatter block', () => {
+    await t.test('the file opens with a frontmatter block that parses as YAML', () => {
+      fields = frontmatter(join(repoRoot, 'skills', skill, 'SKILL.md'));
       assert.ok(fields, 'frontmatter must start on the first line and close with ---');
     });
 
@@ -55,13 +58,13 @@ for (const skill of ['quiz', 'interview', 'tutorial', 'menu']) {
     });
 
     await t.test('it has a description', () => {
-      assert.ok(fields!.description && fields!.description.length > 0);
+      assert.ok(typeof fields!.description === 'string' && fields!.description.length > 0);
     });
 
     await t.test('Claude can invoke it', () => {
       // The session-greeting hook has Claude start the tutorial skill itself, and the quiz and
       // interview skills are meant to be picked up when a learner asks for one.
-      assert.notEqual(fields!['disable-model-invocation'], 'true');
+      assert.notEqual(fields!['disable-model-invocation'], true);
     });
   });
 }
