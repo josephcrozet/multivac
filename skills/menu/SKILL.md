@@ -1,6 +1,6 @@
 ---
 name: menu
-description: Open the Multivac tutorial menu: progress, curriculum, review, credits, restarting, or quitting. Use when the user asks for the menu, their progress, or the curriculum in a Multivac tutorial project.
+description: Open the Multivac tutorial menu for progress, curriculum, review, credits, restarting, or quitting. Use when the user asks for the menu, their progress, or the curriculum in a Multivac tutorial project.
 ---
 
 # Menu

@@ -1,6 +1,6 @@
 ---
 name: tutorial
-description: Start or resume a Multivac tutorial in this project: set up a new curriculum, or continue from where the learner left off. Use when the user wants to start, continue, or resume their tutorial.
+description: Start or resume a Multivac tutorial in this project, either setting up a new curriculum or continuing from where the learner left off. Use when the user wants to start, continue, or resume their tutorial.
 ---
 
 # Tutorial
