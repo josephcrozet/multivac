@@ -1130,16 +1130,10 @@ Use ★ for completed capstones, ☆ for skipped. Examples: `★ ★ ★` (all c
 
 ## Progress Tracking
 
-Throughout the session:
+When the learner asks how they're doing, show it the way `/menu` does: read `~/.claude/skills/menu/SKILL.md` and, by the tutorial's status from `get_tutorial_metadata`:
 
-- Use `get_current_position` to know where the user is
-- Use `get_stats` to review overall progress when asked
-- Celebrate milestones (completed chapters, parts, etc.)
-
-When the user asks about progress or runs `/progress`:
-
-- Call `get_stats` and `get_review_queue`
-- Display the progress in ASCII art format (see /progress command)
+- **In progress** — display its **Progress Screen** (see its "Progress Screen Format", which lists the calls that fill it), then pick up where you left off
+- **Completed** — follow its **View results** steps
 
 ---
 

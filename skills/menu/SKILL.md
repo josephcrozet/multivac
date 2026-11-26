@@ -99,7 +99,7 @@ If they choose "Continue", resume the lesson flow from the current position. If 
 
 **If "View progress" selected (in progress):**
 
-Display the Progress Screen (see format below) — call `get_stats` for aggregate numbers and `get_part` (with `current_part.id`) for the current part's chapter breakdown. Say "Here's where you stand." Then use `AskUserQuestion` with the question "What next?" and these options:
+Display the Progress Screen (see format below, including its Data Collection calls). Say "Here's where you stand." Then use `AskUserQuestion` with the question "What next?" and these options:
 
 - "Continue" (Recommended) — Resume the lesson
 - "Back to menu" — Return to the main menu
