@@ -83,6 +83,30 @@ test('the server over stdio, for a 2025-era client', async (t) => {
     assert.equal(result.success, false);
     assert.doesNotMatch(String(result.error), /destructure/);
   });
+
+  await t.test('a mock interview runs through its tools, from plan to result', async () => {
+    const call = async (name: string, args: Record<string, unknown> = {}) => toolResult(await send('tools/call', { name, arguments: args }));
+    for (const name of ['advance_section', 'advance_section']) await call(name);
+    await call('log_quiz_result', { score: 12, total: 12, missed_concept_ids: [] });
+    await call('advance_section');
+    await call('complete_lesson');
+
+    const noPlan = await call('plan_interview');
+    assert.equal(noPlan.success, false);
+    assert.match(String(noPlan.error), /exactly 8 slots/);
+
+    const slots = Array.from({ length: 8 }, () => ({ category: 'Explain', concepts: ['Concept'] }));
+    assert.equal((await call('plan_interview', { slots })).success, true);
+    let last: Record<string, unknown> = {};
+    for (let question = 1; question <= 8; question++) last = await call('log_interview_answer', { question, score: 4 });
+    assert.equal(last.finished, true);
+    assert.match(String(last.message), /Interview finished: 32\/40, best 32\/40/);
+
+    const resolved = await call('log_interview_result');
+    assert.equal(resolved.success, true);
+    assert.equal(resolved.message, 'Interview result logged: 32/40');
+    assert.equal((await call('get_interview')).resolved, true);
+  });
 });
 
 test('the server over stdio, on the 2026-07-28 protocol revision', async (t) => {

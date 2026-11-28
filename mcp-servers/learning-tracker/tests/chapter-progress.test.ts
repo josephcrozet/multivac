@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Curriculum } from '../src/database.js';
+import { runInterview } from './helpers.js';
 
 const LESSON_NAMES = ['The Java Platform', 'Your First Program', 'Variables and Data Types', 'Operators and Expressions'];
 
@@ -99,7 +100,7 @@ test('chapter progress view', async (t) => {
   });
 
   await t.test('once the interview is logged, nothing is up next', () => {
-    database.logInterviewResult(chapterId, 36, 40, 'ok');
+    runInterview(database, 36, 'ok');
     assert.ok(!view().includes('up next'));
     assert.match(lineFor('Mock Interview'), /^ {2}✓ Mock Interview$/);
   });

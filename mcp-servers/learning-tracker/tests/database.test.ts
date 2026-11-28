@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Curriculum } from '../src/database.js';
+import { runInterview } from './helpers.js';
 
 function makeFullCurriculum(): Curriculum {
   return {
@@ -266,7 +267,7 @@ test('curriculum tree lifecycle', async (t) => {
     const pos = database.getCurrentPosition()!;
     if (!pos.current_lesson!.completed) finishLesson();
     if (pos.is_part_end && !pos.capstone_resolved) database.logCapstoneResult(pos.current_part!.id, true, 'done');
-    if (pos.is_chapter_end && !pos.interview_resolved) database.logInterviewResult(pos.current_chapter!.id, 32, 40, 'ok');
+    if (pos.is_chapter_end && !pos.interview_resolved) runInterview(database, 32, 'ok');
     assert.equal(database.advancePosition()!.advanced, true);
   };
 
@@ -308,7 +309,7 @@ test('curriculum tree lifecycle', async (t) => {
     // The tree shows the learner on the interview, not on a lesson they've finished.
     const hereLines = database.getCurriculumTree()!.split('\n').filter((l) => l.includes('YOU ARE HERE'));
     assert.deepEqual(hereLines, ['│  └─ ► Mock Interview  ◄── YOU ARE HERE']);
-    database.logInterviewResult(ch11Id, 32, 40, 'ok');
+    runInterview(database, 32, 'ok');
     assert.equal(database.getChapter(ch11Id)!.chapter.completed, true);
     assert.equal(database.advancePosition()!.advanced, true); // now it advances
     assert.equal(database.getCurrentPosition()!.current_lesson!.name, 'Lesson 1.2.1');
@@ -328,7 +329,7 @@ test('curriculum tree lifecycle', async (t) => {
     let r = database.advancePosition()!;
     assert.equal(r.advanced, false);
     assert.match(r.reason ?? '', /interview/); // interview gate first
-    database.logInterviewResult(ch14Id, 32, 40, 'ok');
+    runInterview(database, 32, 'ok');
     r = database.advancePosition()!;
     assert.equal(r.advanced, false);
     assert.match(r.reason ?? '', /capstone/); // then capstone gate

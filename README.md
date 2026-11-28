@@ -241,7 +241,11 @@ This project demonstrates Claude Code's extensibility:
 | `advance_section`      | Move the current lesson to its next section |
 | `advance_position`     | Move the pointer to the next lesson      |
 | `log_quiz_result`      | Record quiz scores                       |
-| `log_interview_result` | Record interview performance             |
+| `get_interview`        | The current chapter's interview: plan, scores so far, best total |
+| `plan_interview`       | Store an interview's 8-slot plan before its questions are written |
+| `retake_interview`     | Start a finished interview again, keeping the best total |
+| `log_interview_answer` | Record one answer's score as it's graded |
+| `log_interview_result` | Record the interview's best total (one per chapter) |
 | `log_capstone_result`  | Record capstone result (done/skipped)    |
 | `get_review_queue`     | Get concepts waiting for review          |
 | `log_review_result`    | Mark review correct/incorrect            |

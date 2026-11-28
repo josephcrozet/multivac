@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Curriculum } from '../src/database.js';
+import { runInterview } from './helpers.js';
 
 // A full-size tutorial (3 parts × 4 chapters × 4 lessons), since the score's maximum of 2000 and
 // its rank thresholds assume one.
@@ -48,7 +49,7 @@ test('the final score and rank', async (t) => {
         lesson++;
         continue;
       }
-      if (pos.is_chapter_end && !pos.interview_resolved) database.logInterviewResult(pos.current_chapter!.id, interview, 40);
+      if (pos.is_chapter_end && !pos.interview_resolved) runInterview(database, interview);
       if (pos.is_part_end && !pos.capstone_resolved) database.logCapstoneResult(pos.current_part!.id, capstones);
       // The final review comes before the last advance, which completes the tutorial and freezes
       // the score.

@@ -2,7 +2,7 @@
 
 import { Server, ProtocolError, ProtocolErrorCode, type CallToolRequest, type ListToolsResult } from '@modelcontextprotocol/server';
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
-import database, { type Curriculum, type Preferences } from './database.js';
+import database, { INTERVIEW_TOTAL, type Curriculum, type InterviewSlot, type Preferences } from './database.js';
 
 // Response helpers
 function jsonResponse(data: Record<string, unknown>) {
@@ -280,29 +280,72 @@ async function listTools(): Promise<ListToolsResult> {
         },
       },
       {
-        name: 'log_interview_result',
-        description: 'Record the result of a chapter mock interview.',
+        name: 'get_interview',
+        description: "Get the current chapter's mock interview: plan (its 8 slots, or null until plan_interview), scores (one per answered question, in order), answered, finished (every question scored), best_score (the best total out of 40 of any finished attempt, or null), and resolved with result once log_interview_result has recorded it. Available once the chapter's last lesson is completed. Use it to start or resume an interview: with a plan and answered below 8, the interview continues from question answered + 1.",
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'plan_interview',
+        description: "Store the plan for the current chapter's mock interview before any question is written: exactly 8 slots, in the order they'll be asked, each with the question's category (e.g. Write, Debug, Explain) and the concepts it covers. The plan holds no question text or answers. Each question is written when its slot comes up, so an interrupted interview resumes from its plan. Refused while a plan is stored (resume it, or call retake_interview once it's finished) and once the interview is resolved.",
         inputSchema: {
           type: 'object',
           properties: {
-            chapter_id: {
+            slots: {
+              type: 'array',
+              description: 'The 8 planned questions, in order',
+              items: {
+                type: 'object',
+                properties: {
+                  category: { type: 'string', description: 'The question category, from the interview format' },
+                  concepts: { type: 'array', items: { type: 'string' }, description: "Names of the chapter's concepts the question covers" },
+                },
+                required: ['category', 'concepts'],
+              },
+            },
+          },
+          required: ['slots'],
+        },
+      },
+      {
+        name: 'retake_interview',
+        description: "Start the current chapter's mock interview again: clears the finished attempt's plan and scores and keeps its best total. Then call plan_interview for the new attempt. Refused unless every question of the current attempt is scored, and once the interview is resolved.",
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'log_interview_answer',
+        description: "Record the score for one answered interview question, as soon as it's graded. Questions are scored in order: question must be the next unanswered one (answered + 1 from get_interview), so a repeated call is refused instead of filling the wrong slot. Scoring question 8 finishes the attempt and updates best_score. Refused without a plan, and once the interview is resolved.",
+        inputSchema: {
+          type: 'object',
+          properties: {
+            question: {
               type: 'number',
-              description: 'ID of the chapter',
+              description: 'The question number, 1–8',
             },
             score: {
               type: 'number',
-              description: 'Score achieved',
+              description: 'The score for the answer, a whole number from 0 to 5',
             },
-            total: {
-              type: 'number',
-              description: 'Total possible score',
-            },
+          },
+          required: ['question', 'score'],
+        },
+      },
+      {
+        name: 'log_interview_result',
+        description: "Resolve the current chapter's mock interview with its best_score out of 40, when the learner chooses to go on. An unfinished retake is dropped, and the earlier attempt's best stands. Refused until an attempt has finished, and for an interview already resolved: a chapter holds one result.",
+        inputSchema: {
+          type: 'object',
+          properties: {
             notes: {
               type: 'string',
               description: 'Optional notes about the interview performance',
             },
           },
-          required: ['chapter_id', 'score', 'total'],
         },
       },
       {
@@ -500,15 +543,32 @@ async function callTool(request: CallToolRequest) {
         return jsonResponse({ success: true, message, result });
       }
 
+      case 'get_interview': {
+        return jsonResponse({ success: true, ...database.getInterview() });
+      }
+
+      case 'plan_interview': {
+        const { slots } = args as { slots: InterviewSlot[] };
+        return jsonResponse({ success: true, message: 'Interview planned', ...database.planInterview(slots) });
+      }
+
+      case 'retake_interview': {
+        return jsonResponse({ success: true, message: 'Retake started. Plan the new attempt next.', ...database.retakeInterview() });
+      }
+
+      case 'log_interview_answer': {
+        const { question, score } = args as { question: number; score: number };
+        const state = database.logInterviewAnswer(question, score);
+        const message = state.finished
+          ? `Question ${question} scored ${score}. Interview finished: ${state.scores.reduce((a, b) => a + b, 0)}/${INTERVIEW_TOTAL}, best ${state.best_score}/${INTERVIEW_TOTAL}`
+          : `Question ${question} scored ${score}`;
+        return jsonResponse({ success: true, message, ...state });
+      }
+
       case 'log_interview_result': {
-        const { chapter_id, score, total, notes } = args as {
-          chapter_id: number;
-          score: number;
-          total: number;
-          notes?: string;
-        };
-        const result = database.logInterviewResult(chapter_id, score, total, notes);
-        return jsonResponse({ success: true, message: `Interview result logged: ${score}/${total}`, result });
+        const { notes } = args as { notes?: string };
+        const result = database.logInterviewResult(notes);
+        return jsonResponse({ success: true, message: `Interview result logged: ${result.score}/${result.total}`, result });
       }
 
       case 'log_capstone_result': {

@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Curriculum } from '../src/database.js';
+import { runInterview } from './helpers.js';
 
 // The smallest whole tutorial: one part, one chapter, one lesson, so it can be finished quickly.
 const curriculum: Curriculum = {
@@ -28,7 +29,7 @@ test('completing a tutorial', async (t) => {
   database.advanceSection();
   database.completeLesson();
   const position = database.getCurrentPosition()!;
-  database.logInterviewResult(position.current_chapter!.id, 40, 40);
+  runInterview(database, 40);
   database.logCapstoneResult(position.current_part!.id, true);
 
   await t.test('a part holds one capstone result', () => {
