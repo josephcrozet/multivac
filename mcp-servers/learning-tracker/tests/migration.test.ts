@@ -52,7 +52,7 @@ const VERSION_1_SCHEMA = `
   INSERT INTO review_queue (tutorial_id, lesson_id, position) VALUES (1, 1, 1);
 `;
 
-test('a schema version 1 database gains the section pointer, the final score, and a per-concept review queue', async (t) => {
+test('a schema version 1 database gains the section pointer, the final score, a per-concept review queue, and interview progress', async (t) => {
   const tmpDir = mkdtempSync(join(tmpdir(), 'multivac-migration-test-'));
   t.after(() => rmSync(tmpDir, { recursive: true, force: true }));
 
@@ -70,11 +70,11 @@ test('a schema version 1 database gains the section pointer, the final score, an
     assert.equal(pos.current_section, 'theory');
   });
 
-  await t.test('the pointer moves and is saved, at schema version 4', () => {
+  await t.test('the pointer moves and is saved, at schema version 5', () => {
     assert.equal(database.advanceSection()!.current_section, 'exercise');
     const saved = new SQL.Database(readFileSync(join(tmpDir, 'learning.db')));
     assert.deepEqual(saved.exec('SELECT current_section FROM progress')[0].values, [['exercise']]);
-    assert.deepEqual(saved.exec('SELECT version FROM schema_version')[0].values, [[4]]);
+    assert.deepEqual(saved.exec('SELECT version FROM schema_version')[0].values, [[5]]);
     // Migration 2 -> 3 added the frozen final score, empty until the tutorial is completed.
     assert.deepEqual(saved.exec('SELECT final_score FROM tutorials')[0].values, [[null]]);
   });
@@ -84,5 +84,11 @@ test('a schema version 1 database gains the section pointer, the final score, an
     const { queue } = database.getReviewQueue()!;
     assert.deepEqual(queue.map((q) => q.concept.name), ['B']);
     assert.equal(queue[0].lesson.name, 'Lesson');
+  });
+
+  await t.test('the interview progress table exists, empty', () => {
+    // Migration 4 -> 5 added it.
+    const saved = new SQL.Database(readFileSync(join(tmpDir, 'learning.db')));
+    assert.deepEqual(saved.exec('SELECT COUNT(*) FROM interview_progress')[0].values, [[0]]);
   });
 });

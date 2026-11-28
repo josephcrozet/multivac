@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Curriculum } from '../src/database.js';
+import { runInterview } from './helpers.js';
 
 // A tutorial-wide 0% average needs every result to be 0, so this runs against its own
 // database rather than the main suite's, which accumulates real scores along the way.
@@ -48,7 +49,9 @@ test('a real 0% average reads as 0, not as no data', async (t) => {
     database.advanceSection();
     database.advanceSection();
     database.logQuizResult(0, 12, []); // Lesson 1's quiz
-    database.logInterviewResult(chapter.id, 0, 40, 'all skipped');
+    database.advanceSection();
+    database.completeLesson();
+    runInterview(database, 0, 'all skipped');
 
     const stats = database.getStats()!;
     assert.equal(stats.tutorial.average_quiz_score, 0);

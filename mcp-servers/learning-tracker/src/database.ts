@@ -139,7 +139,7 @@ const db = await SqliteAdapter.open(DB_PATH);
 // 3. Use columnExists() helper for safe ALTER TABLE additions
 // ---------------------------------------------------------------------------
 
-const CURRENT_SCHEMA_VERSION = 4;
+const CURRENT_SCHEMA_VERSION = 5;
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS schema_version (
@@ -224,6 +224,8 @@ if (currentVersion < CURRENT_SCHEMA_VERSION) {
       db.exec('DROP TABLE review_queue_v3');
     }
 
+    // Migration 4 -> 5: interview_progress, a new table, which the schema below creates.
+
     if (versionRow) {
       db.prepare('UPDATE schema_version SET version = ?').run(CURRENT_SCHEMA_VERSION);
     } else {
@@ -307,6 +309,18 @@ db.exec(`
     total INTEGER NOT NULL,
     notes TEXT,
     completed_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+  );
+
+  -- The interview in progress for a chapter: the plan of 8 slots, the scores so far, and the
+  -- best total of any finished attempt. The row goes once the interview is resolved, when
+  -- interview_results holds the score.
+  CREATE TABLE IF NOT EXISTS interview_progress (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chapter_id INTEGER NOT NULL UNIQUE,
+    plan TEXT,
+    scores TEXT NOT NULL DEFAULT '[]',
+    best_score INTEGER,
     FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
   );
 
@@ -547,6 +561,29 @@ export interface InterviewResult {
   completed_at: string;
 }
 
+// A mock interview has 8 questions, each scored 0–5, for a total out of 40.
+export const INTERVIEW_QUESTIONS = 8;
+export const INTERVIEW_QUESTION_MAX = 5;
+export const INTERVIEW_TOTAL = INTERVIEW_QUESTIONS * INTERVIEW_QUESTION_MAX;
+
+// One planned question: what it asks and what it covers, but not its text. The question is
+// written when its slot comes up, so a stored plan never holds questions or answers.
+export interface InterviewSlot {
+  category: string;
+  concepts: string[];
+}
+
+export interface InterviewState {
+  chapter_id: number;
+  resolved: boolean;
+  plan: InterviewSlot[] | null;
+  scores: number[];
+  answered: number;
+  finished: boolean;
+  best_score: number | null;
+  result: { score: number; total: number } | null;
+}
+
 export interface CapstoneResult {
   id: number;
   part_id: number;
@@ -608,6 +645,47 @@ function interviewResolved(chapterId: number): boolean {
 }
 function capstoneResolved(partId: number): boolean {
   return !!db.prepare('SELECT 1 FROM capstone_results WHERE part_id = ? LIMIT 1').get(partId);
+}
+
+// The chapter whose mock interview is due: the current lesson ends its chapter and is completed.
+function interviewChapterId(position: ReturnType<typeof database.getCurrentPosition>): number {
+  const lesson = position?.current_lesson;
+  if (!position || !lesson) throw new Error('No current lesson, so no interview is due.');
+  if (!position.is_chapter_end) {
+    throw new Error("The current lesson doesn't end its chapter. The mock interview comes after the chapter's last lesson.");
+  }
+  if (!lesson.completed) {
+    throw new Error("The chapter's last lesson isn't completed yet. The mock interview comes after it.");
+  }
+  return position.current_chapter!.id;
+}
+
+// The same, for the tools that change the interview: refused once it's resolved.
+function openInterviewChapterId(position: ReturnType<typeof database.getCurrentPosition>): number {
+  const chapterId = interviewChapterId(position);
+  if (interviewResolved(chapterId)) {
+    throw new Error("This chapter's interview is already resolved. A chapter holds one interview result.");
+  }
+  return chapterId;
+}
+
+function interviewState(chapterId: number): InterviewState {
+  const row = db.prepare('SELECT plan, scores, best_score FROM interview_progress WHERE chapter_id = ?').get(chapterId) as
+    { plan: string | null; scores: string; best_score: number | null } | undefined;
+  const result = db.prepare('SELECT score, total FROM interview_results WHERE chapter_id = ? LIMIT 1').get(chapterId) as
+    { score: number; total: number } | undefined;
+  const plan = row?.plan ? JSON.parse(row.plan) as InterviewSlot[] : null;
+  const scores = row ? JSON.parse(row.scores) as number[] : [];
+  return {
+    chapter_id: chapterId,
+    resolved: !!result,
+    plan,
+    scores,
+    answered: scores.length,
+    finished: !!plan && scores.length === INTERVIEW_QUESTIONS,
+    best_score: result ? result.score : row?.best_score ?? null,
+    result: result ?? null,
+  };
 }
 // A lesson holds one quiz result: a retake updates that row rather than adding one, so quiz
 // averages and the score count each lesson once.
@@ -1743,6 +1821,16 @@ export const database = {
         )
       `).run(tutorialId);
 
+      // Clear interviews in progress
+      db.prepare(`
+        DELETE FROM interview_progress
+        WHERE chapter_id IN (
+          SELECT c.id FROM chapters c
+          JOIN parts p ON c.part_id = p.id
+          WHERE p.tutorial_id = ?
+        )
+      `).run(tutorialId);
+
       // Clear capstone results
       db.prepare(`
         DELETE FROM capstone_results
@@ -1785,13 +1873,94 @@ export const database = {
     return { ...(db.prepare('SELECT * FROM quiz_results WHERE id = ?').get(result.lastInsertRowid) as QuizResult), retake: false };
   },
 
-  logInterviewResult(chapterId: number, score: number, total: number, notes?: string): InterviewResult {
-    const result = db.prepare(`
-      INSERT INTO interview_results (chapter_id, score, total, notes)
-      VALUES (?, ?, ?, ?)
-    `).run(chapterId, score, total, notes || null);
+  // The current chapter's mock interview: its plan, the scores so far, and the best total of
+  // any finished attempt. Available once the chapter's last lesson is completed.
+  getInterview(): InterviewState {
+    const chapterId = interviewChapterId(this.getCurrentPosition());
+    return interviewState(chapterId);
+  },
 
-    return db.prepare('SELECT * FROM interview_results WHERE id = ?').get(result.lastInsertRowid) as InterviewResult;
+  // Store the plan for an interview attempt: 8 slots, written before any question is. Refused
+  // while a plan is stored: an attempt in progress resumes from its plan, and a finished one
+  // is cleared by retakeInterview first.
+  planInterview(slots: InterviewSlot[]): InterviewState {
+    const chapterId = openInterviewChapterId(this.getCurrentPosition());
+    if (interviewState(chapterId).plan) {
+      throw new Error('This interview already has a plan. Resume it from the next unanswered question, or, once it is finished, call retake_interview first.');
+    }
+    if (!Array.isArray(slots) || slots.length !== INTERVIEW_QUESTIONS) {
+      throw new Error(`An interview plan has exactly ${INTERVIEW_QUESTIONS} slots.`);
+    }
+    for (const [i, slot] of slots.entries()) {
+      const validConcepts = Array.isArray(slot?.concepts) && slot.concepts.length > 0
+        && slot.concepts.every(c => typeof c === 'string' && c.trim() !== '');
+      if (typeof slot?.category !== 'string' || slot.category.trim() === '' || !validConcepts) {
+        throw new Error(`Slot ${i + 1} needs a category and at least one concept.`);
+      }
+    }
+    const plan = JSON.stringify(slots.map(({ category, concepts }) => ({ category, concepts })));
+    db.prepare(`
+      INSERT INTO interview_progress (chapter_id, plan, scores) VALUES (?, ?, '[]')
+      ON CONFLICT(chapter_id) DO UPDATE SET plan = excluded.plan, scores = '[]'
+    `).run(chapterId, plan);
+    return interviewState(chapterId);
+  },
+
+  // Start the interview again: clear the finished attempt's plan and scores, and keep its best
+  // total. The next attempt starts with planInterview.
+  retakeInterview(): InterviewState {
+    const chapterId = openInterviewChapterId(this.getCurrentPosition());
+    const state = interviewState(chapterId);
+    if (!state.finished) {
+      throw new Error(state.plan
+        ? `The interview is on question ${state.answered + 1} of ${INTERVIEW_QUESTIONS}. A retake starts once every question is scored.`
+        : 'There is no finished interview to retake.');
+    }
+    db.prepare("UPDATE interview_progress SET plan = NULL, scores = '[]' WHERE chapter_id = ?").run(chapterId);
+    return interviewState(chapterId);
+  },
+
+  // Record one answer's score, 0–5. Questions are scored in order, so a repeated call can't
+  // fill the wrong slot. Scoring the last one finishes the attempt and updates the best total.
+  logInterviewAnswer(question: number, score: number): InterviewState {
+    const chapterId = openInterviewChapterId(this.getCurrentPosition());
+    const state = interviewState(chapterId);
+    if (!state.plan) throw new Error('The interview has no plan yet. Call plan_interview first.');
+    if (state.finished) throw new Error(`Every question is already scored. Retake the interview to answer them again.`);
+    if (question !== state.answered + 1) {
+      throw new Error(question <= state.answered
+        ? `Question ${question} is already scored. The next is question ${state.answered + 1}.`
+        : `Questions are scored in order. The next is question ${state.answered + 1}.`);
+    }
+    if (!Number.isInteger(score) || score < 0 || score > INTERVIEW_QUESTION_MAX) {
+      throw new Error(`A score is a whole number from 0 to ${INTERVIEW_QUESTION_MAX}.`);
+    }
+    const scores = [...state.scores, score];
+    let best = state.best_score;
+    if (scores.length === INTERVIEW_QUESTIONS) {
+      const total = scores.reduce((a, b) => a + b, 0);
+      best = best === null ? total : Math.max(best, total);
+    }
+    db.prepare('UPDATE interview_progress SET scores = ?, best_score = ? WHERE chapter_id = ?').run(JSON.stringify(scores), best, chapterId);
+    return interviewState(chapterId);
+  },
+
+  // Resolve the chapter's interview with its best total, when the learner chooses to go on. An
+  // unfinished retake is dropped: the earlier attempt's best stands. A chapter holds one result.
+  logInterviewResult(notes?: string): InterviewResult {
+    const chapterId = openInterviewChapterId(this.getCurrentPosition());
+    const { best_score } = interviewState(chapterId);
+    if (best_score === null) {
+      throw new Error('No interview attempt has finished yet. Every question needs a score first.');
+    }
+    return db.transaction(() => {
+      const result = db.prepare(`
+        INSERT INTO interview_results (chapter_id, score, total, notes)
+        VALUES (?, ?, ?, ?)
+      `).run(chapterId, best_score, INTERVIEW_TOTAL, notes || null);
+      db.prepare('DELETE FROM interview_progress WHERE chapter_id = ?').run(chapterId);
+      return db.prepare('SELECT * FROM interview_results WHERE id = ?').get(result.lastInsertRowid) as InterviewResult;
+    })();
   },
 
   // A part holds one capstone result: completed or skipped, it's final. Counts of completed
