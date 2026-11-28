@@ -116,7 +116,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'get_curriculum_tree',
-        description: 'Get the full curriculum as a pre-formatted ASCII tree, annotated with live progress (✓ completed, ► current, ○ upcoming, ◆ capstone). Use this for any "show me the curriculum" view (e.g., the /menu Curriculum Tree, "View curriculum" at tutorial start) instead of get_tutorial. The response is a ready-to-display string — present it verbatim, do not reformat.',
+        description: 'Get the full curriculum as a pre-formatted ASCII tree, annotated with live progress (✓ cleared, ► current, ○ upcoming; capstones ★ cleared, ☆ skipped, ◇ upcoming). Use this for any "show me the curriculum" view (e.g., the /menu Curriculum Tree, "View curriculum" at tutorial start) instead of get_tutorial. The response is a ready-to-display string — present it verbatim, do not reformat.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -124,7 +124,7 @@ async function listTools(): Promise<ListToolsResult> {
       },
       {
         name: 'get_chapter_progress',
-        description: 'Get one chapter\'s progress view as a pre-formatted string: each lesson (✓ done, with a progress bar), the mock interview, and "◄── up next" on the first item not yet done. Use this for the progress view shown after a lesson and when resuming mid-chapter. The response is ready to display — present it verbatim, do not reformat. The chapter_id comes from current_chapter.id returned by get_current_position.',
+        description: 'Get one chapter\'s progress view as a pre-formatted string: each lesson (✓ done, with a progress bar), then the mock interview. The first item not yet done is marked ►, with "◄── in progress" and a partial bar if it has begun, or "◄── up next" if not. Use this for the progress view shown after a lesson and when resuming mid-chapter. The response is ready to display — present it verbatim, do not reformat. The chapter_id comes from current_chapter.id returned by get_current_position.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -520,7 +520,7 @@ async function callTool(request: CallToolRequest) {
         const result = database.logCapstoneResult(part_id, completed, notes);
         return jsonResponse({
           success: true,
-          message: `Capstone result logged: ${completed ? 'completed' : 'incomplete'}`,
+          message: `Capstone result logged: ${completed ? 'completed' : 'skipped'}`,
           result,
         });
       }
@@ -535,7 +535,7 @@ async function callTool(request: CallToolRequest) {
           total_in_queue: result.total_in_queue,
           queue_replenished: result.queue_replenished,
           queue: result.queue,
-          instructions: 'For each lesson in the queue, randomly pick ONE concept and ask a review question about it.',
+          instructions: "Ask one review question about each item's concept, then record it with log_review_result.",
         });
       }
 
@@ -549,8 +549,8 @@ async function callTool(request: CallToolRequest) {
         return jsonResponse({
           success: true,
           message: correct
-            ? 'Correct! Lesson removed from review queue.'
-            : 'Incorrect. Lesson moved to end of queue for later review.',
+            ? 'Correct! Concept removed from the review queue.'
+            : 'Incorrect. Concept moved to the end of the queue for later review.',
           ...result,
         });
       }
